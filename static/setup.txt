@@ -1,0 +1,17 @@
+config.tx_tcaobjects {
+
+	parseFunc_RTE {
+		allowTags >
+		allowTags = br,b,i,u,a,h5,h6
+		denyTags = *
+	}
+	
+	formThumbnail {
+		format = jpg
+		file {
+			width = 200m
+			height = 200m
+		}
+	}
+	
+}

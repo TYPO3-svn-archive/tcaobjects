@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>module</type>
+		<description>Default language labels the tcaobjects</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="quickform.rule.maxlength">Value must not be longer than %s characters.</label>
+			<label index="quickform.rule.required">This is a required field.</label>
+			
+			<label index="quickform.rule.checktoken">Error: Form has already been submitted.</label>
+			
+			<label index="quickform.rule.rule_int">Only integers allowed.</label>
+			<label index="quickform.rule.rule_notint">No integers allowed.</label>
+			<label index="quickform.rule.rule_lower">Only lower case letters allowed.</label>
+			<label index="quickform.rule.rule_upper">Only upper case letters allowed.</label>
+			<label index="quickform.rule.rule_nospace">No spaces allowed.</label>
+			<label index="quickform.rule.rule_alpha">Only letters allowd.</label>
+			<label index="quickform.rule.rule_num">Only numbers allowed.</label>
+			<label index="quickform.rule.rule_alphanum">Only letters and numbers allowed.</label>
+			<label index="quickform.rule.rule_alphanum_x">Only letters, numbers "-" and "_" allowed.</label>
+			
+			<label index="quickform.rule.qf_rule_email">Only syntactically valid e-mail addresses allowed.</label>
+			<label index="quickform.rule.qf_rule_emailorblank">Only syntactically valid e-mail addresses or blank allowed.</label>
+			<label index="quickform.rule.qf_rule_lettersonly">Only letters allowed.</label>
+			<label index="quickform.rule.qf_rule_alphanumeric">Only letters and numbers allowed.</label>
+			<label index="quickform.rule.qf_rule_numeric">Only valid positive or negative integer or decimal number allowed.</label>
+			<label index="quickform.rule.qf_rule_nopunctuation">No punctuation characters allowed.</label>
+			<label index="quickform.rule.qf_rule_nonzero">The input must not begin with zero.</label>
+			
+			<label index="quickform.rule.unique">Value exists already (has to be unique)</label>
+			<label index="quickform.requiredNote">* denotes required field</label>
+			<label index="quickform.deleteFile">Delete this file</label>
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="quickform.rule.required">Bitte ausfüllen</label>
+			<label index="quickform.rule.unique">Wert schon vorhanden. (muss eindeutig sein)</label>
+			<label index="quickform.requiredNote">* kennzeichnet Pflichtfeld</label>
+		</languageKey>
+	</data>
+</T3locallang>

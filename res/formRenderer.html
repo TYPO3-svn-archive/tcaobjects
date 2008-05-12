@@ -1,0 +1,64 @@
+<!-- ###ELEMENTTEMPLATE### -->
+		<tr>
+			<td align="right" valign="top">
+				<!-- BEGIN required --><span style="color: #ff0000">*</span><!-- END required -->
+				<b>{label}</b>
+			</td>
+			<td valign="top" align="left">
+				<!-- BEGIN error --><span style="color: #ff0000">{error}</span><br /><!-- END error -->
+				{element}
+			</td>
+		</tr>
+<!-- ###ELEMENTTEMPLATE### -->    	
+		
+		
+		
+<!-- ###GROUPELEMENTTEMPLATE### -->		
+		<div style="float:left;">
+				{element} <br />
+				<b>{label}</b><!-- BEGIN required --><span style="color: #ff0000">*</span><!-- END required -->
+		</div>
+<!-- ###GROUPELEMENTTEMPLATE### -->
+		
+		
+		
+<!-- ###FORMTEMPLATE### -->
+    	<form{attributes}>
+    		<div>
+    			{hidden}
+    			<table border="0">
+    				{content}	
+    			</table>
+    		</div>
+    	</form>
+<!-- ###FORMTEMPLATE### -->
+    	
+    	
+    	
+<!-- ###HEADERTEMPLATE### -->
+    	<tr>
+    		<td style="white-space: nowrap; background-color: #CCCCCC; height:20px; padding: 5px;" align="left" valign="top" colspan="2">
+    			<b>{header}</b>
+    		</td>
+    	</tr>
+<!-- ###HEADERTEMPLATE### -->
+    	
+    	
+    	
+<!-- ###REQUIREDNOTETEMPLATE### -->
+    	<tr>
+    		<td>
+    		</td>
+    		<td align="left" valign="top">
+    			{requiredNote}
+    		</td>
+    	</tr>
+<!-- ###REQUIREDNOTETEMPLATE### -->
+		
+		
+		
+<!-- ###GROUPTEMPLATE### -->
+    	<div style="clear:both;">
+    		{content}
+    	</div>
+<!-- ###GROUPTEMPLATE### -->
