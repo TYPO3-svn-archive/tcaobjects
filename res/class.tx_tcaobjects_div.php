@@ -361,6 +361,29 @@ class tx_tcaobjects_div {
 		}
 		return $r;
 	}
+	
+	
+	
+	/**
+	 * Clear caches "pages", "all", "temp_CACHED" or numeric'
+	 *
+	 * @param 	mixed	
+	 * @return 	void
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-05-15
+	 * @see 	t3lib_TCEmain::clear_cacheCmd
+	 */
+	public static function clearCache($cacheCmd = 'all') {
+		
+		if (!t3lib_div::testInt($cacheCmd) && !in_array($cacheCmd, array('pages', 'all', 'temp_CACHED'))) {
+			throw tx_pttools_exception('Parameter must be "pages", "all", "temp_CACHED" or numeric'); 
+		}
+		
+	    $tce = t3lib_div::makeInstance('t3lib_TCEmain'); /* @var $tce t3lib_TCEmain */
+	    $tce->stripslashes_values = 0;
+	    $tce->start(Array(),Array());
+	    $tce->clear_cacheCmd($cacheCmd);
+	}
 
 
 	/**
