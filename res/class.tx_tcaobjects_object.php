@@ -90,7 +90,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 			$this->_properties[$field] = true;
 			
 			
-		foreach (array('tstamp', 'crdate', 'cruser_id', 'delete') as $specialField) {
+		foreach (array('tstamp', 'crdate', 'cruser_id', 'delete', 'sortby') as $specialField) {
 			if (($fieldName = $this->getSpecialField($specialField)) !== false) {
 				if (!is_array($this->_properties[$fieldName])) {
 					$this->_properties[$fieldName] = true;
@@ -416,7 +416,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	
 	
 	public function getSpecialField($specialField) {
-		if (!in_array($specialField, array('tstamp', 'crdate', 'cruser_id', 'delete'))) {
+		if (!in_array($specialField, array('tstamp', 'crdate', 'cruser_id', 'delete', 'sortby'))) {
 			throw new tx_pttools_exception('"'.$specialField.'" is an invalid field name');
 		}
 		$fieldName = $GLOBALS['TCA'][$this->_table]['ctrl'][$specialField];
