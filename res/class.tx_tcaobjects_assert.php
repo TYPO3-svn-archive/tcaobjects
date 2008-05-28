@@ -22,7 +22,7 @@ class tx_tcaobjects_assert {
 	 * @throws	tx_pttools_exception	if assertion fails
 	 * @access 	public
 	 */
-	static function test($val, $expected, $info = array(), $strict = true) {
+	static function test($val, $expected, array $info = array(), $strict = true) {
 
 		$success = ($strict) ? $val === $expected : $val == $expected;
 		
@@ -72,7 +72,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function true($val, $info = array()) {
+	static function true($val, array $info = array()) {
 
 		return self::test($val, true, $info);
 	}
@@ -87,7 +87,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function false($val, $info = array()) {
+	static function false($val, array $info = array()) {
 
 		return self::test($val, false, $info);
 	}
@@ -103,7 +103,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function equal($a, $b, $info = array()) {
+	static function equal($a, $b, array $info = array()) {
 
 		return self::test($a, $b, $info, false);
 	}
@@ -119,7 +119,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function identical($a, $b, $info = array()) {
+	static function identical($a, $b, array $info = array()) {
 
 		return self::test($a, $b, $info, true);
 	}
@@ -132,7 +132,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function pattern($pattern, $val, $info = array()) {
+	static function pattern($pattern, $val, array $info = array()) {
 
 		return self::test(preg_match($pattern, $val), true, tx_tcaobjects_div::am(array('pattern' => $pattern), $info));
 	}
@@ -147,7 +147,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function isEmpty($val, $info = array()) {
+	static function isEmpty($val, array $info = array()) {
 
 		return self::test(empty($val), true, $info);
 	}
@@ -162,7 +162,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function notEmpty($val, $info = array()) {
+	static function notEmpty($val, array $info = array()) {
 
 		return self::test(empty($val), false, $info);
 	}
@@ -177,7 +177,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function isNumeric($val, $info = array()) {
+	static function isNumeric($val, array $info = array()) {
 
 		return self::test(is_numeric($val), true, $info);
 	}
@@ -192,7 +192,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function notNumeric($val, $info = array()) {
+	static function notNumeric($val, array $info = array()) {
 
 		return self::test(is_numeric($val), false, $info);
 	}
@@ -207,7 +207,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function isInteger($val, $info = array()) {
+	static function isInteger($val, array $info = array()) {
 
 		return self::test(is_int($val), true, $info);
 	}
@@ -222,7 +222,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function notInteger($val, $info = array()) {
+	static function notInteger($val, array $info = array()) {
 
 		return self::test(is_int($val), false, $info);
 	}
@@ -235,7 +235,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function isIntegerish($val, $info = array()) {
+	static function isIntegerish($val, array $info = array()) {
 
 		return self::test(is_int($val) || ctype_digit($val), true, $info);
 	}
@@ -248,7 +248,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function notIntegerish($val, $info = array()) {
+	static function notIntegerish($val, array $info = array()) {
 
 		return self::test(is_int($val) || ctype_digit($val), false, $info);
 	}
@@ -263,7 +263,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function isObject($val, $info = array()) {
+	static function isObject($val, array $info = array()) {
 
 		return self::test(is_object($val), true, $info);
 	}
@@ -278,7 +278,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function notObject($val, $info = array()) {
+	static function notObject($val, array $info = array()) {
 
 		return self::test(is_object($val), false, $info);
 	}
@@ -293,7 +293,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function isBoolean($val, $info = array()) {
+	static function isBoolean($val, array $info = array()) {
 
 		return self::test(is_bool($val), true, $info);
 	}
@@ -308,7 +308,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function notBoolean($val, $info = array()) {
+	static function notBoolean($val, array $info = array()) {
 
 		return self::test(is_bool($val), false, $info);
 	}
@@ -323,7 +323,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function isString($val, $info = array()) {
+	static function isString($val, array $info = array()) {
 
 		return self::test(is_string($val), true, $info);
 	}
@@ -338,7 +338,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function notString($val, $info = array()) {
+	static function notString($val, array $info = array()) {
 
 		return self::test(is_string($val), false, $info);
 	}
@@ -353,7 +353,7 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function isArray($val, $info = array()) {
+	static function isArray($val, array $info = array()) {
 
 		return self::test(is_array($val), true, $info);
 	}
@@ -368,9 +368,43 @@ class tx_tcaobjects_assert {
 	 * @return 	void
 	 * @access 	public
 	 */
-	static function notArray($val, $info = array()) {
+	static function notArray($val, array $info = array()) {
 
 		return self::test(is_array($val), false, $info);
+	}
+	
+	
+	
+	/**
+	 * Test if a value is in an array
+	 *
+	 * @param 	mixed	value
+	 * @param 	array 	array
+	 * @param 	array 	info
+	 * @return 	void
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-05-17
+	 */
+	static function inArray($val, array $array, array $info = array()) {
+		
+		return self::test(in_array($val, $array), true, $info);
+	}
+	
+	
+	
+	/**
+	 * Test if a value is in a comma separated list
+	 *
+	 * @param 	string	value
+	 * @param 	string 	list
+	 * @param 	array 	info
+	 * @return 	void
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-05-17
+	 */
+	static function inList($val, $list, array $info = array()) {
+		
+		return self::test(t3lib_div::inList($list, $val), true, $info);
 	}
 
 

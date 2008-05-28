@@ -1,3 +1,19 @@
+2008-05-27
+
++ (Fabrizio)
+  + Fixed bug with assertion in tx_tcaobjects_object::getSpecialField()
+  + Changed ArrayAccess methods in tx_tcaobjects_objectCollection to use native tx_pttools_objectCollection methods
+  + Added function tx_tcaobjects_div::getCondensedExtKeyFromClassName
+  + added tx_tcaobjects_registry
+  + replaced tx_tcaobjects_objects->_conf by ->_extConf and ->_classConf, which will be filled automatically by configuration from registry
+  + some minor changes
+
+2008-05-17
+
++ (Fabrizio)
+  + tx_tcaobjects_tcaobject should support the sorting field (defined by "sortby" in the TCA) now
+  + added function tx_tcaobjects_assert::inArray()
+
 2008-05-15
 
 + (Fabrizio)

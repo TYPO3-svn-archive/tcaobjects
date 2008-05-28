@@ -29,9 +29,14 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	protected $_properties = array();
 	
 	/**
-	 * @var array	configuration array
+	 * @var array	configuration array for this class
 	 */
-	protected $_conf = array();
+	protected $_classConf = array();
+	
+	/**
+	 * @var array	configuration array for the extension
+	 */
+	protected $_extConf = array();
 	
 	/**
 	 * @var array	aliases
@@ -39,7 +44,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	protected $_aliasMap = array();
 	
 	/**
-	 * @var array	ignored fields
+	 * @var array	ignored fields. Add your dynamic getters and setters to this list. Be careful if you inherit from another object then tx_tcaobjects_object. Use array_merge then!
 	 */
 	protected $_ignoredFields = array();
 	
@@ -58,6 +63,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 										'rte',
 										'sL',
 									);
+									
+	/**
+	 * @var string	comma separeted list of potential special fields
+	 */
+	const potentialSpecialFields = 'tstamp,crdate,cruser_id,delete,sortby';
 
 
 
@@ -78,36 +88,63 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		// Load backend class "language" to process language labels
 		tx_tcaobjects_div::loadLang();
 		
+		// TODO: what if not in frontend context?
 		$GLOBALS['TSFE']->includeTCA();
-		if (empty($this->_table))
+		
+		// Set table
+		if (empty($this->_table)) {
 			$this->_table = get_class($this);
-			// echo $this->_table .'<br >';
+		}
+
 		t3lib_div::loadTCA($this->_table);
+		
+		// Override and extend TCA settings with local settings from (inheriting) class 
 		$this->_properties = t3lib_div::array_merge_recursive_overrule($GLOBALS['TCA'][$this->_table]['columns'], $this->_properties);
 		
+		// Standard fields
 		$standardFields = array('uid', 'pid'); 
-		foreach ($standardFields as $field)
+		foreach ($standardFields as $field) {
 			$this->_properties[$field] = true;
-			
-			
-		foreach (array('tstamp', 'crdate', 'cruser_id', 'delete', 'sortby') as $specialField) {
+		}
+		
+		// Special fields (tstamp, crdate,...)
+		foreach (t3lib_div::trimExplode(',', self::potentialSpecialFields) as $specialField) {
 			if (($fieldName = $this->getSpecialField($specialField)) !== false) {
 				if (!is_array($this->_properties[$fieldName])) {
 					$this->_properties[$fieldName] = true;
 				}
 			}
 		}
+		
+		// Ignored fields
 		foreach ($this->_ignoredFields as $field) {
 			$this->_properties[$field] = true;
 		}
+		
+		// New fields from the alias map
 		foreach ($this->_aliasMap as $field => $target) {
 			$this->_properties[$field] &= $this->_properties[$target];
 		}
+		
+		// set class configuration array if found in registry
+		$classConfLabel = get_class($this) . '_conf';
+		if (tx_tcaobjects_registry::getInstance()->has($classConfLabel)) {
+			$this->_classConf = &tx_tcaobjects_registry::getInstance()->get($classConfLabel);
+		}
+	
+		// set extension configuration array if found in registry
+		$extConfLabel = tx_tcaobjects_div::getCondensedExtKeyFromClassName(get_class($this)) . '_conf';
+		if (tx_tcaobjects_registry::getInstance()->has($extConfLabel)) {
+			$this->_extConf = &tx_tcaobjects_registry::getInstance()->get($extConfLabel);
+		}
+		
+		// Populate with data
 		if (!empty($uid)) {
 			$this->loadSelf($uid, $ignoreEnableFields);
 		} elseif (!empty($dataArr)) {
 			$this->setDataArray($dataArr);
 		}
+		
 	}
 
 
@@ -416,9 +453,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	
 	
 	public function getSpecialField($specialField) {
-		if (!in_array($specialField, array('tstamp', 'crdate', 'cruser_id', 'delete', 'sortby'))) {
-			throw new tx_pttools_exception('"'.$specialField.'" is an invalid field name');
-		}
+		
+		tx_tcaobjects_assert::inArray(
+			$specialField, 
+			t3lib_div::trimExplode(',', self::potentialSpecialFields),
+			array('message' => '"'.$specialField.'" is an invalid field name')
+		);
+		
 		$fieldName = $GLOBALS['TCA'][$this->_table]['ctrl'][$specialField];
 		return (!empty($fieldName) ? $fieldName : false ); 
 	}
@@ -446,8 +487,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 */
 	public function getConfig($property, $config) {
 		
-		tx_tcaobjects_assert::notEmpty($property, array('message', 'Parameter "property" empty!'));
-		tx_tcaobjects_assert::notEmpty($config, array('message', 'Parameter "config" empty!'));
+		tx_tcaobjects_assert::notEmpty($property, array('message' => 'Parameter "property" empty!'));
+		tx_tcaobjects_assert::notEmpty($config, array('message' => 'Parameter "config" empty!'));
 		
 		return $this->_properties[$property]['config'][$config];
 	}

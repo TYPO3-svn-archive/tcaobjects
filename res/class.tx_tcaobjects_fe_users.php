@@ -30,7 +30,7 @@
  * @author	Fabrizio Branca <mail@fabrizio-branca.de>
  * @since	2008-03-21
  */
-class tx_tcaobjects_fe_users extends tx_tcaobjects_object{
+class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
 
 	// TODO: export to tcaobjects
 
@@ -91,7 +91,7 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object{
      * Login user (without checking password)
      *
      * @param 	void
-     * @return 	bool
+     * @return 	bool	true if login was successful
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-03-22
      */

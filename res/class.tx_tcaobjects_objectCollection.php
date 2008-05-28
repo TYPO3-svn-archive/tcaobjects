@@ -53,28 +53,58 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		return $this;	
 	}
     
+	
+	
     /***************************************************************************
      * Methods for the "ArrayAccess" interface
      **************************************************************************/
-    public function offsetExists($offset) {
-        return array_key_exists($this->itemsArr, $offset);
+	
+    /**
+     * Checks if an offset is in the array
+     *
+     * @param 	mixed	offset
+     * @return 	bool
+     */
+	public function offsetExists($offset) {
+        return $this->hasItem($offset);
     }
 
+    
+    
+    /**
+     * Returns the value for a given offset
+     *
+     * @param 	mixed	offset
+     * @return 	mixed	element of the collection
+     */
     public function offsetGet($offset) {
-        return $this->itemsArr[$offset];
+    	return $this->getItemById($offset);
     }
 
+    
+    
+    /**
+     * Adds an element to the collection
+     *
+     * @param 	mixed	offset
+     * @param 	mixed	value
+     */
     public function offsetSet($offset, $value) {
-        if (is_null($offset)) {
-            $this->itemsArr[] = $value;
-        } else {
-            $this->itemsArr[$offset] = $value;
-        }
+    	$this->addItem($value, $offset);
     }
 
+    
+    
+    /**
+     * Deletes an element from the collection
+     *
+     * @param 	mixed	offset
+     */
     public function offsetUnset($offset) {
-        unset($this->itemsArr[$offset]);
+    	$this->deleteItem($offset);
     }
+    
+    
 }
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tcaobjects/res/class.tx_tcaobjects_objectCollection.php'])	{

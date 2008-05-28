@@ -96,7 +96,7 @@ class tx_tcaobjects_div {
 	 */
 	public static function autoLoad($className) {
 	
-		list ( , $extKey) = t3lib_div::trimExplode('_', $className);
+		$extKey = self::getCondensedExtKeyFromClassName($className);
 		
 		$path = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingPath'][$extKey];
 		if (!empty($path)) {
@@ -106,6 +106,21 @@ class tx_tcaobjects_div {
 				require_once $path;
 			}
 		}
+	}
+	
+	
+	
+	/**
+	 * Get condensened extension key from class name
+	 *
+	 * @param 	string	class name
+	 * @return 	string 	condensed extension key
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-05-27
+	 */
+	public static function getCondensedExtKeyFromClassName($className) {
+		list ( , $extKey) = t3lib_div::trimExplode('_', $className);
+		return $extKey;
 	}
 	
 	
