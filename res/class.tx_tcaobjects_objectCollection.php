@@ -5,7 +5,7 @@ require_once t3lib_extMgm::extPath('tcaobjects').'res/class.tx_tcaobjects_object
 require_once t3lib_extMgm::extPath('tcaobjects').'res/class.tx_tcaobjects_iPageable.php';
 
 
-class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection implements ArrayAccess, tx_tcaobjects_iPageable {
+class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection implements tx_tcaobjects_iPageable {
 
     /**
      * @var tx_pttools_objectAccessor
@@ -16,7 +16,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     protected $tcaObjectName = '';
 
     protected $table = '';
-
+    
 
     public function loadItems($where = '', $limit = '', $order = '') {
         $dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order);
@@ -40,6 +40,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
         }
     }
 
+    
+    
     /***************************************************************************
      * Methods for the "tx_tcaobjects_iPageable" interface
      **************************************************************************/
@@ -52,57 +54,6 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		$this->loadItems($where, $limit, $order);
 		return $this;	
 	}
-    
-	
-	
-    /***************************************************************************
-     * Methods for the "ArrayAccess" interface
-     **************************************************************************/
-	
-    /**
-     * Checks if an offset is in the array
-     *
-     * @param 	mixed	offset
-     * @return 	bool
-     */
-	public function offsetExists($offset) {
-        return $this->hasItem($offset);
-    }
-
-    
-    
-    /**
-     * Returns the value for a given offset
-     *
-     * @param 	mixed	offset
-     * @return 	mixed	element of the collection
-     */
-    public function offsetGet($offset) {
-    	return $this->getItemById($offset);
-    }
-
-    
-    
-    /**
-     * Adds an element to the collection
-     *
-     * @param 	mixed	offset
-     * @param 	mixed	value
-     */
-    public function offsetSet($offset, $value) {
-    	$this->addItem($value, $offset);
-    }
-
-    
-    
-    /**
-     * Deletes an element from the collection
-     *
-     * @param 	mixed	offset
-     */
-    public function offsetUnset($offset) {
-    	$this->deleteItem($offset);
-    }
     
     
 }

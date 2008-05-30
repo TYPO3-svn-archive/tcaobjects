@@ -125,16 +125,9 @@ $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'tcaobjects\'][\'autoLoadingPath\'][
 
             // collection
             $classContent =  "
-    /**
-     * Override addItem method to assure correct types
-     *
-     * @param	  $cnO    object
-     * @return    void
-     */
-	public function addItem($cnO \$item) {
-		parent::addItem(\$item);
-	}
-
+	
+	protected \$restrictedClassName = '$cnO';
+	
 	";
 
             $class = "class $cnC extends tx_tcaobjects_objectCollection {\n$classContent\n}";

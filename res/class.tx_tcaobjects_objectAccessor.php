@@ -72,7 +72,6 @@ class tx_tcaobjects_objectAccessor {
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
         trace(tx_pttools_div::returnLastBuiltSelectQuery($GLOBALS['TYPO3_DB'], $select, $from, $where, $groupBy, $orderBy, $limit));
-        // echo tx_pttools_div::returnLastBuiltSelectQuery($GLOBALS['TYPO3_DB'], $select, $from, $where, $groupBy, $orderBy, $limit);
         if ($res == false) {
             throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
         }
@@ -196,7 +195,6 @@ class tx_tcaobjects_objectAccessor {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function insert ($table, array $insertFieldsArr) {
-        // echo "inserting";
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $insertFieldsArr);
         trace(tx_pttools_div::returnLastBuiltInsertQuery($GLOBALS['TYPO3_DB'], $table, $insertFieldsArr));
@@ -241,6 +239,7 @@ class tx_tcaobjects_objectAccessor {
     }
 
 
+    
     /**
      * Updates an existing record
      *
@@ -271,7 +270,18 @@ class tx_tcaobjects_objectAccessor {
     
     
     
+    /**
+     * Return the positioning parameter for t3lib_TCEmain::getSortNumber() to move a record one position up
+     *
+     * @param 	string	table
+     * @param 	int		pid
+     * @param 	int		uid
+     * @param 	string	(optional) sorting field name, default: sorting
+     * @return 	mixed	int with the positioning parameter, false if the record is already the last
+     */
     public static function selectMoveOneUpPosition($table, $pid, $uid, $sortingFieldName = 'sorting') {
+    	// TODO: is the pid parameter really needed here? 
+    	
 		// query preparation
         $select  = 'b.uid as position';
         $from    = $table.' as a, '.$table.' as b';
@@ -295,6 +305,8 @@ class tx_tcaobjects_objectAccessor {
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
         
         if (empty($a_row['position'])) {
+        	// TODO: get the pid from the uid
+        	// or even return false, because it is already the first one?
         	$position = $pid;
         } else {
         	$position = '-'.(string)$a_row['position'];
@@ -304,8 +316,20 @@ class tx_tcaobjects_objectAccessor {
     	
     }
     
+    
+    
+    /**
+     * Return the positioning parameter for t3lib_TCEmain::getSortNumber() to move a record one position down
+     *
+     * @param 	string	table
+     * @param 	int		pid
+     * @param 	int		uid
+     * @param 	string	(optional) sorting field name, default: sorting
+     * @return 	mixed	int with the positioning parameter, false if the record is already the last
+     */
     public static function selectMoveOneDownPosition($table, $pid, $uid, $sortingFieldName = 'sorting') {
-    	    	
+		// TODO: is the pid parameter really needed here? 
+    	
 		// query preparation
         $select  = 'b.uid as position';
         $from    = $table.' as a, '.$table.' as b';

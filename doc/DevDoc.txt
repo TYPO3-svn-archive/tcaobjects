@@ -1,3 +1,12 @@
+2008-05-30
+
++ (Fabrizio)
+  + moved tx_tcaobjects_registry to pt_tools
+  + moved tx_tcaobjects_assert to pt_tools
+  + moved tx_tcaobjects_objectCollection's ArrayAccess methods to pt_tools tx_pttools_objectCollection
+  + changed kickstarter code for objectCollection creation
+    + it is not neccessary anymore to overwrite the addItem method to assure correct types, because this is done through the property restrictedClassName
+
 2008-05-27
 
 + (Fabrizio)
