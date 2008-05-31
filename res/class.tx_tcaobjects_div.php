@@ -118,30 +118,22 @@ class tx_tcaobjects_div {
 	 */
 	public static function autoLoad($className) {
 		
-		
-	
 		$extKey = self::getCondensedExtKeyFromClassName($className);
 
-		// check if autoloading path is registred
 		$basePath = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingPath'][$extKey];
 		$basePath = t3lib_div::getFileAbsFileName($basePath);
+		$classMap = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingClassMap'][$extKey];
+		
 		if (!empty($basePath)) {
 			
-			$path = $basePath . 'class.' . $className . '.php';
-			
-			if (file_exists($path)) {
-				require_once $path;
+			if (!empty($classMap[$className])) {
+				$path = $basePath . $classMap[$className];
 			} else {
-		
-				// check if a map is defined
-				$map = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingClassMap'][$extKey];
-				if (!empty($map[$className])) {
-					$path = $basePath . $map[$className];
-					if (t3lib_div::validPathStr($path) && file_exists($path)) {
-						require_once $path;
-					}
-				} 
-				
+				$path = $basePath . 'class.' . $className . '.php';
+			}
+
+			if (t3lib_div::validPathStr($path) && file_exists($path)) {
+				require_once $path;
 			}
 		}
 	}
