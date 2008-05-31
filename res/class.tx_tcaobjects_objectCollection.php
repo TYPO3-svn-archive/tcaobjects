@@ -1,9 +1,5 @@
 <?php
 
-require_once t3lib_extMgm::extPath('pt_tools').'res/abstract/class.tx_pttools_objectCollection.php';
-require_once t3lib_extMgm::extPath('tcaobjects').'res/class.tx_tcaobjects_objectAccessor.php';
-require_once t3lib_extMgm::extPath('tcaobjects').'res/class.tx_tcaobjects_iPageable.php';
-
 
 class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection implements tx_tcaobjects_iPageable {
 

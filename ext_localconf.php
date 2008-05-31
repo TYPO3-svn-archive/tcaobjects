@@ -12,6 +12,7 @@ $TYPO3_CONF_VARS['EXTCONF']['kickstarter']['sections']['tcaobjects'] = array(
 	'singleItem'  => '',
 );
 
+// these require_onces are needed to get the autoloader running 
 require_once t3lib_extMgm::extPath('tcaobjects') . 'res/class.tx_tcaobjects_div.php';
 require_once t3lib_extMgm::extPath('pt_tools') . 'res/objects/class.tx_pttools_exception.php';
 
@@ -28,6 +29,25 @@ if (spl_autoload_register(array('tx_tcaobjects_div', 'pearAutoLoad')) == false) 
 
 // Using the autoloader for the own classes
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingPath'][str_replace('_','',$_EXTKEY)] = 'EXT:'.$_EXTKEY.'/res/';
+
+// Autoloader for pt_tools classes
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingPath']['pttools'] = 'EXT:pt_tools/res/';
+
+// Class map for pt_tools classes
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingClassMap']['pttools'] = array(
+
+	'tx_pttools_objectCollection' 		=> 'abstract/class.tx_pttools_objectCollection.php',
+
+	'tx_pttools_exception' 				=> 'objects/class.tx_pttools_exception.php',
+	'tx_pttools_registry' 				=> 'objects/class.tx_pttools_registry.php',
+	'tx_pttools_formReloadHandler' 		=> 'objects/class.tx_pttools_formReloadHandler.php',
+	'tx_pttools_sessionStorageAdapter' 	=> 'objects/class.tx_pttools_sessionStorageAdapter.php',
+
+	'tx_pttools_debug'	 				=> 'staticlib/class.tx_pttools_debug.php',
+	'tx_pttools_div'	 				=> 'staticlib/class.tx_pttools_div.php',
+	'tx_pttools_assert'	 				=> 'staticlib/class.tx_pttools_assert.php',
+
+);
 
 // Extending smarty
 $GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']['ext/smarty/class.tx_smarty_wrapper.php'] = t3lib_extMgm::extPath($_EXTKEY).'misc/class.ux_tx_smarty_wrapper.php';

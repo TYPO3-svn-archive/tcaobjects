@@ -1,3 +1,11 @@
+2008-05-31
+
++ (Fabrizio)
+  + added autoloadingClassMap to enable of classes that are distributed to different dirs
+    + added autoloadingClassMap for needed pt_tools classes
+    + removed require_once to pt_tools classes (as they are autoloaded now, too)  
+  + some minor code changes (copyright notices,...)
+
 2008-05-30
 
 + (Fabrizio)

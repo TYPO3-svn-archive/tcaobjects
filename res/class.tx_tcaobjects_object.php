@@ -1,7 +1,26 @@
 <?php
-
-require_once t3lib_extMgm::extPath('pt_tools') . 'res/objects/class.tx_pttools_exception.php';
-require_once t3lib_extMgm::extPath('pt_tools') . 'res/objects/class.tx_pttools_formReloadHandler.php';
+/***************************************************************
+*  Copyright notice
+*  
+*  (c) 2008 Fabrizio Branca (mail@fabrizio-branca.de)
+*  All rights reserved
+*
+*  This script is part of the TYPO3 project. The TYPO3 project is 
+*  free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2 of the License, or
+*  (at your option) any later version.
+* 
+*  The GNU General Public License can be found at
+*  http://www.gnu.org/copyleft/gpl.html.
+* 
+*  This script is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  This copyright notice MUST APPEAR in all copies of the script!
+***************************************************************/
 
 require_once PATH_t3lib . 'class.t3lib_userauthgroup.php';
 require_once PATH_t3lib . 'class.t3lib_befunc.php';
@@ -128,14 +147,14 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		
 		// set class configuration array if found in registry
 		$classConfLabel = get_class($this) . '_conf';
-		if (tx_tcaobjects_registry::getInstance()->has($classConfLabel)) {
-			$this->_classConf = &tx_tcaobjects_registry::getInstance()->get($classConfLabel);
+		if (tx_pttools_registry::getInstance()->has($classConfLabel)) {
+			$this->_classConf = &tx_pttools_registry::getInstance()->get($classConfLabel);
 		}
 	
 		// set extension configuration array if found in registry
 		$extConfLabel = tx_tcaobjects_div::getCondensedExtKeyFromClassName(get_class($this)) . '_conf';
-		if (tx_tcaobjects_registry::getInstance()->has($extConfLabel)) {
-			$this->_extConf = &tx_tcaobjects_registry::getInstance()->get($extConfLabel);
+		if (tx_pttools_registry::getInstance()->has($extConfLabel)) {
+			$this->_extConf = &tx_pttools_registry::getInstance()->get($extConfLabel);
 		}
 		
 		// Populate with data
@@ -454,7 +473,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	
 	public function getSpecialField($specialField) {
 		
-		tx_tcaobjects_assert::inArray(
+		tx_pttools_assert::inArray(
 			$specialField, 
 			t3lib_div::trimExplode(',', self::potentialSpecialFields),
 			array('message' => '"'.$specialField.'" is an invalid field name')
@@ -487,8 +506,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 */
 	public function getConfig($property, $config) {
 		
-		tx_tcaobjects_assert::notEmpty($property, array('message' => 'Parameter "property" empty!'));
-		tx_tcaobjects_assert::notEmpty($config, array('message' => 'Parameter "config" empty!'));
+		tx_pttools_assert::notEmpty($property, array('message' => 'Parameter "property" empty!'));
+		tx_pttools_assert::notEmpty($config, array('message' => 'Parameter "config" empty!'));
 		
 		return $this->_properties[$property]['config'][$config];
 	}
@@ -531,7 +550,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 */
 	public function getEval($property) {
 		
-		tx_tcaobjects_assert::notEmpty($property, array('message', 'Parameter "property" empty!'));
+		tx_pttools_assert::notEmpty($property, array('message', 'Parameter "property" empty!'));
 		
 		return t3lib_div::trimExplode(',', $this->getConfig($property, 'eval'));
 	}
@@ -581,7 +600,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		$type 			= $this->getConfig($property, 'type');
 		$internal_type 	= $this->getConfig($property, 'internal_type');
 		
-		tx_tcaobjects_assert::true(
+		tx_pttools_assert::true(
 			($type == 'inline') || (($type = 'group') && ($internal_type == 'db')), 
 			array(
 				'message' 			=> 'Invalid modifier for called property!',
@@ -608,10 +627,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 			$value = new $propertyCollectionName(); /* @var $value tx_tcaobjects_objectCollection */
 			
 			$foreign_table = $this->getConfig($property, 'foreign_table'); 
-			tx_tcaobjects_assert::notEmpty($foreign_table, array('message', 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
+			tx_pttools_assert::notEmpty($foreign_table, array('message', 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 			
 			$foreign_field = $this->getConfig($property, 'foreign_field');
-			tx_tcaobjects_assert::notEmpty($foreign_field, array('message', 'No "foreign_field" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
+			tx_pttools_assert::notEmpty($foreign_field, array('message', 'No "foreign_field" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 			// TODO: If no foreign_field is defined, the field in the original table conatains a comma separeted list of uids in the foreign_table. See TYPO3 Core Apis. This may be implemented here...
 			
 			
@@ -682,7 +701,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		$internal_type 	= $this->getConfig($property, 'internal_type');
 		$maxitems 		= $this->getConfig($property, 'maxitems');
 		
-		tx_tcaobjects_assert::true(
+		tx_pttools_assert::true(
 			($type == 'group') && ($internal_type == 'db') && ($maxitems == 1), 
 			array(
 				'message' 			=> 'Invalid modifier for called property!',
@@ -722,7 +741,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		$type 			= $this->getConfig($property, 'type');
 		$internal_type 	= $this->getConfig($property, 'internal_type');
 		
-		tx_tcaobjects_assert::true(
+		tx_pttools_assert::true(
 			($type == 'group') && ($internal_type == 'file'), 
 			array(
 				'message' 			=> 'Invalid modifier for called property!',
@@ -740,7 +759,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 			$uploadFolder = $this->getConfig($property, 'uploadfolder'); 
 			
-			tx_tcaobjects_assert::notEmpty($uploadFolder, array('message' => 'Configuration "uploadfolder" was not defined for property "'.$property.'" in table "'.$this->_table.'"!'));
+			tx_pttools_assert::notEmpty($uploadFolder, array('message' => 'Configuration "uploadfolder" was not defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 						
 			foreach (t3lib_div::trimExplode(',', $this->_values[$property]) as $singleFile) {
 				$files[] = $uploadFolder . DIRECTORY_SEPARATOR . $singleFile;
@@ -771,7 +790,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		
 		$type = $this->getConfig($property, 'type');
 		
-		tx_tcaobjects_assert::true(
+		tx_pttools_assert::true(
 			($type == 'select'), 
 			array(
 				'message' 			=> 'Invalid modifier for called property!',
@@ -818,7 +837,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		$type 		= $this->getConfig($property, 'type');
 		$maxitems 	= $this->getConfig($property, 'maxitems');
 		
-		tx_tcaobjects_assert::true(
+		tx_pttools_assert::true(
 			($type == 'select') && ($maxitems == 1), 
 			array(
 				'message' 			=> 'Invalid modifier for called property!',
@@ -863,7 +882,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	protected function processModifier_rte($property, $calledProperty) {
 		$parseFunc = $GLOBALS['TSFE']->tmpl->setup['config.']['tx_tcaobjects.']['parseFunc_RTE.'];
 		
-		tx_tcaobjects_assert::isArray(
+		tx_pttools_assert::isArray(
 			$parseFunc, 
 			array(
 				'message' 			=> 'No parseFunc defined under "config.tx_tcaobjects.parseFunc_RTE"!',

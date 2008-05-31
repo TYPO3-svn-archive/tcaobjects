@@ -1,6 +1,5 @@
 <?php
 
-require_once t3lib_extMgm::extPath('tcaobjects').'res/class.tx_tcaobjects_iPageable.php';
 
 
 /**
