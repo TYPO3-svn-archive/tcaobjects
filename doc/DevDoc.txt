@@ -1,3 +1,9 @@
+2008-06-01
+
++ (Fabrizio)
+  + Converted line endings to unix format
+  + added some comments
+
 2008-05-31
 
 + (Fabrizio)
