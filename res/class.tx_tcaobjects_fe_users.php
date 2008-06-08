@@ -63,7 +63,7 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function __construct($uid = '', array $dataArr = array(), $fromSession = false, $fromSessionUid = false){
-        
+    	
         if ($fromSession){
             if ($GLOBALS['TSFE']->loginUser) {
                 if ($fromSessionUid){
@@ -116,6 +116,19 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
 		} else {
 			return false;
 		}
+    }
+    
+    
+    
+    /**
+     * Checks if this user objects is the current logged in user
+     *
+     * @return 	bool	true, if this is the current user, otherwise false
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since	2008-06-08
+     */
+    public function isCurrentUser() {
+    	return ($this['uid'] == $GLOBALS['TSFE']->fe_user->user['uid']);
     }
     
 }

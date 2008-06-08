@@ -26,26 +26,26 @@
 
 
 
-// TODO: add properties _properties, _aliasMap, _values, _ignoreFields 
+// TODO: add properties _properties, _aliasMap, _values, _ignoreFields
 
 
 require_once(t3lib_extMgm::extPath('kickstarter').'class.tx_kickstarter_sectionbase.php');
 
 /**
  * Adds a section to the extension kickstarter
- * 
+ *
  * $Id: class.tx_kickstarter_section_tcaobjects.php,v 1.9 2008/04/27 14:04:30 ry44 Exp $
- * 
+ *
  * @author  Fabrizio Branca <mail@fabrizio-branca.de>
  * @since	2008-03-15
  */
 class tx_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
-    public $sectionID = 'tcaobjects';
+	public $sectionID = 'tcaobjects';
 
 	public $pluginnr = -1;
-	
+
 	/**
-	 * @var tx_kickstarter_wizard wizard object 
+	 * @var tx_kickstarter_wizard wizard object
 	 */
 	public $wizard;
 
@@ -55,17 +55,17 @@ class tx_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
 	 * @return	HTML
 	 */
 	public function render_wizard() {
-	    $action = explode(':',$this->wizard->modData['wizAction']);
+		$action = explode(':',$this->wizard->modData['wizAction']);
 
 		if ($action[0]=='edit')	{
 			$action[1]=1;
 			$this->regNewEntry($this->sectionID,$action[1]);
 		}
 
-	    return 'This will create class files for tcaobjects<br />';
+		return 'This will create class files for tcaobjects<br />';
 	}
 
-    /**
+	/**
 	 * Renders the extension PHP code
 	 *
 	 * @param	string		$k: fieldname (key)
@@ -74,73 +74,76 @@ class tx_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
 	 * @return	void
 	 */
 	public function render_extPart($k,$config,$extKey) {
-	    $piConf   = $this->wizard->wizArray['tables'];
-	    
-	    $this->wizard->ext_localconf[] = '	    
+		$piConf   = $this->wizard->wizArray['tables'];
+
+		$this->wizard->ext_localconf[] = '
 // Register class path to tcaobject\'s autoloader
 $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'tcaobjects\'][\'autoLoadingPath\'][str_replace(\'_\',\'\',$_EXTKEY)] = \'EXT:\'.$_EXTKEY.\'/res/\';
 ';
-	    
-	    $tables = array();
-	    foreach ((array)$piConf as $table) {
-	        $tables[] = array ('tablename' => $table['tablename'],
-	                           'isexttable' => false);
-	    }
 
-	    $piConfFields = $this->wizard->wizArray['fields'];
-	    foreach ((array)$piConfFields as $table) {
-	        $tables[] = array ('tablename' => $table['which_table'],
-	                           'isexttable' => true);
-	    }
+		$tables = array();
+		foreach ((array)$piConf as $table) {
+			$tables[] = array ('tablename' => $table['tablename'],
+							   'isexttable' => false);
+		}
 
-	    $pathSuffix = 'res/';
+		$piConfFields = $this->wizard->wizArray['fields'];
+		foreach ((array)$piConfFields as $table) {
+			$tables[] = array ('tablename' => $table['which_table'],
+							   'isexttable' => true);
+		}
 
-	    foreach ($tables as $table) {
+		$pathSuffix = 'res/';
 
-	        $cN = $this->returnName($extKey,'class',$table['tablename']);
+		foreach ($tables as $table) {
 
-	        $cnO = $cN;
-	        $cnA = $cN.'Accessor';
-	        $cnC = $cN.'Collection';
+			$cN = $this->returnName($extKey,'class',$table['tablename']);
 
-	        $fnO = $pathSuffix.'class.'.$cnO.'.php';
-	        $fnA = $pathSuffix.'class.'.$cnA.'.php';
-	        $fnC = $pathSuffix.'class.'.$cnC.'.php';
+			$cnO = $cN;
+			$cnA = $cN.'Accessor';
+			$cnC = $cN.'Collection';
 
-
-	        // accessor
-	        if ($table['isexttable']) $tableproperty = "\n\t".'static protected $_table = \''.$table['tablename'].'\';'."\n";
+			$fnO = $pathSuffix.'class.'.$cnO.'.php';
+			$fnA = $pathSuffix.'class.'.$cnA.'.php';
+			$fnC = $pathSuffix.'class.'.$cnC.'.php';
 
 
-            $class = "class $cnA extends tx_tcaobjects_objectAccessor {\n$tableproperty\n}";
-            $description = 'Accessor class for "'.$cnO.'"';
-    	    $file = $this->PHPclassFile($extKey, $fnA, $class, $description);
-	        $this->addFileToFileArray($fnA, $file);
+			// accessor
+			if ($table['isexttable']) $tableproperty = "\n\t".'static protected $_table = \''.$table['tablename'].'\';'."\n";
 
-	        // object
-    	    $class = "class $cnO extends tx_tcaobjects_object {\n\n}";
-            $description = 'tcaobject for table "'.$table['tablename'].'"';
-            $file = $this->PHPclassFile($extKey, $fnO, $class, $description);
-	        $this->addFileToFileArray($fnO, $file);
 
-            // collection
-            $classContent =  "
-	
+			$class = "class $cnA extends tx_tcaobjects_objectAccessor {\n$tableproperty\n}";
+			$description = 'Accessor class for "'.$cnO.'"';
+			$file = $this->PHPclassFile($extKey, $fnA, $class, $description);
+			$this->addFileToFileArray($fnA, $file);
+
+			// object
+			$class = "class $cnO extends tx_tcaobjects_object {\n\n}";
+			$description = 'tcaobject for table "'.$table['tablename'].'"';
+			$file = $this->PHPclassFile($extKey, $fnO, $class, $description);
+			$this->addFileToFileArray($fnO, $file);
+
+			// collection
+			// TODO: remove because this is not needed (is set in the constructor)
+			$classContent = "\n";
+			/*
+			$classContent =  "
+
 	protected \$restrictedClassName = '$cnO';
-	
+
 	";
+			*/
+			$class = "class $cnC extends tx_tcaobjects_objectCollection {\n$classContent\n}";
+			$description = 'Collection of "'.$cnO.'" objects';
+			$file = $this->PHPclassFile($extKey, $fnC, $class, $description);
+			$this->addFileToFileArray($fnC, $file);
 
-            $class = "class $cnC extends tx_tcaobjects_objectCollection {\n$classContent\n}";
-            $description = 'Collection of "'.$cnO.'" objects';
-            $file = $this->PHPclassFile($extKey, $fnC, $class, $description);
-	        $this->addFileToFileArray($fnC, $file);
+			// single view
+			// $this->addFileToFileArray($pathSuffix.'templates/'.$table['tablename'].'_single.tpl.html', '...');
 
-	        // single view
-	        // $this->addFileToFileArray($pathSuffix.'templates/'.$table['tablename'].'_single.tpl.html', '...');
-
-	        // list view
-	        // $this->addFileToFileArray($pathSuffix.'templates/'.$table['tablename'].'_list.tpl.html', '...');
-	    }
+			// list view
+			// $this->addFileToFileArray($pathSuffix.'templates/'.$table['tablename'].'_list.tpl.html', '...');
+		}
 
 	}
 

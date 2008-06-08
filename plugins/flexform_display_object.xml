@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes" ?>
+<T3DataStructure>
+
+	<meta>
+		<langDisable>1</langDisable>
+	</meta>
+
+	<sheets>
+
+		<sDefault>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>General Options</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+
+					<className>
+						<TCEforms>
+							<label>Classname</label>
+							<config>
+								<type>input</type>
+								<size>24</size>
+								<max>48</max>
+								<eval>trim</eval>
+							</config>
+						</TCEforms>
+					</className>
+
+					<uid>
+						<TCEforms>
+							<label>Uid</label>
+							<config>
+								<type>input</type>
+								<size>24</size>
+								<max>48</max>
+								<eval>trim</eval>
+							</config>
+						</TCEforms>
+					</uid>
+
+					<templateFile>
+						<TCEforms>
+							<label>Template file</label>
+							<config>
+								<type>input</type>
+								<size>24</size>
+								<max>48</max>
+								<eval>trim</eval>
+							</config>
+						</TCEforms>
+					</templateFile>
+
+					<languageFile>
+						<TCEforms>
+							<label>Language file</label>
+							<config>
+								<type>input</type>
+								<size>24</size>
+								<max>48</max>
+								<eval>trim</eval>
+							</config>
+						</TCEforms>
+					</languageFile>
+
+				</el>
+			</ROOT>
+		</sDefault>
+
+	</sheets>
+</T3DataStructure>
+

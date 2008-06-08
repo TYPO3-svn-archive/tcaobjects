@@ -1,3 +1,34 @@
+2008-06-08
+
++ (Fabrizio)
+  + Added "plugins" directory for genereric plugins to display tcaobjects configured by flexform or typoscript
+    + Added plugin "tx_tcaobjects_display_cachedoject" (not finished)
+    + Added plugin "tx_tcaobjects_display_uncachedoject" (not finished)
+  + Added "tx_tcaobjects_clibase" as a simple base class for cli scripts
+  + tx_tcaobjects_div
+    + added method "includeTCA"
+    + changed the "autoLoad" method (to be improved!) with new params:
+      + $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKeyWithNoUnderscores]['basePath'];
+      + $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKeyWithNoUnderscores]['classPaths'];
+      + $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKeyWithNoUnderscores]['firstPartPaths'];
+      + $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKeyWithNoUnderscores]['classMap'];
+      + added timetracking and message in tslog
+  + tx_tcaobjects_fe_users
+    + added method "isCurrentUser"
+  + tx_tcaobjects_object
+    + Added methods to support versioning:
+      + isVersionable() {
+      + isOnlineVersion() {
+      + getVersions() {
+      + makeThisTheOnlineVersion() {
+      + getOnlineVersion() {
+      + saveAsNewVersion($label = '') {  
+    + minor changes
+  + tx_tcaobject_objectCollection
+    + added 2 params to the constructor to enable automatic filling of the collection via methods load_*(array $params)
+    + added method "load_items" as a wrapper for loadItems, that can be used with the "autoFill"-Feature of the constructor 
+      
+
 2008-06-01
 
 + (Fabrizio)

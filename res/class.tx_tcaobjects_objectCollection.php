@@ -11,7 +11,52 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	protected $tcaObjectName = '';
 
 	protected $table = '';
+	
+	
+	
+	/**
+	 * Constructor
+	 *
+	 * @param 	string	(optional) "load_".$load will be called on construct if set
+	 * @param 	array 	(optional) parameters for the "load_".$load method
+	 * @throws	tx_pttools_exception	if "load_".$load does not exist
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-06-08
+	 */
+	public function __construct($load = '', array $params = array()) {
+		
+		// set restricted class name
+		if (is_null($this->restrictedClassName)) {
+			$this->restrictedClassName = $this->getClassName();
+		}
+		
+		// load items
+		if (!empty($load)) {
+			$methodName = 'load_'.$load;
+			if (method_exists($this, $methodName)) {
+				$this->$methodName($params);
+			} else {
+				throw new tx_pttools_exception('Trying to load "'.$load.'", but method "'.$methodName.'" does not exist!');
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * Wrapper for loadItems, that can be called from the constructor
+	 *
+	 * @param 	array 	params, can contain keys "where", "limit" and "order"
+	 * @return 	void
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-06-08
+	 */
+	public function load_items(array $params) {
+		$this->load_items($params['where'], $params['limit'], $params['order']);
+	}
 
+	
+	
 	/**
 	 * Load items
 	 *
@@ -38,11 +83,24 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	protected function getTable() {
 		if ($this->table == '') {
 			// get table name
-			$tcaObjectName = str_replace('Collection', '', get_class($this)); // assuming that "fooCollection" contains "foo" objects
+			$tcaObjectName = $this->getClassName();
 			$tmp = new $tcaObjectName();
 			$this->table = $tmp->getTable();
 		}
 		return $this->table;
+	}
+	
+	
+	
+	/**
+	 * Get the class name of the items in this array
+	 *
+	 * @return 	string	class name
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-06-05
+	 */
+	protected function getClassName() {
+		return str_replace('Collection', '', get_class($this)); // assuming that "fooCollection" contains "foo" objects		
 	}
 
 	

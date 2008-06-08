@@ -28,25 +28,27 @@ if (spl_autoload_register(array('tx_tcaobjects_div', 'pearAutoLoad')) == false) 
 */
 
 // Using the autoloader for the own classes
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingPath'][str_replace('_','',$_EXTKEY)] = 'EXT:'.$_EXTKEY.'/res/';
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['tcaobjects'] = array(
+	'basePath' => 'EXT:'.$_EXTKEY.'/',
+	'classPaths' => array('res', 'plugins'),
+);
 
 // Autoloader for pt_tools classes
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingPath']['pttools'] = 'EXT:pt_tools/res/';
-
-// Class map for pt_tools classes
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingClassMap']['pttools'] = array(
-
-	'tx_pttools_objectCollection' 		=> 'abstract/class.tx_pttools_objectCollection.php',
-
-	'tx_pttools_exception' 				=> 'objects/class.tx_pttools_exception.php',
-	'tx_pttools_registry' 				=> 'objects/class.tx_pttools_registry.php',
-	'tx_pttools_formReloadHandler' 		=> 'objects/class.tx_pttools_formReloadHandler.php',
-	'tx_pttools_sessionStorageAdapter' 	=> 'objects/class.tx_pttools_sessionStorageAdapter.php',
-
-	'tx_pttools_debug'	 				=> 'staticlib/class.tx_pttools_debug.php',
-	'tx_pttools_div'	 				=> 'staticlib/class.tx_pttools_div.php',
-	'tx_pttools_assert'	 				=> 'staticlib/class.tx_pttools_assert.php',
-
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['pttools'] = array(
+	'basePath' => 'EXT:pt_tools/res/',
+	'classPaths' => array(), // no classPaths here, because we're using a classMap
+	'classMap' => array(
+		'tx_pttools_objectCollection' 		=> 'abstract/class.tx_pttools_objectCollection.php',
+	
+		'tx_pttools_exception' 				=> 'objects/class.tx_pttools_exception.php',
+		'tx_pttools_registry' 				=> 'objects/class.tx_pttools_registry.php',
+		'tx_pttools_formReloadHandler' 		=> 'objects/class.tx_pttools_formReloadHandler.php',
+		'tx_pttools_sessionStorageAdapter' 	=> 'objects/class.tx_pttools_sessionStorageAdapter.php',
+	
+		'tx_pttools_debug'	 				=> 'staticlib/class.tx_pttools_debug.php',
+		'tx_pttools_div'	 				=> 'staticlib/class.tx_pttools_div.php',
+		'tx_pttools_assert'	 				=> 'staticlib/class.tx_pttools_assert.php',
+	)
 );
 
 // Extending smarty
@@ -56,5 +58,8 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']['ext/smarty/class.tx_smarty_wrapper.
 // geht aber nicht anders, weil in tx_smarty_wrapper die XCLASS nicht required wird, weil dort TYPO3_CONF_VARS nicht global ist...
 tx_smarty::_getSmarty();
 require_once t3lib_extMgm::extPath($_EXTKEY).'misc/class.ux_tx_smarty_wrapper.php';
+
+t3lib_extMgm::addPItoST43($_EXTKEY,'plugins/class.tx_tcaobjects_display_uncachedobject.php','_display_uncachedobject','list_type',0);
+t3lib_extMgm::addPItoST43($_EXTKEY,'plugins/class.tx_tcaobjects_display_cachedobject.php','_display_cachedobject','list_type',1);
 
 ?>

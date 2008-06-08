@@ -201,7 +201,7 @@ class tx_tcaobjects_objectAccessor {
 
             return self::update($table, $dataArray);
         } else {
-            return self::insert($table, $dataArray);
+        	return self::insert($table, $dataArray);
         }
     }
 

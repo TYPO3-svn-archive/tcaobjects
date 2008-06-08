@@ -26,7 +26,7 @@ require_once PATH_t3lib . 'class.t3lib_tstemplate.php';
 
 class tx_tcaobjects_div {
 	
-	
+	public static $trackTime = false;
 	
 	
 	/**
@@ -118,23 +118,102 @@ class tx_tcaobjects_div {
 	 */
 	public static function autoLoad($className) {
 		
-		$extKey = self::getCondensedExtKeyFromClassName($className);
-
-		$basePath = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingPath'][$extKey];
-		$basePath = t3lib_div::getFileAbsFileName($basePath);
-		$classMap = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoLoadingClassMap'][$extKey];
+		// TODO: to be (heavily :) optimized
+		// replace foreachs by while and have a single point of return!
+		// create an addSlashes($vorne, $hinten) function, true sets and false removes the slash!
 		
-		if (!empty($basePath)) {
+		// TODO: option "firstPartMatchesDirectoryName"(underBasePath) ?
+		// TODO: or even better "partsMatchesDirectoryNames":
+		// TODO: do not restrict to one part (do it like pear?)
+		// TODO: tx_myext_controller_section_name => basePath . "/controller/section/class.tx_myext_controller_section_name.php"
+		 
+		// TODO: edit kickstarter sections!
+        	
+		list ( , $extKey, $firstPart) = t3lib_div::trimExplode('_', $className);
+		// "firstPart" is the first part after the extension key
+		// for example "controller" for tx_myext_controller_foo
+		// or "view" for tx_myext_view_bar
+		// use this to organize your classes in directories
+		
+		if (array_key_exists($extKey, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']) && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey])) {
 			
+        	if (self::$trackTime && ($GLOBALS['TT'] instanceof t3lib_timeTrack)) $GLOBALS['TT']->push('tx_tcaobjects_div::autoLoad("'.$className.'")');
+		
+			$basePath = 		$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey]['basePath'];
+			$classPaths = 		$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey]['classPaths'];
+			$firstPartPaths = 	$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey]['firstPartPaths'];
+			$classMap = 		$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey]['classMap'];
+			
+			// add trailing slash
+			if (substr($basePath, -1) != '/') $basePath .= '/';
+			
+			// look in classMap first
 			if (!empty($classMap[$className])) {
+				// remove slash at the beginning
+				if (substr($classMap[$className], 1, 1) == '/') $classMap[$className] = substr($classMap[$className], 1); 
 				$path = $basePath . $classMap[$className];
-			} else {
-				$path = $basePath . 'class.' . $className . '.php';
-			}
+				$path = t3lib_div::getFileAbsFileName($path);
+				if (t3lib_div::validPathStr($path) && file_exists($path)) {
+					require_once $path;
+					
+					if (self::$trackTime && ($GLOBALS['TT'] instanceof t3lib_timeTrack)) {
+						$GLOBALS['TT']->setTSlogMessage('"'.$className.'" found in "'.str_replace(PATH_site, '', $path).'" (by classMap)', 0);
+						$GLOBALS['TT']->pull();
+					}
+					
+					return;
+				}
+			} elseif (!empty($firstPartPaths[$firstPart])) {
+				// remove slash at the beginning
+				if (substr($firstPartPaths[$firstPart], 1, 1) == '/') $firstPartPaths[$firstPart] = substr($firstPartPaths[$firstPart], 1);
 
-			if (t3lib_div::validPathStr($path) && file_exists($path)) {
-				require_once $path;
+				// add trailing slash if not empty
+				if (substr($firstPartPaths[$firstPart], -1) != '/') $firstPartPaths[$firstPart] .= '/';
+					
+				$path = $basePath . $firstPartPaths[$firstPart] . 'class.' . $className . '.php';;
+				$path = t3lib_div::getFileAbsFileName($path);
+				if (t3lib_div::validPathStr($path) && file_exists($path)) {
+					require_once $path;
+					
+					if (self::$trackTime && ($GLOBALS['TT'] instanceof t3lib_timeTrack)) {
+						$GLOBALS['TT']->setTSlogMessage('"'.$className.'" found in "'.str_replace(PATH_site, '', $path).'" (by classMap)', 0);
+						$GLOBALS['TT']->pull();
+					}
+					
+					return;
+				}
+					
+			} else {
+				// loop through classPaths to find the file
+				if (!is_array($classPaths)) {
+					$classPaths = array();
+				}
+				
+				array_unshift($classPaths, ''); // append empty classPath (that means: look in the basePath first!)
+				
+				foreach ($classPaths as $classPath) {
+					// remove slash at the beginning
+					if (substr($classPath, 1, 1) == '/') $classPath = substr($classPath, 1);
+					
+					// add trailing slash if not empty
+					if ($classPath !='' && substr($classPath, -1) != '/') $classPath .= '/';
+					
+					$path = $basePath . $classPath . 'class.' . $className . '.php';
+					$path = t3lib_div::getFileAbsFileName($path);
+					if (t3lib_div::validPathStr($path) && file_exists($path)) {
+						require_once $path;
+						
+						if (self::$trackTime && ($GLOBALS['TT'] instanceof t3lib_timeTrack)) {
+							$GLOBALS['TT']->setTSlogMessage('"'.$className.'" found in "'.str_replace(PATH_site, '', $path).'"', 0);
+							$GLOBALS['TT']->pull();
+						}
+						return;
+					}
+				}
+				
 			}
+			
+			if (self::$trackTime && ($GLOBALS['TT'] instanceof t3lib_timeTrack)) $GLOBALS['TT']->pull();
 		}
 	}
 	
@@ -431,6 +510,42 @@ class tx_tcaobjects_div {
 	}
 
 
+	/**
+	 * Includes full TCA.
+	 * Normally in the frontend only a part of the global $TCA array is loaded, for instance the "ctrl" part. Thus it doesn't take up too much memory.
+	 * If you need the FULL TCA available for some reason (like plugins using it) you should call this function which will include the FULL TCA.
+	 * Global vars $TCA, $PAGES_TYPES, $LANG_GENERAL_LABELS can/will be affected.
+	 * The flag $this->TCAloaded will make sure that such an inclusion happens only once since; If $this->TCAloaded is set, nothing is included.
+	 *
+	 * @param	boolean		Probably, keep hands of this value. Just don't set it. (This may affect the first-ever time this function is called since if you set it to zero/false any subsequent call will still trigger the inclusion; In other words, this value will be set in $this->TCAloaded after inclusion and therefore if its false, another inclusion will be possible on the next call. See ->getCompressedTCarray())
+	 * @return	void
+	 * @see getCompressedTCarray()
+	 */
+	function includeTCA($TCAloaded=1)	{
+		
+		if (is_object($GLOBALS['TSFE'])) {
+			$GLOBALS['TSFE']->includeTCA($TCAloaded);
+		} else {
+		
+			global $TCA, $PAGES_TYPES, $LANG_GENERAL_LABELS, $TBE_MODULES;
+			
+			$TCA = Array();
+			include (TYPO3_tables_script ? PATH_typo3conf.TYPO3_tables_script : PATH_t3lib.'stddb/tables.php');
+				// Extension additions
+			if ($GLOBALS['TYPO3_LOADED_EXT']['_CACHEFILE'])	{
+				include(PATH_typo3conf.$GLOBALS['TYPO3_LOADED_EXT']['_CACHEFILE'].'_ext_tables.php');
+			} else {
+				include(PATH_t3lib.'stddb/load_ext_tables.php');
+			}
+				// ext-script
+			if (TYPO3_extTableDef_script)	{
+				include (PATH_typo3conf.TYPO3_extTableDef_script);
+			}
+
+		}
+	}
+	
+	
 	/**
 	 * Get the foreign table name for a given property of a table
 	 *
