@@ -36,20 +36,21 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
 
     protected $_table = 'fe_users';
     
-    protected $_ignoredFields = array(	// fields not found in tca
-	    									'fe_cruser_id', 
-	    									'uc', 
-	    									'lastlogin', 
-	    									'is_online', 
-	    									'felogin_redirectPid',
-    										'ses_id', 
-    										'ses_name', 
-    										'ses_iplock', 
-    										'ses_hashlock', 
-    										'ses_userid', 
-    										'ses_tstamp', 
-    										'ses_data', 
-    										'ses_permanent',
+    protected $_ignoredFields = array(	
+    	// fields not found in tca
+	    'fe_cruser_id', 
+	    'uc', 
+	    'lastlogin', 
+	    'is_online', 
+	    'felogin_redirectPid',
+    	'ses_id', 
+    	'ses_name', 
+    	'ses_iplock', 
+    	'ses_hashlock', 
+    	'ses_userid', 
+    	'ses_tstamp', 
+    	'ses_data', 
+    	'ses_permanent',
     );
         
     /**
@@ -59,12 +60,13 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
      * @param 	array 	(optional) dataArr
      * @param 	bool	(optional) load active fe_user complete from session
      * @param 	bool	(optional) use uid from fe_user in session, but load data from database
+     * @param 	bool	(optional) ignore enable fields, default is false
      * @throws	tx_pttools_exception	if fromSession == true and no logged user found
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function __construct($uid = '', array $dataArr = array(), $fromSession = false, $fromSessionUid = false){
+    public function __construct($uid = '', array $dataArr = array(), $fromSession = false, $fromSessionUid = false, $ignoreEnableFields = false){
     	
-        if ($fromSession){
+        if ($fromSession) {
             if ($GLOBALS['TSFE']->loginUser) {
                 if ($fromSessionUid){
                     parent::__construct($GLOBALS['TSFE']->fe_user->user['uid']);    
@@ -76,7 +78,7 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
             }
         } else {
         	try {
-            	parent::__construct($uid, $dataArr);
+            	parent::__construct($uid, $dataArr, $ignoreEnableFields);
         	} catch (tx_pttools_exception $exceptionObj) {
         		// Was not able to load user from db. Maybe deleted?        		
         		// $this['deleted'] = 1;
@@ -88,9 +90,10 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
     
     
     /**
-     * Login user (without checking password)
+     * Login user
      *
-     * @param 	void
+     * @param 	bool	(optional) no password check, default is true
+     * @param 	string	(optional) password to be checked against is first parameter is false
      * @return 	bool	true if login was successful
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-03-22
@@ -129,6 +132,26 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
      */
     public function isCurrentUser() {
     	return ($this['uid'] == $GLOBALS['TSFE']->fe_user->user['uid']);
+    }
+    
+    
+    
+    /**
+     * Copies this user to the session
+     * 
+     * @param 	void
+     * @return 	void
+     * @author	Fabrizio Branca <branca@punkt.de>
+     * @since	2008-06-19
+     */
+    public function copyToSessionUser() {
+    	
+    	tx_pttools_assert::isInstanceOf($GLOBALS['TSFE'], 'tslib_fe');
+			
+	    // updating data in the session        
+        foreach ($this as $property => $value) {
+        	$GLOBALS['TSFE']->fe_user->user[$property] = $value;
+		}
     }
     
 }

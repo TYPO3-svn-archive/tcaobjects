@@ -130,6 +130,58 @@ class tx_tcaobjects_pager {
 	
 	
 	/**
+	 * Set pager configuration by typoscript
+	 *
+	 * @param 	array 	typoscript configuratation
+	 * @return 	void
+	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @since	2008-06-10
+	 */
+	public function set_typoscriptConfiguration(array $conf) {
+		
+		if (isset($conf['typoLinkConf.'])) {
+			$this->set_pagerTypoLinkConf($conf['typoLinkConf.']);
+			unset($conf['typoLinkConf.']);
+		}
+		
+		if (isset($conf['additionalMarkers.'])) {
+			$additionalMarkers = tx_tcaobjects_div::stdWrapArray($conf['additionalMarkers.']);
+			$this->set_templateAdditionalMarkers($additionalMarkers);
+			unset($conf['additionalMarkers.']);
+		}
+		
+		if (isset($conf['carryAlongParameters.'])) {
+			$carryAlongParameters = tx_tcaobjects_div::stdWrapArray($conf['carryAlongParameters.']);
+			$this->set_carryAlongParameter($carryAlongParameters);
+			unset($conf['carryAlongParameters.']);
+		}
+		
+		$conf = tx_tcaobjects_div::stdWrapArray($conf);
+		
+		foreach ($conf as $key => $value) {
+
+			switch ($key) {
+				case 'template': 			$this->set_templateForPager($value); break;
+				case 'delta': 				$this->set_pagerDelta($value); break;
+				case 'languageFile':		$this->set_templateLanguageFile($value); break;
+				case 'parameterName': 		$this->set_parameterName($value); break;
+				case 'itemsPerPage':		$this->set_itemsPerPage($value); break;
+				case 'objCollWhere':		$this->set_objCollWhere($value); break;
+				case 'objCollOrder':		$this->set_objCollOrder($value); break;
+				case 'classCurrent':		$this->set_classCurrent($value); break;
+				case 'classFirst':			$this->set_classFirst($value); break;
+				case 'classLast':			$this->set_classLast($value); break;
+				case 'classNext':			$this->set_classNext($value); break;
+				case 'classPrev':			$this->set_classPrev($value); break;
+				default: throw new tx_pttools_exception('"'.$key.'" is an not valid for pager configuration!');
+			}
+			
+		}
+	}
+	
+	
+	
+	/**
 	 * Set object collection (and implicitely set the totelItemCount and the amountPages)
 	 *
 	 * @param 	tx_tcaobjects_iPageable 	object collection
@@ -219,6 +271,10 @@ class tx_tcaobjects_pager {
 		$this->carryAlongParameter = $carryAlongParameter;
 	}
 	
+	public function add_templateAdditionalMarkers(array $templateAdditionalMarkers) {
+		$this->templateAdditionalMarkers = t3lib_div::array_merge_recursive_overrule($this->templateAdditionalMarkers, $templateAdditionalMarkers);
+	}
+	
 	
 	
 	/**
@@ -248,18 +304,10 @@ class tx_tcaobjects_pager {
 	 * @since	2008-03-13
 	 */
 	public function renderPager() {
-    	
-    	if (!is_array($this->pagerTypoLinkConf)) {
-    		throw new tx_pttools_exception('Typolink configuration is not an array!');
-    	}
-    	
-    	if (empty($this->objectCollection)) {
-    		throw new tx_pttools_exception('Object collection was not set!');
-    	}
-    	
-		if (empty($this->parameterName)) {
-    		throw new tx_pttools_exception('Property parameterName was not set!');
-    	}
+		
+		tx_pttools_assert::isArray($this->pagerTypoLinkConf, array('message' => 'Typolink configuration is not an array!'));
+		tx_pttools_assert::isNotEmpty($this->objectCollection, array('message' => 'Object collection was not set!'));
+		tx_pttools_assert::isNotEmptyString($this->parameterName, array('message' => 'Property parameterName was not set!'));  
         
     	// Create smarty object
         $smarty = tx_smarty::smarty();
@@ -300,10 +348,11 @@ class tx_tcaobjects_pager {
 		    	    $tmpTypolinkConf['additionalParams'] .= '&'.$this->parameterName.'='.$i;
 		    	    $url = $GLOBALS['TSFE']->cObj->typoLink_URL($tmpTypolinkConf);
                     
-                    $markerArray['pages'][] = array ('label' => $i,
-                                                     'url' =>  $url,
-                    								 'class' => $class
-                                                    );
+                    $markerArray['pages'][] = array (
+                    	'label' => $i,
+                        'url' =>  $url,
+                    	'class' => $class
+					);
                 } elseif (end($markerArray['pages']) != 'fill') {
                     $markerArray['pages'][] = 'fill';
                 }
@@ -317,10 +366,11 @@ class tx_tcaobjects_pager {
     	    $tmpTypolinkConf['additionalParams'] .= '&'.$this->parameterName.'='.$prevpage;
     	    $url = $GLOBALS['TSFE']->cObj->typoLink_URL($tmpTypolinkConf);
             
-            $markerArray['prev'] = array (   'url' => $url,
-            								 'class' => $this->classPrev,
-            								 'alreadyhere' => ($prevpage == $this->currentPageNumber)
-                                            );
+            $markerArray['prev'] = array (  
+            	'url' => $url,
+            	'class' => $this->classPrev,
+            	'alreadyhere' => ($prevpage == $this->currentPageNumber)
+            );
     	
     		// "next page" link
             $nextpage = min($this->currentPageNumber + 1, $this->amountPages);
@@ -329,10 +379,11 @@ class tx_tcaobjects_pager {
     	    $tmpTypolinkConf['additionalParams'] .= '&'.$this->parameterName.'='.$nextpage;
     	    $url = $GLOBALS['TSFE']->cObj->typoLink_URL($tmpTypolinkConf);
     	    
-            $markerArray['next'] = array (	 'url' =>  $url,
-                                    		 'class' => $this->classNext,
-            								 'alreadyhere' => ($nextpage == $this->currentPageNumber)
-                                            );
+            $markerArray['next'] = array (	 
+            	'url' =>  $url,
+                'class' => $this->classNext,
+            	'alreadyhere' => ($nextpage == $this->currentPageNumber)
+            );
             
             foreach ($markerArray as $markerKey => $markerValue) {
                 $smarty->assign($markerKey, $markerValue);

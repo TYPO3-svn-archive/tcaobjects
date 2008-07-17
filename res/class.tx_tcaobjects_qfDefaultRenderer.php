@@ -4,12 +4,22 @@ require_once 'HTML/QuickForm/Renderer/Default.php';
 
 class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default implements tx_tcaobjects_iQuickformRenderer {
 	
+	
+	
+	/**
+	 * Constructor
+	 *
+	 * @param 	string	(optional) templateFile
+	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @since	2008-06-22
+	 */
 	public function __construct($templateFile = null) {
 		parent::HTML_QuickForm_Renderer_Default(); // original constructor
 		if (!is_null($templateFile)) {
 			$this->setTemplateFile($templateFile);
 		}
 	}
+	
 	
 	
 	/**
@@ -21,15 +31,18 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 	 * @since	2008-04-27
 	 */
 	public function setTemplateFile($templateFile) {
+		
+		tx_pttools_assert::isFilePath($templateFile);
+		
 	    $fileContent = $GLOBALS['TSFE']->cObj->fileResource($templateFile);
 	    
 	    $subparts = array();
-	    $subparts['elementTemplate'] 		= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, "###ELEMENTTEMPLATE###");
-		$subparts['groupElementTemplate'] 	= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, "###GROUPELEMENTTEMPLATE###");
-		$subparts['formTemplate'] 			= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, "###FORMTEMPLATE###");
-		$subparts['headerTemplate'] 		= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, "###HEADERTEMPLATE###");
-		$subparts['requiredNoteTemplate'] 	= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, "###REQUIREDNOTETEMPLATE###");
-		$subparts['groupTemplate'] 			= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, "###GROUPTEMPLATE###");
+	    $subparts['elementTemplate'] 		= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, '###ELEMENTTEMPLATE###');
+		$subparts['groupElementTemplate'] 	= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, '###GROUPELEMENTTEMPLATE###');
+		$subparts['formTemplate'] 			= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, '###FORMTEMPLATE###');
+		$subparts['headerTemplate'] 		= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, '###HEADERTEMPLATE###');
+		$subparts['requiredNoteTemplate'] 	= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, '###REQUIREDNOTETEMPLATE###');
+		$subparts['groupTemplate'] 			= $GLOBALS['TSFE']->cObj->getSubpart($fileContent, '###GROUPTEMPLATE###');
 		
 		if (!empty($subparts['elementTemplate'])) {
 			$this->setElementTemplate($subparts['elementTemplate']);

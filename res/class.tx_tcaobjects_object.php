@@ -75,13 +75,14 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     /**
      * @var array	modifier list
      */
-    protected $_modifierList = array(	'obj',
-                                        'objColl',
-                                        'path',
-                                        'explode',
-                                        'rte',
-                                        'sL',
-                                    );
+    protected $_modifierList = array(	
+    	'obj',
+        'objColl',
+        'path',
+        'explode',
+        'rte',
+        'sL',
+	);
 
     /**
      * @var string	comma separeted list of potential special fields
@@ -126,7 +127,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         // Ignored fields
         foreach ($this->_ignoredFields as $field) {
-            $this->_properties[$field] = true;
+        	if (!is_array($this->_properties[$field])) { // do not overwrite existing local configuration
+            	$this->_properties[$field] = true;
+        	}
         }
 
         // Standard fields
@@ -137,7 +140,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         // Required fields for versioning
         if ($this->isVersionable()) {
-            $versioningFields = array('t3ver_oid', 't3ver_id', 't3ver_wsid', 't3ver_label', 't3ver_state', 't3ver_stage', 't3ver_count', 't3ver_tstamp');
+            $versioningFields = array('t3ver_oid', 't3ver_id', 't3ver_wsid', 't3ver_label', 't3ver_state', 't3ver_stage', 't3ver_count', 't3ver_tstamp', 't3ver_move_id', 't3ver_swapmode');
             foreach ($versioningFields as $field) {
                 $this->_properties[$field] = true;
             }
@@ -327,8 +330,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function isDeleted() {
         $deletedField = $GLOBALS['TCA'][$this->_table]['ctrl']['delete'];
-        tx_pttools_assert::notEmpty($deletedField, array('message' => 'No "delete" field set in TCA!'));
-        return $this->__get($deletedField);
+        tx_pttools_assert::isNotEmpty($deletedField, array('message' => 'No "delete" field set in TCA!'));
+        return $this->__get($deletedField) ? true : false;
     }
 
 
@@ -343,8 +346,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function isDisabled() {
         $disabledField = $GLOBALS['TCA'][$this->_table]['ctrl']['enablecolumns']['disabled'];
-        tx_pttools_assert::notEmpty($disabledField, array('message' => 'No "disabled" field set in TCA!'));
-        return $this->__get($disabledField);
+        tx_pttools_assert::isNotEmpty($disabledField, array('message' => 'No "disabled" field set in TCA!'));
+        return $this->__get($disabledField) ? true : false;
     }
 
     
@@ -378,19 +381,19 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-06-01
      */
     public function isOnlineVersion() {
-        tx_pttools_assert::true($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
+        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
         return ($this['pid'] != -1);
     }
 
     public function getVersions() {
-        tx_pttools_assert::true($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
-        tx_pttools_assert::true($this->isOnlineVersion(), array('message' => 'Versions only available for the online version'));
+        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
+        tx_pttools_assert::isTrue($this->isOnlineVersion(), array('message' => 'Versions only available for the online version'));
 
         // TODO: get a collection of version records
     }
 
     public function makeThisTheOnlineVersion() {
-        tx_pttools_assert::true($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
+        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
         tx_pttools_assert::false($this->isOnlineVersion(), array('message' => 'This is already the online version'));
 
         // TODO: implement
@@ -409,9 +412,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-06-01
      */
     public function getOnlineVersion() {
-        tx_pttools_assert::true($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
+        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
         tx_pttools_assert::false($this->isOnlineVersion(), array('message' => 'This is already the online version'));
-        tx_pttools_assert::notEmpty($this->__get('t3ver_oid'), array('message' => 'No t3ver_oid defined'));
+        tx_pttools_assert::isNotEmpty($this->__get('t3ver_oid'), array('message' => 'No t3ver_oid defined'));
 		
 		$classname = get_class($this);
 		$onlineVersion = new $classname($this->__get('t3ver_oid'));
@@ -419,7 +422,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     }
 
     public function saveAsNewVersion($label = '') {
-        tx_pttools_assert::true($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
+        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
 
         // TODO: save and let $this be the new version
     }
@@ -517,7 +520,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $data = array();
 
         foreach (array_keys($this->_properties) as $property) {
-            if (is_array($this->_properties[$property]) && $this->getConfig($property, 'type') != 'inline' || in_array($property, array('uid', 'pid', 'sorting'))) {
+            if (is_array($this->_properties[$property]) && $this->getConfig($property, 'type') != 'inline' && !in_array($property, $this->_ignoredFields) || in_array($property, array('uid', 'pid', 'sorting'))) {
                 // TODO: no data from aliases!
                 $data[$property] = $this->__get($property);
             }
@@ -595,7 +598,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function getSpecialField($specialField) {
 
-        tx_pttools_assert::inArray(
+        tx_pttools_assert::isInArray(
             $specialField,
             t3lib_div::trimExplode(',', self::potentialSpecialFields),
             array('message' => '"'.$specialField.'" is an invalid field name')
@@ -630,8 +633,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function getConfig($property, $config) {
 
-        tx_pttools_assert::notEmpty($property, array('message' => 'Parameter "property" empty!'));
-        tx_pttools_assert::notEmpty($config, array('message' => 'Parameter "config" empty!'));
+        tx_pttools_assert::isNotEmpty($property, array('message' => 'Parameter "property" empty!'));
+        tx_pttools_assert::isNotEmpty($config, array('message' => 'Parameter "config" empty!'));
 
         return $this->_properties[$property]['config'][$config];
     }
@@ -674,7 +677,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function getEval($property) {
 
-        tx_pttools_assert::notEmpty($property, array('message', 'Parameter "property" empty!'));
+        tx_pttools_assert::isNotEmpty($property, array('message', 'Parameter "property" empty!'));
 
         return t3lib_div::trimExplode(',', $this->getConfig($property, 'eval'));
     }
@@ -724,7 +727,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $type 			= $this->getConfig($property, 'type');
         $internal_type 	= $this->getConfig($property, 'internal_type');
 
-        tx_pttools_assert::true(
+        tx_pttools_assert::isTrue(
             ($type == 'inline') || (($type = 'group') && ($internal_type == 'db')),
             array(
                 'message' 			=> 'Invalid modifier for called property!',
@@ -751,10 +754,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             $value = new $propertyCollectionName(); /* @var $value tx_tcaobjects_objectCollection */
 
             $foreign_table = $this->getConfig($property, 'foreign_table');
-            tx_pttools_assert::notEmpty($foreign_table, array('message', 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
+            tx_pttools_assert::isNotEmpty($foreign_table, array('message', 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 
             $foreign_field = $this->getConfig($property, 'foreign_field');
-            tx_pttools_assert::notEmpty($foreign_field, array('message', 'No "foreign_field" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
+            tx_pttools_assert::isNotEmpty($foreign_field, array('message', 'No "foreign_field" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
             // TODO: If no foreign_field is defined, the field in the original table conatains a comma separeted list of uids in the foreign_table. See TYPO3 Core Apis. This may be implemented here...
 
             // array of records of the foreign table (mm records with uids or final data)
@@ -826,7 +829,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $internal_type 	= $this->getConfig($property, 'internal_type');
         $maxitems 		= $this->getConfig($property, 'maxitems');
 
-        tx_pttools_assert::true(
+        tx_pttools_assert::isTrue(
             ($type == 'group') && ($internal_type == 'db') && ($maxitems == 1),
             array(
                 'message' 			=> 'Invalid modifier for called property!',
@@ -838,11 +841,15 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 'calledProperty' 	=> $calledProperty
             )
         );
-
-        $classname = tx_tcaobjects_div::getClassname($this->_table, $property);
+		
+        $classname = $this->getConfig($property, 'foreign_tcaobject_class');
+        
+        if (empty($classname)) {
+        	$classname = tx_tcaobjects_div::getClassname($this->_table, $property);	
+        }
 
         // TODO: can this be something like "tt_content_18"?
-        return new $classname($this->_values[$property]);
+        return new $classname($this[$property]);
     }
 
 
@@ -866,7 +873,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $type 			= $this->getConfig($property, 'type');
         $internal_type 	= $this->getConfig($property, 'internal_type');
 
-        tx_pttools_assert::true(
+        tx_pttools_assert::isTrue(
             ($type == 'group') && ($internal_type == 'file'),
             array(
                 'message' 			=> 'Invalid modifier for called property!',
@@ -884,7 +891,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
             $uploadFolder = $this->getConfig($property, 'uploadfolder');
 
-            tx_pttools_assert::notEmpty($uploadFolder, array('message' => 'Configuration "uploadfolder" was not defined for property "'.$property.'" in table "'.$this->_table.'"!'));
+            tx_pttools_assert::isNotEmpty($uploadFolder, array('message' => 'Configuration "uploadfolder" was not defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 
             foreach (t3lib_div::trimExplode(',', $this->_values[$property]) as $singleFile) {
                 $files[] = $uploadFolder . DIRECTORY_SEPARATOR . $singleFile;
@@ -915,7 +922,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         $type = $this->getConfig($property, 'type');
 
-        tx_pttools_assert::true(
+        tx_pttools_assert::isTrue(
             ($type == 'select'),
             array(
                 'message' 			=> 'Invalid modifier for called property!',
@@ -962,7 +969,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $type 		= $this->getConfig($property, 'type');
         $maxitems 	= $this->getConfig($property, 'maxitems');
 
-        tx_pttools_assert::true(
+        tx_pttools_assert::isTrue(
             ($type == 'select') && ($maxitems == 1),
             array(
                 'message' 			=> 'Invalid modifier for called property!',
@@ -1056,7 +1063,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         if (!empty($modifier) && empty($this->_values[$calledProperty])) {
         	
         	// check if modifier is allowed (i.e. is value in $this->_modifierList)
-        	tx_pttools_assert::inArray($modifier, $this->_modifierList, array('message' => 'Modifier "'.$modifier.'" is not allowed in this object!'));
+        	tx_pttools_assert::isInArray($modifier, $this->_modifierList, array('message' => 'Modifier "'.$modifier.'" is not allowed in this object!'));
         	
             $modifierMethodName = 'processModifier_'.$modifier;
             if (method_exists($this, $modifierMethodName)) {
@@ -1171,17 +1178,30 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-03-20
      */
     public function offsetExists($offset) {
+    	
+    	$offsetExists = false;
+    	
+    	if (key_exists($offset, $this->_properties)) {
+    		
+    		$offsetExists = true;
+    		
+    	} else {
 
-        $propertyParts = explode('_', $offset);
+	        $propertyParts = explode('_', $offset);
+	
+	        $special = end($propertyParts);
+	        if (in_array($special, $this->_modifierList)) {
+	            array_pop($propertyParts);
+	        }
+	
+	        $property = implode('_', $propertyParts);
+	        
+	        if (key_exists($property, $this->_properties)) {
+	        	$offsetExists = true;
+	        }
+    	}
 
-        $special = end($propertyParts);
-        if (in_array($special, $this->_modifierList)) {
-            array_pop($propertyParts);
-        }
-
-        $property = implode('_', $propertyParts);
-
-        return key_exists($property, $this->_properties);
+        return $offsetExists;
     }
 
 
@@ -1241,7 +1261,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-03-20
      */
     public function getIterator() {
-        return new ArrayIterator($this); // works because this class implements ArrayAccess :)
+        return new ArrayIterator($this->_values); // works because this class implements ArrayAccess :)
     }
 
 }

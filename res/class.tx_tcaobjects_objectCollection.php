@@ -63,11 +63,12 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @param 	string	(optional) where
 	 * @param 	string	(optional) limit
 	 * @param 	string	(optional) order
+	 * @param	bool	(optional) ignore enable fields, default is false
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-06-01
 	 */
-	public function loadItems($where = '', $limit = '', $order = '') {
-		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order);
+	public function loadItems($where = '', $limit = '', $order = '', $ignoreEnableFields = false) {
+		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
 		$this->setDataArray($dataArr);
 	}
 
@@ -113,7 +114,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @since	2008-06-01
 	 */
 	protected function setDataArray(array $dataArr) {
-		$tcaObjectName = str_replace('Collection', '', get_class($this)); // assuming that "fooCollection" contains "foo" objects
+		$tcaObjectName = $this->getClassName();
 		foreach ($dataArr as $row) {
 			$this->addItem(new $tcaObjectName('', $row));
 		}

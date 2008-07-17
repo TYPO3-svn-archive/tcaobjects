@@ -28,13 +28,12 @@ if (spl_autoload_register(array('tx_tcaobjects_div', 'pearAutoLoad')) == false) 
 */
 
 // Using the autoloader for the own classes
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['tcaobjects'] = array(
-	'basePath' => 'EXT:'.$_EXTKEY.'/',
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$_EXTKEY] = array(
 	'classPaths' => array('res', 'plugins'),
 );
 
 // Autoloader for pt_tools classes
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['pttools'] = array(
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['pt_tools'] = array(
 	'basePath' => 'EXT:pt_tools/res/',
 	'classPaths' => array(), // no classPaths here, because we're using a classMap
 	'classMap' => array(
@@ -44,6 +43,7 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['pttools'] = 
 		'tx_pttools_registry' 				=> 'objects/class.tx_pttools_registry.php',
 		'tx_pttools_formReloadHandler' 		=> 'objects/class.tx_pttools_formReloadHandler.php',
 		'tx_pttools_sessionStorageAdapter' 	=> 'objects/class.tx_pttools_sessionStorageAdapter.php',
+		'tx_pttools_smartyAdapter' 			=> 'objects/class.tx_pttools_smartyAdapter.php',
 	
 		'tx_pttools_debug'	 				=> 'staticlib/class.tx_pttools_debug.php',
 		'tx_pttools_div'	 				=> 'staticlib/class.tx_pttools_div.php',
@@ -59,7 +59,8 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']['ext/smarty/class.tx_smarty_wrapper.
 tx_smarty::_getSmarty();
 require_once t3lib_extMgm::extPath($_EXTKEY).'misc/class.ux_tx_smarty_wrapper.php';
 
-t3lib_extMgm::addPItoST43($_EXTKEY,'plugins/class.tx_tcaobjects_display_uncachedobject.php','_display_uncachedobject','list_type',0);
-t3lib_extMgm::addPItoST43($_EXTKEY,'plugins/class.tx_tcaobjects_display_cachedobject.php','_display_cachedobject','list_type',1);
+// t3lib_extMgm::addPItoST43($_EXTKEY,'plugins/class.tx_tcaobjects_display_uncachedobject.php','_display_uncachedobject','list_type',0);
+// t3lib_extMgm::addPItoST43($_EXTKEY,'plugins/class.tx_tcaobjects_display_cachedobject.php','_display_cachedobject','list_type',1);
+
 
 ?>
