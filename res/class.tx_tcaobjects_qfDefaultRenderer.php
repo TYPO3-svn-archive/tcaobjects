@@ -87,7 +87,7 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
     */
     public function startGroup (&$group, $required, $error) {
         $name = $group->getName();
-        $this->_groupTemplate        = $this->_prepareTemplate($name, $group->getLabel(), $required, $error);
+        $this->_groupTemplate = $this->_prepareTemplate($name, $group->getLabel(), $required, $error);
         if (!empty($this->_groupTemplates[$name])) {
         	$this->_groupElementTemplate = $this->_groupTemplates[$name];
         }
@@ -137,6 +137,67 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
         	$this->_groupWraps[$group] = $html;
     	} 
     }
+    
+    
+
+   /**
+    * Helper method for renderElement
+    *
+    * @param    string      Element name
+    * @param    mixed       Element label (if using an array of labels, you should set the appropriate template)
+    * @param    bool        Whether an element is required
+    * @param    string      Error message associated with the element
+    * @param 	string		(optional) id of the element that will replace {id}, default is ''
+    * @access   private
+    * @see      renderElement()
+    * @return   string      Html for element
+    */
+    public function _prepareTemplate($name, $label, $required, $error, HTML_QuickForm_element $element = null) {
+    	if ($element instanceof tx_tcaobjects_qfRawStatic) {
+    		$html = '{element}';
+    	} else {
+	    	$html = parent::_prepareTemplate($name, $label, $required, $error);
+	    	$id = is_null($element) ? '' : $element->getAttribute('id'); 
+	    	$html = str_replace('{id}', $id, $html);
+    	}
+    	return $html;
+    }
+    
+    
+    /**
+     * Renders an element Html
+     * Called when visiting an element
+     * 
+     * Overrides the original method 
+     *
+     * @param HTML_QuickForm_element form element being visited
+     * @param bool                   Whether an element is required
+     * @param string                 An error message associated with an element
+     * @access public
+     * @return void
+     */
+    public function renderElement(HTML_QuickForm_element $element, $required, $error) {
+        if (!$this->_inGroup) {
+        	// passes $element to "_prepareTemplate"
+            $html = $this->_prepareTemplate($element->getName(), $element->getLabel(), $required, $error, $element);
+            $this->_html .= str_replace('{element}', $element->toHtml(), $html);
+
+        } elseif (!empty($this->_groupElementTemplate)) {
+            $html = str_replace('{label}', $element->getLabel(), $this->_groupElementTemplate);
+            // replaces "{id}" with current element's id
+            $html = str_replace('{id}', $element->getAttribute('id'), $html);
+            if ($required) {
+                $html = str_replace('<!-- BEGIN required -->', '', $html);
+                $html = str_replace('<!-- END required -->', '', $html);
+            } else {
+                $html = preg_replace("/([ \t\n\r]*)?<!-- BEGIN required -->.*<!-- END required -->([ \t\n\r]*)?/isU", '', $html);
+            }
+            $this->_groupElements[] = str_replace('{element}', $element->toHtml(), $html);
+
+        } else {
+            $this->_groupElements[] = $element->toHtml();
+        }
+    } // end func renderElement
 	
 }
 

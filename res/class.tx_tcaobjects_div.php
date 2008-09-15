@@ -453,16 +453,16 @@ class tx_tcaobjects_div {
 	 * }
 	 *
 	 * <ELEMENT> {
-	 * 		property =
-	 * 		altLabel =
-	 * 		specialtype =
-	 * 		content =
+	 * 		property = <stdWrap>
+	 * 		altLabel = <stdWrap>
+	 * 		specialtype = <stdWrap>
+	 * 		content = <stdWrap>
 	 * 		rules {
-	 * 			rule = message
+	 * 			rule = message <stdWrap>
 	 * 			ruleWithoutMessage
 	 * 		}
 	 * 		attributes {
-	 * 			key = value
+	 * 			key = value <stdWrap>
 	 * 			keyWithoutValue
 	 * 		}
 	 * }
@@ -489,7 +489,7 @@ class tx_tcaobjects_div {
 			$rulesTmp = $fieldconf['rules.'];
 			$attrTmp = $fieldconf['attributes.'];
 			$elementsTmp = $fieldconf['elements.'];
-				$fieldconf = self::stdWrapArray($fieldconf);
+			$fieldconf = self::stdWrapArray($fieldconf);
 			if (is_array($rulesTmp)) {
 				$fieldconf['rules.'] = self::stdWrapArray($rulesTmp);
 			}

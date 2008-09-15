@@ -55,6 +55,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->prefix = $prefix;
 
 		parent::HTML_QuickForm ($formName, $method, $action, $target, $attributes, $trackSubmit);
+		
+		$this->registerElementType('rawstatic', t3lib_extMgm::extPath('tcaobjects') . 'res/class.tx_tcaobjects_qfRawStatic.php', 'tx_tcaobjects_qfRawStatic');
 
 		$this->setupAdditionalRules();
 		$this->setRequiredNote($GLOBALS['LANG']->sL('LLL:EXT:tcaobjects/res/locallang.xml:quickform.requiredNote'));
@@ -70,6 +72,15 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->onNotValidated = $onNotValidated;
 		$this->onCancel = $onCancel;
 		$this->cancelButton = $cancelButton;
+	}
+	
+	public function generateIds() {
+		foreach ($this->_elements as $element) {
+			if (is_object($element) && method_exists($element, '_generateId')) {
+				$element->_generateId();
+				
+			}
+		}
 	}
 
 
@@ -185,6 +196,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @return 	string	HTML Output
 	 */
 	public function render(HTML_QuickForm_Renderer $renderer = null) {
+		$this->generateIds();
 		if (!is_null($renderer)) {
 			$this->set_renderer($renderer);
 		}
@@ -571,6 +583,14 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 					// TODO: extra field for unsetting checkbox?
 					$elements[] = HTML_QuickForm::createElement('checkbox', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $GLOBALS['LANG']->sL($content));
 				 } break;
+				
+				case 'static' : {
+					$elements[] = HTML_QuickForm::createElement('static', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
+				} break;
+				
+				case 'rawstatic' : {
+					$elements[] = HTML_QuickForm::createElement('rawstatic', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
+				} break;
 
 				default: {
 					throw new tx_pttools_exception('Unknown specialtype "' . $specialtype . '"');
