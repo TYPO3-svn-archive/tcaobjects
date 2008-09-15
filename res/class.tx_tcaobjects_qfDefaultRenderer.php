@@ -157,8 +157,15 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
     		$html = '{element}';
     	} else {
 	    	$html = parent::_prepareTemplate($name, $label, $required, $error);
-	    	$id = is_null($element) ? '' : $element->getAttribute('id'); 
-	    	$html = str_replace('{id}', $id, $html);
+	    	if (!is_null($element)) {
+		    	$html = str_replace('{id}', $element->getAttribute('id'), $html);
+		    	$html = str_replace('{comment}', $element->getComment(), $html);
+	    	} else {
+	    		$html = str_replace('{id}', '', $html);
+		    	$html = str_replace('{comment}', '', $html);
+	    	}
+	    	
+	    	
     	}
     	return $html;
     }
@@ -186,6 +193,7 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
             $html = str_replace('{label}', $element->getLabel(), $this->_groupElementTemplate);
             // replaces "{id}" with current element's id
             $html = str_replace('{id}', $element->getAttribute('id'), $html);
+	    	$html = str_replace('{comment}', $element->getComment(), $html);
             if ($required) {
                 $html = str_replace('<!-- BEGIN required -->', '', $html);
                 $html = str_replace('<!-- END required -->', '', $html);

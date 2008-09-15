@@ -366,19 +366,25 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * Renders a single Quickform element specified by a paramater string
 	 * Requires the tcaobject to be set before calling this method
 	 *
-	 * @param 	string			parameter (property ; altLabel ; specialtype ; content ; rules ; attributes)
+	 * @param 	string			parameter (property ; altLabel ; specialtype ; content ; rules ; attributes ; comment)
 	 * @return 	array			array of HTML_element objects
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-03-80
 	 */
 	public function createQuickformElement($parameter) {
+		
+		// TODO: switch to parameter object instead of a parameter string?
 
 		// check requirements
 		tx_pttools_assert::isObject($this->object, array('message' => 'No tcaobject set!'));
 		tx_pttools_assert::isNotEmptyString($this->formname, array('message' => 'No formname set!'));
 		tx_pttools_assert::isNotEmptyString($this->prefix, array('message' => 'No prefix set!'));
 
-		list ($property, $altLabel, $specialtype, $content, /* $rules */, $attributes) = t3lib_div::trimExplode(';', $parameter);
+		list ($property, $altLabel, $specialtype, $content, /* $rules */, $attributes, $comment) = t3lib_div::trimExplode(';', $parameter);
+		
+		// urldecode text values
+		$comment = urldecode($comment);
+		$content = urldecode($content);
 
 		tx_pttools_assert::isFalse(
 			empty($property) && empty($specialtype), 
@@ -473,7 +479,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				 **************************************************************/
 				case 'input': {
 					if (in_array('password', $this->object->getEval($property))) {
+						
 						$elements[] = HTML_QuickForm::createElement('password', $this->getElementName($property), $label, $attributes);
+						
 					} elseif (in_array('date', $this->object->getEval($property))) {
 
 						$minYearDelta = !empty($attributes['minYearDelta']) ? $attributes['minYearDelta'] : 5;
@@ -491,7 +499,10 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 						$elements[] = HTML_QuickForm::createElement('date', $this->getElementName($property), $label, $options);
 
 					} else {
-						$elements[] = HTML_QuickForm::createElement('text', $this->getElementName($property), $label, $attributes);
+						
+						$tmpElement = HTML_QuickForm::createElement('text', $this->getElementName($property), $label, $attributes);
+						$tmpElement->setComment($comment);
+						$elements[] = $tmpElement;
 					}
 				} break;
 

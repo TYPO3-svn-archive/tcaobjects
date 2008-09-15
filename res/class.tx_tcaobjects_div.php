@@ -465,6 +465,7 @@ class tx_tcaobjects_div {
 	 * 			key = value <stdWrap>
 	 * 			keyWithoutValue
 	 * 		}
+	 * 		comment = <stdWrap>
 	 * }
 	 *
 	 * <GROUP> {
@@ -512,6 +513,7 @@ class tx_tcaobjects_div {
 				// Rules
 				$fieldRules = array();
 				foreach ((array)$fieldconf['rules.'] as $rule => $message) {
+					// TODO: urlencode messages?
 					$fieldRules[] = $rule.(!empty($message) ? '='.$message : '');
 				}
 				$fieldRules = implode(':', $fieldRules);
@@ -519,11 +521,16 @@ class tx_tcaobjects_div {
 				// Attributes
 				$fieldAttributes = array();
 				foreach ((array)$fieldconf['attributes.'] as $attributeKey => $attributeValue) {
+					// TODO: urlencode attributeValues?
 					$fieldAttributes[] = $attributeKey.(!empty($attributeValue) ? '='.$attributeValue : '');
 				}
 				$fieldAttributes = implode(':', $fieldAttributes);
-
-				$quickform[] = rtrim(implode(';', array($fieldconf['property'], $fieldconf['altLabel'], $fieldconf['specialtype'], $fieldconf['content'], $fieldRules, $fieldAttributes)),';');
+				
+				// urlencode text values
+				$fieldconf['comment'] = urlencode($fieldconf['comment']);
+				$fieldconf['content'] = urlencode($fieldconf['content']);
+				
+				$quickform[] = rtrim(implode(';', array($fieldconf['property'], $fieldconf['altLabel'], $fieldconf['specialtype'], $fieldconf['content'], $fieldRules, $fieldAttributes, $fieldconf['comment'])),';');
 			}
 		}
 		return implode(',', $quickform);
