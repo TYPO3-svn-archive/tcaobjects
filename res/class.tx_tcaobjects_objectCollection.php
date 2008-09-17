@@ -52,7 +52,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @since	2008-06-08
 	 */
 	public function load_items(array $params) {
-		$this->load_items($params['where'], $params['limit'], $params['order']);
+		$this->loadItems($params['where'], $params['limit'], $params['order']);
 	}
 
 	
