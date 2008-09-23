@@ -123,6 +123,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         t3lib_div::loadTCA($this->_table);
 
         // Override and extend TCA settings with local settings from (inheriting) class
+        tx_pttools_assert::isArray($GLOBALS['TCA'][$this->_table]['columns'], array('message' => 'No columns found in TCA for class: "'.get_class($this).'" / table: "'.$this->_table.'"'));
         $this->_properties = t3lib_div::array_merge_recursive_overrule($GLOBALS['TCA'][$this->_table]['columns'], $this->_properties);
 
         // Ignored fields
