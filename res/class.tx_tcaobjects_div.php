@@ -481,6 +481,9 @@ class tx_tcaobjects_div {
 	 * @since	2008-03-26
 	 */
 	public static function tsToQuickformString(array $conf) {
+		
+		tx_pttools_assert::isNotEmpty($conf, array('message' => 'Typoscript array was empty!'));
+		
 		// TODO: groups!
 		$quickform = array();
 		uksort($conf, 'strnatcmp'); // this is the missing knatsort
