@@ -119,8 +119,33 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 			$this->addItem(new $tcaObjectName('', $row));
 		}
 	}
-
-
+	
+	
+	
+	/**
+	 * Returns an array with the value of the property of all items
+	 *
+	 * @param 	string	property name, use "|" to access properties of subitems
+	 * @return 	array	array with all property values
+	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @since	2008-09-24
+	 */
+	public function extractProperty($propertyName) {
+		
+		$propertyParts = t3lib_div::trimExplode('|', $propertyName);
+		
+		$returnArray = array();
+		foreach ($this->itemsArr as $key => $item) {
+			$tmp = $item;
+			foreach ($propertyParts as $part) {
+				$tmp = $tmp[$part];
+			}
+			$returnArray[$key] = $tmp;
+		}
+		return $returnArray;
+	}
+	
+	
 
 	/***************************************************************************
 	 * Methods for the "tx_tcaobjects_iPageable" interface

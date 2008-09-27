@@ -197,7 +197,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function loadSelf($uid, $ignoreEnableFields = false) {
-
+		tx_pttools_assert::isValidUid($uid, false, array('message' => '"'.$uid.'" is not a valid uid!'));
         $dataArr = tx_tcaobjects_objectAccessor::selectByUid($uid, $this->_table, $ignoreEnableFields);
         if (is_array($dataArr)) {
             $this->setDataArray($dataArr);
@@ -497,8 +497,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 $property = $this->resolveAlias($calledProperty);
 
                 if (!$this->offsetExists($property)) {
-                    // throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!');
-                    echo 'Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.get_class($this).']<br />'.chr(10);
+                    throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid! ['.get_class($this).'::'.__FUNCTION__.']');
+                    // echo 'Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.get_class($this).']<br />'.chr(10);
                 } else {
 
                     $this->__set($property, $value);
@@ -731,7 +731,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isTrue(
             ($type == 'inline') || (($type = 'group') && ($internal_type == 'db')),
             array(
-                'message' 			=> 'Invalid modifier for called property!',
+                'message' 			=> 'Invalid modifier "objColl" for called property!',
                 'modifier'			=> 'objColl',
                 'type' 				=> $type,
                 'internal_type' 	=> $internal_type,
@@ -833,7 +833,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isTrue(
             ($type == 'group') && ($internal_type == 'db') && ($maxitems == 1),
             array(
-                'message' 			=> 'Invalid modifier for called property!',
+                'message' 			=> 'Invalid modifier "obj" for called property!',
                 'modifier'			=> 'obj',
                 'type' 				=> $type,
                 'internal_type' 	=> $internal_type,
@@ -973,7 +973,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isTrue(
             ($type == 'select') && ($maxitems == 1),
             array(
-                'message' 			=> 'Invalid modifier for called property!',
+                'message' 			=> 'Invalid modifier "sL" for called property!',
                 'modifier'			=> 'sL',
                 'type' 				=> $type,
                 'maxitems'			=> $maxitems,
@@ -1154,10 +1154,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             }
             $where = $fieldname.'='.$GLOBALS['TYPO3_DB']->fullQuoteStr($parameters[0], $this->_table);
             $dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->_table, $where, 1);
-            if (is_array($dataArr)) {
-                $this->setDataArray($dataArr);
+            // TODO: what if more than 1 result found? This should/could be a method for a collection
+            if (is_array($dataArr[0])) {
+                $this->setDataArray($dataArr[0]);
+                return true;
             } else {
-                throw new tx_pttools_exception('No record found "' . $fieldname . ':' . $parameters[0] . '"');
+            	return false;
+                // throw new tx_pttools_exception('No record found "' . $fieldname . ':' . $parameters[0] . '"');
             }
         } else {
             throw new ReflectionException('"'.$methodName.'" is no valid method (Only getters, setters and special methods allowed!)');
