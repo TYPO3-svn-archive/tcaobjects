@@ -1211,7 +1211,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 
     /**
-     * Gets the value of the offst
+     * Gets the value of the offset
      *
      * @param 	string	offset
      * @return 	mixed
