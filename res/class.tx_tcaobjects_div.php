@@ -348,6 +348,7 @@ class tx_tcaobjects_div {
 		
 		require_once PATH_t3lib . 'class.t3lib_userauth.php';
 		require_once PATH_t3lib . 'class.t3lib_userauthgroup.php';
+		require_once PATH_t3lib . 'class.t3lib_befunc.php';
 		
 		$BE_USER = t3lib_div::makeInstance('t3lib_beUserAuth'); /* @var $BE_USER t3lib_beUserAuth */
 		$BE_USER->OS = TYPO3_OS;
