@@ -83,6 +83,16 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         'rte',
         'sL',
 	);
+	
+	/**
+	 * @var tx_tcaobjects_objectCollection	object versions are stored here if versioning is enabled for this table
+	 */
+	protected $versions;
+	
+	/**
+	 * @var bool	if true, there are changes that aren't stored to database yet
+	 */
+	protected $notStoredChanges = false;
 
     /**
      * @var string	comma separeted list of potential special fields
@@ -197,6 +207,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function loadSelf($uid, $ignoreEnableFields = false) {
+    	
+    	if ($this->notStoredChanges) {
+    		throw new tx_pttools_exception('There are unstored changed in this object. You cannot reload this object! Those changes would get lost.');
+    	}
+    	
 		tx_pttools_assert::isValidUid($uid, false, array('message' => '"'.$uid.'" is not a valid uid!'));
         $dataArr = tx_tcaobjects_objectAccessor::selectByUid($uid, $this->_table, $ignoreEnableFields);
         if (is_array($dataArr)) {
@@ -211,7 +226,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     /**
      * Stores itself into the database (update or insert depending on if the uid is set)
      *
-     * @param 	void
+     * @param 	bool	(optional) update subitems, default is false
+     * @param	int		(optional) pid where to store possibly needed mm records 
      * @return	void
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
@@ -317,6 +333,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
             } // end if type is inline
         } // end foreach ($this->_properties
+        
+        $this->notStoredChanges = false;
+        
     } // end method
 
 
@@ -385,47 +404,127 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
         return ($this['pid'] != -1);
     }
-
-    public function getVersions() {
-        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
-        tx_pttools_assert::isTrue($this->isOnlineVersion(), array('message' => 'Versions only available for the online version'));
-
-        // TODO: get a collection of version records
+    
+    
+    
+    /**
+     * Returns the uid of the online version ("oid")
+     *
+     * @param 	void
+     * @return 	int		uid of the online version
+     * @author	Fabrizio Branca <branca@punkt.de>
+     * @since	2008-10-27
+     */
+    public function getOid() {
+    	$oid = $this->getOnlineVersion()->__get('uid'); // this is the same as $this if $this is already the online version
+    	tx_pttools_assert::isValidUid($oid, false, array('message' => 'No valid "oid" found!'));
+    	return $oid;
     }
 
+    
+    
+    /**
+     * Returns a collection of all versions (including the current one)
+     * 
+     * @param	void
+     * @return 	tx_tcaobjects_objectCollection
+     * @author	Fabrizio Branca <mail@fabrizio-branca.des>
+     * @since	2008-10-27
+     */
+    public function getVersions() {
+    	if (empty($this->versions)) {
+	        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
+	
+	        $collectionClassname = get_class($this) . 'Collection';
+	        $this->versions = new $collectionClassname('versions', array('uid' => $this->getOid()));
+    	}
+        return $this->versions;
+    }
+    
+    
+	
+    /**
+     * Make this version the online version.
+     * Current version and online version will be swapped.
+     * The object is reloaded afterwards to hold the new data
+     * 
+     * @param 	void
+     * @return 	void
+     * @author	Fabrizio Branca <branca@punkt.de>
+     * @since	2008-10-27
+     */
     public function makeThisTheOnlineVersion() {
         tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
-        tx_pttools_assert::false($this->isOnlineVersion(), array('message' => 'This is already the online version'));
+        tx_pttools_assert::isFalse($this->isOnlineVersion(), array('message' => 'This is already the online version'));
+        
+        if ($this->notStoredChanges) {
+        	throw new tx_pttools_exception('There are unstored changed in this object. You cannot reload this object! Those changes would get lost.');
+        }
 
-        // TODO: implement
+        $tce = t3lib_div::makeInstance('t3lib_TCEmain'); /* @var $tce t3lib_TCEmain */
+		$tce->stripslashes_values = 0;
+		$tce->start(Array(),Array());
+		
+		$oid = $this->getOid();
+		$tce->version_swap($this->getTable(), $oid, $this->__get('uid'));
+		
+		// reset versions and values
+		$this->versions = NULL;
+		$this->_values = array();
+		
+		// reload self
+		$this->loadSelf($oid);
     }
 
     
     
     /**
      * Returns an object with the online version of this record
-     *
+     *	
+     * @param 	bool					(optional) throws an exception if this object is already the online version
      * @return 	tx_tcaobjects_object	online version of this record
      * @throws	tx_pttools_exception	if versioning is not enabled for this record
-     * @throws	tx_pttools_exception	if this is already the online version
+     * @throws	tx_pttools_exception	if this is already the online version and first parameter is true
      * @throws	tx_pttools_exception	if t3ver_oid is not set
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-06-01
      */
-    public function getOnlineVersion() {
+    public function getOnlineVersion($throwExceptionIfAlreadyOnline = false) {
         tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
-        tx_pttools_assert::false($this->isOnlineVersion(), array('message' => 'This is already the online version'));
-        tx_pttools_assert::isNotEmpty($this->__get('t3ver_oid'), array('message' => 'No t3ver_oid defined'));
-		
-		$classname = get_class($this);
-		$onlineVersion = new $classname($this->__get('t3ver_oid'));
+        
+        if (!$this->isOnlineVersion()) {
+        	tx_pttools_assert::isNotEmpty($this->__get('t3ver_oid'), array('message' => 'No t3ver_oid defined'));
+			$classname = get_class($this);
+			$onlineVersion = new $classname($this->__get('t3ver_oid'));
+        } else {
+        	if ($throwExceptionIfAlreadyOnline) {
+        		throw new tx_pttools_exception('This is already the online version');
+        	}
+        	$onlineVersion = $this;
+        }
 		return $onlineVersion;
     }
 
-    public function saveAsNewVersion($label = '') {
+    
+	/**
+	 * Creates a new version of this object
+	 *
+	 * @param 	string	(optional) label, will be autogenerated if empty
+	 * @return 	tx_tcaobjects_object	instance of the same class
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-10-27
+	 */    
+    public function createNewVersion($label = '') {
         tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
-
-        // TODO: save and let $this be the new version
+        
+		$tce = t3lib_div::makeInstance('t3lib_TCEmain'); /* @var $tce t3lib_TCEmain */
+		$tce->stripslashes_values = 0;
+		$tce->start(Array(),Array());
+		
+		$newUid = $tce->versionizeRecord($this->getTable(), $this->getOid(), $label);
+		
+		$className = get_class($this);
+		return new $className($newUid);
     }
 
 
@@ -435,8 +534,14 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     /**
      * Deletes itself from the database
      *
+     * @param 	bool	(optional) mark only as deleted instead of really deleting the record, default is true
+     * @return 	void
+     * @author	Fabrizio Branca <branca@punkt.de>
+     * @since	2008-10-27
      */
     public function deleteSelf($markOnlyAsDeleted = true) {
+    	
+    	tx_pttools_assert::isValidUid($this->__get('uid'), false, array('message' => 'This record cannot be deleted as it does not have a valid uid!'));
 
         // delete relations too
         foreach (array_keys($this->_properties) as $property) {
@@ -470,13 +575,20 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         if ($markOnlyAsDeleted) {
             if (($deletedFieldName = $this->getSpecialField('delete')) !== false) {
-                tx_tcaobjects_objectAccessor::update($this->_table, array($deletedFieldName => 1, 'uid' => $this->uid));
+                tx_tcaobjects_objectAccessor::updateExistingRecord($this->_table, array($deletedFieldName => 1, 'uid' => $this->uid));
+                
+		        // delete versions, too
+		        if ($this->isVersionable()) {
+		        	$where = 't3ver_oid = ' . $this->__get('uid');
+		        	tx_tcaobjects_objectAccessor::updateTable($this->_table, $where, array($deletedFieldName => 1));
+		        }
             } else {
                 throw new tx_pttools_exception('"'.$this->getIdentifier().'" cannot be marked as deleted as there is no delete field defined in the tca for the table');
             }
         } else {
             tx_tcaobjects_objectAccessor::delete($this->_table, $this->uid);
         }
+        
     } // end method
 
 
@@ -1089,6 +1201,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-03-20
      */
     protected function __set($calledProperty, $value) {
+    	
+    	$this->notStoredChanges = false;
 
         $property = $this->resolveAlias($calledProperty);
 

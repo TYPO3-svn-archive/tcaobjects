@@ -1,3 +1,8 @@
+2008-10-17
+
++ (Fabrizio)
+  + added support for versioning
+
 2008-06-08
 
 + (Fabrizio)

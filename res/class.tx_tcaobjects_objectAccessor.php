@@ -199,7 +199,7 @@ class tx_tcaobjects_objectAccessor {
             unset($dataArray['cruser_id']);
             // unset($dataArray['pid']); uncommenting allows moving record by changing the pid and storing the record
 
-            return self::update($table, $dataArray);
+            return self::updateExistingRecord($table, $dataArray);
         } else {
         	return self::insert($table, $dataArray);
         }
@@ -259,9 +259,9 @@ class tx_tcaobjects_objectAccessor {
             throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
         }
     }
-
-
+	
     
+
     /**
      * Updates an existing record
      *
@@ -271,23 +271,39 @@ class tx_tcaobjects_objectAccessor {
      * @throws	tx_pttools_exception if uid is empty
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function update ($table, array $updateFieldsArr) {
+    public function updateExistingRecord ($table, array $updateFieldsArr) {
 
         if (empty($updateFieldsArr['uid'])) {
             throw new tx_pttools_exception('No uid set (needed for updating the record)!');
         }
 
         $where = 'uid = '.intval($updateFieldsArr['uid']);
-
-        // exec query using TYPO3 DB API
+        
+        self::updateTable($table, $where, $updateFieldsArr);
+        
+        return $updateFieldsArr['uid'];
+    }
+    
+    
+    
+    /**
+     * Updates a table
+     *
+     * @param 	string	table name
+     * @param 	string	where clause
+     * @param 	array 	update fields
+     * @return 	void
+     * @author	Fabrizio Branca <branca@punkt.de>
+     * @since	2008-10-27
+     */
+    public function updateTable($table, $where, array $updateFieldsArr) {
+    	
+    	// exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, $where, $updateFieldsArr);
         trace(tx_pttools_div::returnLastBuiltInsertQuery($GLOBALS['TYPO3_DB'], $table, $updateFieldsArr));
         if ($res == false) {
             throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
         }
-
-        trace($res);
-        return $updateFieldsArr['uid'];
     }
     
     

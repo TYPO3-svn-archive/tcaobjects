@@ -77,13 +77,16 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
                 throw new tx_pttools_exception('No user is logged in');   
             }
         } else {
-        	try {
+        	// try {
             	parent::__construct($uid, $dataArr, $ignoreEnableFields);
+        	/*
         	} catch (tx_pttools_exception $exceptionObj) {
+        		echo $exceptionObj->getMessage();
         		// Was not able to load user from db. Maybe deleted?        		
         		// $this['deleted'] = 1;
         		$this['uid'] = 0;
         	}
+			*/
         }
     }
 

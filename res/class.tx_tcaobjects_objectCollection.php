@@ -54,6 +54,26 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	public function load_items(array $params) {
 		$this->loadItems($params['where'], $params['limit'], $params['order']);
 	}
+	
+	
+	
+	/**
+	 * Load all versions of a record
+	 * 
+	 * @param 	array	params, key "
+	 *
+	 */
+	public function load_versions(array $params) {
+		tx_pttools_assert::isValidUid($params['uid'], false, array('message' => 'No valid uid given!'));
+		
+		$where = '(t3ver_oid = ' . $params['uid'] . ' OR uid = ' . $params['uid'] . ')';
+		$limit = '';
+		$order = 't3ver_id DESC';
+		$ignoreEnableFields = false;
+		
+		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
+		$this->setDataArray($dataArr);
+	}
 
 	
 	
@@ -71,7 +91,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
 		$this->setDataArray($dataArr);
 	}
-
+	
 	
 	
 	/**
