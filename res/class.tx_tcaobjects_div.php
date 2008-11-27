@@ -197,7 +197,7 @@ class tx_tcaobjects_div {
 	 * @since	2008-03-21
 	 */
 	public static function autoLoad($className) {
-
+		
 		$classNameParts = t3lib_div::trimExplode('_', $className);
 		array_shift($classNameParts); // get rid of the prefix (e.g. tx_ or user_)
 		$condensedExtKey = array_shift($classNameParts);

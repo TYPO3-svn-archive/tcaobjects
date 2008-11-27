@@ -400,7 +400,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		// if a property is used it must exist in the object (if not used by a specialtype)
 		if (!empty($property) && !$this->object->offsetExists($property) && empty($specialtype)) {
-			throw new tx_pttools_exception('Property "' . $property . '" not valid! ['.__FUNCTION__.']');
+			throw new tx_pttools_exception(sprintf('Property "%s" (Specialtype "%s") not valid! (Offset exists: "%s")', $property, $specialtype, $this->object->offsetExists($property) ? 'true' : 'false'));
 		}
 
 		// create attribute list
@@ -533,8 +533,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 						} elseif (!empty($foreignTable)) {
 							// TODO: "foreign_table_where" => "ORDER BY pages.uid", beachten
 
-							$data = tx_tcaobjects_objectAccessor::selectCollection($foreignTable, '', '', $this->object->getConfig($property, 'foreign_label'));
-
+							$data = tx_tcaobjects_objectAccessor::selectCollection($foreignTable, '', '', $this->object->getConfig($property, 'foreign_sortby'));
 							foreach ($data as $selectItem) {
 								$selectionArray[$selectItem['uid']] = $selectItem[$this->object->getConfig($property, 'foreign_label')];
 							}
