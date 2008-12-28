@@ -33,23 +33,35 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$_EXTKEY] = a
 );
 
 // Autoloader for pt_tools classes
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['pt_tools'] = array(
-	'basePath' => 'EXT:pt_tools/res/',
-	'classPaths' => array(), // no classPaths here, because we're using a classMap
-	'classMap' => array(
-		'tx_pttools_objectCollection' 		=> 'abstract/class.tx_pttools_objectCollection.php',
-	
-		'tx_pttools_exception' 				=> 'objects/class.tx_pttools_exception.php',
-		'tx_pttools_registry' 				=> 'objects/class.tx_pttools_registry.php',
-		'tx_pttools_formReloadHandler' 		=> 'objects/class.tx_pttools_formReloadHandler.php',
-		'tx_pttools_sessionStorageAdapter' 	=> 'objects/class.tx_pttools_sessionStorageAdapter.php',
-		'tx_pttools_smartyAdapter' 			=> 'objects/class.tx_pttools_smartyAdapter.php',
-	
-		'tx_pttools_debug'	 				=> 'staticlib/class.tx_pttools_debug.php',
-		'tx_pttools_div'	 				=> 'staticlib/class.tx_pttools_div.php',
-		'tx_pttools_assert'	 				=> 'staticlib/class.tx_pttools_assert.php',
-	)
-);
+if (t3lib_extMgm::isLoaded('pt_tools')) {
+	$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['pt_tools'] = array(
+		'basePath' => 'EXT:pt_tools/res/',
+		'classPaths' => array(), // no classPaths here, because we're using a classMap
+		'classMap' => array(
+			'tx_pttools_objectCollection' 		=> 'abstract/class.tx_pttools_objectCollection.php',
+		
+			'tx_pttools_exception' 				=> 'objects/class.tx_pttools_exception.php',
+			'tx_pttools_registry' 				=> 'objects/class.tx_pttools_registry.php',
+			'tx_pttools_formReloadHandler' 		=> 'objects/class.tx_pttools_formReloadHandler.php',
+			'tx_pttools_sessionStorageAdapter' 	=> 'objects/class.tx_pttools_sessionStorageAdapter.php',
+			'tx_pttools_smartyAdapter' 			=> 'objects/class.tx_pttools_smartyAdapter.php',
+		
+			'tx_pttools_debug'	 				=> 'staticlib/class.tx_pttools_debug.php',
+			'tx_pttools_div'	 				=> 'staticlib/class.tx_pttools_div.php',
+			'tx_pttools_assert'	 				=> 'staticlib/class.tx_pttools_assert.php',
+		)
+	);
+}
+
+// setting up the tcaobjects autoloader
+if (t3lib_extMgm::isLoaded('pt_mail')) {
+	$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader']['pt_mail'] = array(
+		'partsMatchDirectories' => true,
+		'classPaths' => array(
+			'res',
+		)
+	);
+}
 
 // Extending smarty
 $GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']['ext/smarty/class.tx_smarty_wrapper.php'] = t3lib_extMgm::extPath($_EXTKEY).'misc/class.ux_tx_smarty_wrapper.php';
