@@ -1,5 +1,6 @@
 <?php
 
+// TODO: switch to tx_pttools_iPageable interface?
 class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection implements tx_tcaobjects_iPageable {
 
 	/**
@@ -11,9 +12,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	protected $tcaObjectName = '';
 
 	protected $table = '';
-	
-	
-	
+
+
+
 	/**
 	 * Constructor
 	 *
@@ -24,12 +25,12 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @since	2008-06-08
 	 */
 	public function __construct($load = '', array $params = array()) {
-		
+
 		// set restricted class name
 		if (is_null($this->restrictedClassName)) {
 			$this->restrictedClassName = $this->getClassName();
 		}
-		
+
 		// load items
 		if (!empty($load)) {
 			$methodName = 'load_'.$load;
@@ -40,9 +41,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Wrapper for loadItems, that can be called from the constructor
 	 *
@@ -54,29 +55,29 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	public function load_items(array $params) {
 		$this->loadItems($params['where'], $params['limit'], $params['order']);
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Load all versions of a record
-	 * 
+	 *
 	 * @param 	array	params, key "
 	 *
 	 */
 	public function load_versions(array $params) {
 		tx_pttools_assert::isValidUid($params['uid'], false, array('message' => 'No valid uid given!'));
-		
+
 		$where = '(t3ver_oid = ' . $params['uid'] . ' OR uid = ' . $params['uid'] . ')';
 		$limit = '';
 		$order = 't3ver_id DESC';
 		$ignoreEnableFields = false;
-		
+
 		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
 		$this->setDataArray($dataArr);
 	}
 
-	
-	
+
+
 	/**
 	 * Load items
 	 *
@@ -91,9 +92,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
 		$this->setDataArray($dataArr);
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Get table name
 	 *
@@ -110,9 +111,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		}
 		return $this->table;
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Get the class name of the items in this array
 	 *
@@ -121,11 +122,11 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @since	2008-06-05
 	 */
 	protected function getClassName() {
-		return str_replace('Collection', '', get_class($this)); // assuming that "fooCollection" contains "foo" objects		
+		return str_replace('Collection', '', get_class($this)); // assuming that "fooCollection" contains "foo" objects
 	}
 
-	
-	
+
+
 	/**
 	 * Set data array
 	 *
@@ -139,9 +140,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 			$this->addItem(new $tcaObjectName('', $row));
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Returns an array with the value of the property of all items
 	 *
@@ -151,9 +152,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @since	2008-09-24
 	 */
 	public function extractProperty($propertyName) {
-		
+
 		$propertyParts = t3lib_div::trimExplode('|', $propertyName);
-		
+
 		$returnArray = array();
 		foreach ($this->itemsArr as $key => $item) {
 			$tmp = $item;
@@ -164,8 +165,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		}
 		return $returnArray;
 	}
-	
-	
+
+
 
 	/***************************************************************************
 	 * Methods for the "tx_tcaobjects_iPageable" interface
@@ -179,6 +180,77 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		$this->loadItems($where, $limit, $order);
 		return $this;
 	}
+
+
+
+	/***************************************************************************
+	 * Overriding methods for the "ArrayAccess" interface
+	 **************************************************************************/
+
+    /**
+     * Returns the value for a given offset
+     * and enables "filters" and "sorting".
+     *
+     * FILTERS
+     * *******
+     * You can ask a collection for a "filter_<nameOfTheFilter>" key via the ArrayAccess Interface
+     * e.g. $myCollection['filter_elementsGreaterThanTen']
+     * This method will check for a method called "check_<nameOfTheFilter>" and will pass every
+     * element to this method. If the method returns true this element will be put into a new
+     * constructed collection of the same type and after checking all original colelction's items the
+     * new item will be returned.
+     * A hint for choosing a name: Describe what items will be left in the newly returned collection
+     * and not which items will be filtered out. In our example the new collection will contain only
+     * items "greater than ten" (whatever this may mean, this decides the check_elementsGreaterThanTen
+     * method) and will not contain only those elements that are not "greater than ten".
+     *
+     * You may chain those filters:
+     * e.g.
+     * $myCollection['filter_elementsGreaterThanTen']['filter_elementsAccesibleToCurrentUser']
+     *
+     * SORTING
+     * *******
+     * Sorting works simular as filtering. Simply ask a collection for a "sort_<nameOfSorting>" key
+     * via the ArrayAccess Interface
+     * e.g. $userCollection['sort_byLastName']
+     * This method will check if a callback function called "compare_<nameOfSorting>" exists in the
+     * inheriting collection class. This callback (should be a static method) will get two objects
+     * as parameters and should decide which one is the greater one. The comparison function must return
+     * an integer less than, equal to, or greater than zero if the first argument is considered to be
+     * respectively less than, equal to, or greater than the second. (have a look at PHP's usort documentation)
+     *
+     * @param 	mixed	offset
+     * @return 	mixed	element of the collection or a collection
+     * @author	Fabrizio Branca <branca@punkt.de>
+     * @since	2008-05-29
+     */
+    public function offsetGet($offset) {
+    	if (substr($offset, 0, 7) == 'filter_') {
+			$methodName = 'check_' .substr($offset, 7);
+			if (method_exists($this, $methodName)) {
+				$className = get_class($this);
+				$newCollection = new $className(); /* @var tx_tcaobjects_objectCollection */
+				foreach ($this as $object) { /* @var $object tx_tcaobjects_object */
+					if ($this->$methodName($object) === true) {
+						$newCollection->addItem($object);
+					}
+				}
+				return $newCollection;
+			} else {
+				throw new tx_pttools_exception(sprintf('No method "%s" found (for filter use)', $methodName));
+			}
+    	} elseif (substr($offset, 0, 5) == 'sort_') {
+    		$methodName = 'compare_' .substr($offset, 5);
+    		if (method_exists($this, $methodName)) {
+				usort($this->itemsArr, array(get_class($this), $methodName));
+			} else {
+				throw new tx_pttools_exception(sprintf('No method "%s" found (for sort use)', $methodName));
+			}
+    		return $this;
+    	} else {
+	        return $this->getItemById($offset);
+    	}
+    }
 
 
 }
