@@ -79,7 +79,7 @@ class tx_tcaobjects_div {
 	 * @since	2008-03-23
 	 */
 	public static function getClassname($callingtable, $callingproperty) {
-		
+
 		t3lib_div::loadTCA($callingtable);
 
 		$classname = self::getColumnConfig($callingtable, $callingproperty, 'foreign_tcaobject_class');
@@ -197,7 +197,7 @@ class tx_tcaobjects_div {
 	 * @since	2008-03-21
 	 */
 	public static function autoLoad($className) {
-		
+
 		$classNameParts = t3lib_div::trimExplode('_', $className);
 		array_shift($classNameParts); // get rid of the prefix (e.g. tx_ or user_)
 		$condensedExtKey = array_shift($classNameParts);
@@ -345,11 +345,11 @@ class tx_tcaobjects_div {
 	 * @since	2008-03-21
 	 */
 	public static function createFakeBeUser() {
-		
+
 		require_once PATH_t3lib . 'class.t3lib_userauth.php';
 		require_once PATH_t3lib . 'class.t3lib_userauthgroup.php';
 		require_once PATH_t3lib . 'class.t3lib_befunc.php';
-		
+
 		$BE_USER = t3lib_div::makeInstance('t3lib_beUserAuth'); /* @var $BE_USER t3lib_beUserAuth */
 		$BE_USER->OS = TYPO3_OS;
 
@@ -371,8 +371,8 @@ class tx_tcaobjects_div {
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-04-27
 	 */
-	public static function renderContent($uid) {
-		$lConf = array('tables' => 'tt_content', 'source' => $uid);
+	public static function renderContent($uid, $table='tt_content') {
+		$lConf = array('tables' => $table, 'source' => $uid);
 		return $GLOBALS['TSFE']->cObj->RECORDS($lConf);
 	}
 
@@ -482,9 +482,9 @@ class tx_tcaobjects_div {
 	 * @since	2008-03-26
 	 */
 	public static function tsToQuickformString(array $conf) {
-		
+
 		tx_pttools_assert::isNotEmpty($conf, array('message' => 'Typoscript array was empty!'));
-		
+
 		// TODO: groups!
 		$quickform = array();
 		uksort($conf, 'strnatcmp'); // this is the missing knatsort
@@ -529,11 +529,11 @@ class tx_tcaobjects_div {
 					$fieldAttributes[] = $attributeKey.(!empty($attributeValue) ? '='.$attributeValue : '');
 				}
 				$fieldAttributes = implode(':', $fieldAttributes);
-				
+
 				// urlencode text values
 				$fieldconf['comment'] = urlencode($fieldconf['comment']);
 				$fieldconf['content'] = urlencode($fieldconf['content']);
-				
+
 				$quickform[] = rtrim(implode(';', array($fieldconf['property'], $fieldconf['altLabel'], $fieldconf['specialtype'], $fieldconf['content'], $fieldRules, $fieldAttributes, $fieldconf['comment'])),';');
 			}
 		}

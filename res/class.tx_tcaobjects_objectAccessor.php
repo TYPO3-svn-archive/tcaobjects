@@ -1,19 +1,19 @@
 <?php
 /***************************************************************
 *  Copyright notice
-*  
+*
 *  (c) 2008 Fabrizio Branca (mail@fabrizio-branca.de)
 *  All rights reserved
 *
-*  This script is part of the TYPO3 project. The TYPO3 project is 
+*  This script is part of the TYPO3 project. The TYPO3 project is
 *  free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
 *  the Free Software Foundation; either version 2 of the License, or
 *  (at your option) any later version.
-* 
+*
 *  The GNU General Public License can be found at
 *  http://www.gnu.org/copyleft/gpl.html.
-* 
+*
 *  This script is distributed in the hope that it will be useful,
 *  but WITHOUT ANY WARRANTY; without even the implied warranty of
 *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -25,7 +25,7 @@
 
 /**
  * Object Accessor base class
- * 
+ *
  * @author	Fabrizio Branca <mail@fabrizio-branca.de>
  */
 class tx_tcaobjects_objectAccessor {
@@ -145,11 +145,11 @@ class tx_tcaobjects_objectAccessor {
 
         return $rows;
     }
-    
-    
-    
+
+
+
     /**
-     * Count collection items 
+     * Count collection items
      *
      * @param 	string	table
      * @param 	string	(optional) where
@@ -158,7 +158,7 @@ class tx_tcaobjects_objectAccessor {
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function selectCollectionCount($table, $where = '', $ignoreEnableFields = false) {
-    	
+
         // query preparation
         $select  = 'count(*) as quantity';
         $from    = $table;
@@ -176,7 +176,7 @@ class tx_tcaobjects_objectAccessor {
         if ($res == false) {
             throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
         }
-        
+
         $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
 
@@ -217,6 +217,14 @@ class tx_tcaobjects_objectAccessor {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function insert ($table, array $insertFieldsArr) {
+
+    	// check if all values are scalar or null
+    	foreach($insertFieldsArr as $key => $value) {
+    		if (!(is_scalar($value) || is_null($value))) {
+    			throw new tx_pttools_exception(sprintf('Value in key "%s" is not scalar but "%s"!', $key, gettype($value)));
+    		}
+    	}
+
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $insertFieldsArr);
         trace(tx_pttools_div::returnLastBuiltInsertQuery($GLOBALS['TYPO3_DB'], $table, $insertFieldsArr));
@@ -254,13 +262,13 @@ class tx_tcaobjects_objectAccessor {
     public function deleteWhere($table, $where) {
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_DELETEquery($table, $where);
-        
+
         if ($res == false) {
             throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
         }
     }
-	
-    
+
+
 
     /**
      * Updates an existing record
@@ -278,14 +286,14 @@ class tx_tcaobjects_objectAccessor {
         }
 
         $where = 'uid = '.intval($updateFieldsArr['uid']);
-        
+
         self::updateTable($table, $where, $updateFieldsArr);
-        
+
         return $updateFieldsArr['uid'];
     }
-    
-    
-    
+
+
+
     /**
      * Updates a table
      *
@@ -297,7 +305,7 @@ class tx_tcaobjects_objectAccessor {
      * @since	2008-10-27
      */
     public function updateTable($table, $where, array $updateFieldsArr) {
-    	
+
     	// exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, $where, $updateFieldsArr);
         trace(tx_pttools_div::returnLastBuiltInsertQuery($GLOBALS['TYPO3_DB'], $table, $updateFieldsArr));
@@ -305,9 +313,9 @@ class tx_tcaobjects_objectAccessor {
             throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
         }
     }
-    
-    
-    
+
+
+
     /**
      * Return the positioning parameter for t3lib_TCEmain::getSortNumber() to move a record one position up
      *
@@ -318,8 +326,8 @@ class tx_tcaobjects_objectAccessor {
      * @return 	mixed	int with the positioning parameter, false if the record is already the last
      */
     public static function selectMoveOneUpPosition($table, $pid, $uid, $sortingFieldName = 'sorting') {
-    	// TODO: is the pid parameter really needed here? 
-    	
+    	// TODO: is the pid parameter really needed here?
+
 		// query preparation
         $select  = 'b.uid as position';
         $from    = $table.' as a, '.$table.' as b';
@@ -341,7 +349,7 @@ class tx_tcaobjects_objectAccessor {
         }
         $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
-        
+
         if (empty($a_row['position'])) {
         	// TODO: get the pid from the uid
         	// or even return false, because it is already the first one?
@@ -351,11 +359,11 @@ class tx_tcaobjects_objectAccessor {
         }
 
         return $position;
-    	
+
     }
-    
-    
-    
+
+
+
     /**
      * Return the positioning parameter for t3lib_TCEmain::getSortNumber() to move a record one position down
      *
@@ -366,8 +374,8 @@ class tx_tcaobjects_objectAccessor {
      * @return 	mixed	int with the positioning parameter, false if the record is already the last
      */
     public static function selectMoveOneDownPosition($table, $pid, $uid, $sortingFieldName = 'sorting') {
-		// TODO: is the pid parameter really needed here? 
-    	
+		// TODO: is the pid parameter really needed here?
+
 		// query preparation
         $select  = 'b.uid as position';
         $from    = $table.' as a, '.$table.' as b';
@@ -389,7 +397,7 @@ class tx_tcaobjects_objectAccessor {
         }
         $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
-        
+
         if (empty($a_row['position'])) {
         	$position = false;
         } else {
@@ -398,7 +406,7 @@ class tx_tcaobjects_objectAccessor {
 
         return $position;
     }
-    
+
 }
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tcaobjects/res/class.tx_tcaobjects_objectAccessor.php'])	{
