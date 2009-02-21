@@ -1,6 +1,7 @@
 <?php
 
 require_once 'HTML/QuickForm.php';
+require_once 'HTML/QuickForm/group.php';
 require_once 'HTML/QuickForm/advmultiselect.php';
 
 require_once PATH_t3lib . 'class.t3lib_basicfilefunc.php';
@@ -55,7 +56,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->prefix = $prefix;
 
 		parent::HTML_QuickForm ($formName, $method, $action, $target, $attributes, $trackSubmit);
-		
+
 		$this->registerElementType('rawstatic', t3lib_extMgm::extPath('tcaobjects') . 'res/class.tx_tcaobjects_qfRawStatic.php', 'tx_tcaobjects_qfRawStatic');
 
 		$this->setupAdditionalRules();
@@ -73,12 +74,12 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->onCancel = $onCancel;
 		$this->cancelButton = $cancelButton;
 	}
-	
+
 	public function generateIds() {
 		foreach ($this->_elements as $element) {
 			if (is_object($element) && method_exists($element, '_generateId')) {
 				$element->_generateId();
-				
+
 			}
 		}
 	}
@@ -255,7 +256,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	public function getQuickformElementRule($parameter) {
 
 		list ($property, /* $altLabel */, /* $specialtype */ , /* $content */, $rules, $attributes) = t3lib_div::trimExplode(';', $parameter);
-		
+
 		$property = $this->object->resolveAlias($property);
 
 		// create attribut list
@@ -372,7 +373,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @since	2008-03-80
 	 */
 	public function createQuickformElement($parameter) {
-		
+
 		// TODO: switch to parameter object instead of a parameter string?
 
 		// check requirements
@@ -381,13 +382,13 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		tx_pttools_assert::isNotEmptyString($this->prefix, array('message' => 'No prefix set!'));
 
 		list ($property, $altLabel, $specialtype, $content, /* $rules */, $attributes, $comment) = t3lib_div::trimExplode(';', $parameter);
-		
+
 		// urldecode text values
 		$comment = urldecode($comment);
 		$content = urldecode($content);
 
 		tx_pttools_assert::isFalse(
-			empty($property) && empty($specialtype), 
+			empty($property) && empty($specialtype),
 			array(
 				'message' => 'Property AND specialtype are empty!"',
 				'formname' => $this->formname,
@@ -410,7 +411,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			list ($key, $value) = t3lib_div::trimExplode('=', $attribute);
 			$attributes[$key] = $value;
 		}
-		// TODO attributes überall da dem element hinzufügen, wo es sinn macht
+		// TODO attributes ueberall da dem Element hinzufuegen, wo es sinn macht
 		if (!empty($property) && empty($specialtype)) {
 
 			// Use the altLabel if set. If not use the label field defined in the TCA
@@ -479,9 +480,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				 **************************************************************/
 				case 'input': {
 					if (in_array('password', $this->object->getEval($property))) {
-						
+
 						$elements[] = HTML_QuickForm::createElement('password', $this->getElementName($property), $label, $attributes);
-						
+
 					} elseif (in_array('date', $this->object->getEval($property))) {
 
 						$minYearDelta = !empty($attributes['minYearDelta']) ? $attributes['minYearDelta'] : 5;
@@ -499,7 +500,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 						$elements[] = HTML_QuickForm::createElement('date', $this->getElementName($property), $label, $options);
 
 					} else {
-						
+
 						$tmpElement = HTML_QuickForm::createElement('text', $this->getElementName($property), $label, $attributes);
 						$tmpElement->setComment($comment);
 						$elements[] = $tmpElement;
@@ -520,45 +521,96 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				 **************************************************************/
 				case 'radio': // TODO: render as radio boxes!
 				case 'select': {
-						$selectionArray = array();
-						$foreignTable = $this->object->getConfig($property, 'foreign_table');
-						$items = $this->object->getConfig($property, 'items');
+					$selectionArray = array();
+					$foreignTable = $this->object->getConfig($property, 'foreign_table');
+					$items = $this->object->getConfig($property, 'items');
 
-						if (is_array($items)) {
+					if (is_array($items)) {
 
-							foreach ($items as $selectItem) {
-								$selectionArray[$selectItem[1]] = $GLOBALS['LANG']->sL($selectItem[0]);
-							}
-
-						} elseif (!empty($foreignTable)) {
-							// TODO: "foreign_table_where" => "ORDER BY pages.uid", beachten
-
-							$data = tx_tcaobjects_objectAccessor::selectCollection($foreignTable, '', '', $this->object->getConfig($property, 'foreign_sortby'));
-							foreach ($data as $selectItem) {
-								$selectionArray[$selectItem['uid']] = $selectItem[$this->object->getConfig($property, 'foreign_label')];
-							}
-						} else {
-							throw new tx_pttools_exception('Property "'.$property.'" is an invalid field for type "select"');
+						foreach ($items as $selectItem) {
+							$selectionArray[$selectItem[1]] = $GLOBALS['LANG']->sL($selectItem[0]);
 						}
 
-						$elementType = 'select';
-						$addAttributes = array();
-						if ($this->object->getConfig($property, 'size') > 1) {
-							$addAttributes['size'] = $this->object->getConfig($property, 'size');
-						}
-						if ($this->object->getConfig($property, 'maxitems') > 1) {
-							$addAttributes['multiple'] = 'multiple';
-							$elementType = 'advmultiselect';
+					} elseif (!empty($foreignTable)) {
+						// TODO: "foreign_table_where" => "ORDER BY pages.uid", beachten
 
-							$elements[] = HTML_QuickForm::createElement('hidden', $this->getElementName('__qf_ms_' . $property), 1);
+						$data = tx_tcaobjects_objectAccessor::selectCollection($foreignTable, '', '', $this->object->getConfig($property, 'foreign_sortby'));
+						foreach ($data as $selectItem) {
+							$selectionArray[$selectItem['uid']] = $selectItem[$this->object->getConfig($property, 'foreign_label')];
+						}
+					} else {
+						throw new tx_pttools_exception(sprintf('Property "%s" is an invalid field for type "select"', $property));
+					}
+
+					$elementType = 'select';
+					$addAttributes = array();
+					if ($this->object->getConfig($property, 'size') > 1) {
+						$addAttributes['size'] = $this->object->getConfig($property, 'size');
+					}
+					if ($this->object->getConfig($property, 'maxitems') > 1) {
+						$addAttributes['multiple'] = 'multiple';
+						$elementType = 'advmultiselect';
+
+						$elements[] = HTML_QuickForm::createElement('hidden', $this->getElementName('__qf_ms_' . $property), 1);
+					}
+
+					$elements[] = HTML_QuickForm::createElement($elementType, $this->getElementName($property), $label, $selectionArray, $addAttributes);
+
+				} break;
+
+
+				/***************************************************************
+				 * Checkboxes out of type "select"
+				 *
+				 * TYPO3 stores data of type "check" as an integer by binary coding the
+				 * position of the checked box. (E.g. if you checked the first and
+				 * the third checkbox TYPO3 will not store "0,2" but "4" (1*1 + 0*2 + 1*3)
+				 * Usually this is not want you want, so I've introduced the type "select_checkboxes"
+				 * that will store data like type "select" but will display checkboxes in the
+				 * form.
+				 * To use this field you should overlay the TCA in the the class:
+				 * <code>
+				 * protected $_properties = array(
+				 *		'<fieldName>' => array('config' => array('type' => 'select_checkboxes')),
+				 * );
+				 * </code>
+				 **************************************************************/
+				case 'select_checkboxes' : {
+
+					tx_pttools_assert::isTrue($this->object->getConfig($property, 'maxitems') > 1, array('message' => 'Type "select_checkboxes" is only allowed if maxitems > 1!'));
+
+					$selectionArray = array();
+					$foreignTable = $this->object->getConfig($property, 'foreign_table');
+					$items = $this->object->getConfig($property, 'items');
+
+					if (is_array($items)) {
+
+						foreach ($items as $selectItem) {
+							$selectionArray[$selectItem[1]] = $GLOBALS['LANG']->sL($selectItem[0]);
 						}
 
-						$elements[] = HTML_QuickForm::createElement($elementType, $this->getElementName($property), $label, $selectionArray, $addAttributes);
+					} elseif (!empty($foreignTable)) {
+						// TODO: "foreign_table_where" => "ORDER BY pages.uid", beachten
+
+						$data = tx_tcaobjects_objectAccessor::selectCollection($foreignTable, '', '', $this->object->getConfig($property, 'foreign_sortby'));
+						foreach ($data as $selectItem) {
+							$selectionArray[$selectItem['uid']] = $selectItem[$this->object->getConfig($property, 'foreign_label')];
+						}
+					} else {
+						throw new tx_pttools_exception(sprintf('Property "%s" is an invalid field for type "select"', $property));
+					}
+
+					$groupElements = array();
+					foreach ($selectionArray as $value => $itemLabel) {
+						$groupElements[] = HTML_QuickForm::createElement('checkbox', $value, '', $itemLabel);
+					}
+
+					$elements[] = HTML_QuickForm::createElement('group', $this->getElementName($property), $label, $groupElements, $separator=null, $appendName = true);
 
 				} break;
 
 				default: {
-						throw new tx_pttools_exception('Cannot process type "' . $this->object->getConfig($property, 'type') . '" (property "' . $property . '")');
+					throw new tx_pttools_exception(sprintf('Cannot process type "%s" (property "%s")', $this->object->getConfig($property, 'type'), $property));
 				}
 
 			}
@@ -593,11 +645,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 					// TODO: extra field for unsetting checkbox?
 					$elements[] = HTML_QuickForm::createElement('checkbox', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $GLOBALS['LANG']->sL($content));
 				 } break;
-				
+
 				case 'static' : {
 					$elements[] = HTML_QuickForm::createElement('static', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
 				} break;
-				
+
 				case 'rawstatic' : {
 					$elements[] = HTML_QuickForm::createElement('rawstatic', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
 				} break;
@@ -613,6 +665,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		// set property value as default value
 
 		if ($this->object->offsetExists($property)) {
+
 			if (strtolower($this->object->getConfig($property, 'type')) == 'input' && in_array('date', $this->object->getEval($property))) {
 				$tstamp = $this->object[$property];
 
@@ -629,12 +682,22 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 						// year field
 						'Y' => date ('Y', $tstamp),
 					);
-
 					$this->setDefaults(array($this->getElementName($property) => $defaultArray));
 				}
+			} elseif (strtolower($this->object->getConfig($property, 'type')) == 'select_checkboxes') {
+
+				$defaultArray = array();
+				foreach (t3lib_div::trimExplode(',', $this->object[$property]) as $value) {
+					$this->setDefaults(array($this->getElementName($property).'['.$value.']' => 1));
+				}
+
 			} else {
+
+				// by default the default value corresponds to the raw property value of the object
 				$this->setDefaults(array($this->getElementName($property) => $this->object[$property]));
+
 			}
+
 		}
 
 		return $elements;
@@ -713,6 +776,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$submitValues = $this->getSubmitValues(true);
 		$submitValues = $submitValues[$this->prefix][$this->formname];
 
+		if (TYPO3_DLOG) t3lib_div::devLog('Raw submit values', 'tcaobjects', 0, $submitValues);
+
 		// use token
 		if (!self::$ignoreTokens) {
 			if (tx_pttools_formReloadHandler::checkToken($submitValues['__formToken']) == false) {
@@ -728,8 +793,12 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 				$property = tx_tcaobjects_divForm::getFieldFromName($element->getName());
 
-				$fileFunc->init(array(), array('webspace' => array(	'allow' => $this->object->getConfig($property, 'allowed'),
-																	 'deny' => $this->object->getConfig($property, 'disallowed'))));
+				$fileFunc->init(array(), array(
+					'webspace' => array(
+						'allow' => $this->object->getConfig($property, 'allowed'),
+						'deny' => $this->object->getConfig($property, 'disallowed')
+					)
+				));
 
 				$val = $element->getValue();
 				$filename = basename($val['name']);
@@ -777,6 +846,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				// select with maxitems > 1
 				if (strtolower($this->object->getConfig($property, 'type')) == 'select' && $this->object->getConfig($property, 'maxitems') > 1 && is_array($value)) {
 					$value = implode(',', $value);
+				}
+
+				// select_checkboxes
+				if (strtolower($this->object->getConfig($property, 'type')) == 'select_checkboxes' && $this->object->getConfig($property, 'maxitems') > 1 && is_array($value)) {
+					$value = implode(',', array_keys($value));
 				}
 
 				// convert date into timestamp
