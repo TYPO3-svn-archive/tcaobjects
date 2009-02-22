@@ -168,6 +168,22 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 
 
 
+    /**
+     * Registers itself in the registry and return an identifier
+     *
+     * @param 	void
+     * @return 	string	identifier where to finde this object in the registry
+     * @author	Fabrizio Branca <fabrizio@scrbl.net>
+     * @since	2009-02-22
+     */
+    public function __toString() {
+    	$registryIdentifier = uniqid('tcaobjectCollection_'.get_class($this).'_', true);
+    	tx_pttools_registry::getInstance()->register($registryIdentifier, $this);
+    	return $registryIdentifier;
+    }
+
+
+
 	/***************************************************************************
 	 * Methods for the "tx_tcaobjects_iPageable" interface
 	 **************************************************************************/
