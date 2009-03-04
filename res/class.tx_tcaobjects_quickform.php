@@ -386,7 +386,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		// urldecode text values
 		$comment = urldecode($comment);
 		$content = urldecode($content);
-
+		
 		tx_pttools_assert::isFalse(
 			empty($property) && empty($specialtype),
 			array(
@@ -637,7 +637,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				} break;
 
 				case 'password': {
-					$elements[] = HTML_QuickForm::createElement('password', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel));
+					$elements[] = HTML_QuickForm::createElement('password', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $attributes);
 				} break;
 
 				case 'checkbox': {
