@@ -242,6 +242,30 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		$this->renderer = $renderer;
 	}
+	
+	
+	
+	protected function getEvals($parameter) {
+		list ($property, /* $altLabel */, /* $specialtype */ , /* $content */, $rules /* , $attributes */) = t3lib_div::trimExplode(';', $parameter);
+
+		$property = $this->object->resolveAlias($property);
+		
+		$evalFromTcaArray = empty($property) ? array() : $this->object->getEval($property);
+		$evalFromConfigArray = t3lib_div::trimExplode(':', $rules);
+
+		if (in_array('ignoretcaeval', $evalFromConfigArray)) {
+			$evalFromTcaArray = array();
+		}
+		
+		$items = array();
+		
+		foreach (array_merge($evalFromTcaArray, $evalFromConfigArray) as $item) {
+			list($eval, $message) = t3lib_div::trimExplode('=', $item);
+			$items[$eval] = $message;
+		}
+		
+		return $items;
+	}
 
 
 
@@ -272,21 +296,25 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			$this->addRule($this->getElementName($property), $notice, 'maxlength', $this->object->getConfig($property, 'max'));
 		}
 
-		$evalFromTcaArray = empty($property) ? array() : $this->object->getEval($property);
-		$evalFromConfigArray = t3lib_div::trimExplode(':', $rules);
-
-		if (in_array('ignoretcaeval', $evalFromConfigArray)) {
-			$evalFromTcaArray = array();
-		}
-
-		foreach (array_merge($evalFromTcaArray, $evalFromConfigArray) as $eval) {
-
-			list ($eval, $message) = t3lib_div::trimExplode('=', $eval);
+		foreach ($this->getEvals($parameter) as $eval => $message) {
 
 			switch ($eval) {
 
 				case 'required': {
-					$this->addRule($this->getElementName($property), $GLOBALS['LANG']->sL(!empty($message) ? $message : 'LLL:EXT:tcaobjects/res/locallang.xml:quickform.rule.required'), 'required');
+					if (($this->object->getConfig($property, 'type') == 'group') && ($this->object->getConfig($property, 'internal_type') == 'file')) {
+						// required rule for files is "uploadedfile" in quickform instead of "required"
+						if (!empty($this->object[$property])) {
+							// if a file has been uploaded before this is not required anymore
+							$ruleName = '';
+						} else {
+							$ruleName = 'uploadedfile';
+						}
+					} else {
+						$ruleName = 'required';
+					}
+					if (!empty($ruleName)) {
+						$this->addRule($this->getElementName($property), $GLOBALS['LANG']->sL(!empty($message) ? $message : 'LLL:EXT:tcaobjects/res/locallang.xml:quickform.rule.required'), $ruleName);
+					}
 				} break;
 
 				case 'unique': {
@@ -455,7 +483,10 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 									$conf = $GLOBALS['TSFE']->tmpl->setup['config.']['tx_tcaobjects.']['formThumbnail.'];
 									$conf['file'] = $this->object->getConfig($property, 'uploadfolder') . DIRECTORY_SEPARATOR . $file;
 									$elements[] = HTML_QuickForm::createElement('static', '', '', $GLOBALS['TSFE']->cObj->IMAGE($conf));
-									$elements[] = HTML_QuickForm::createElement('checkbox', $this->getElementName('__qf_del_'.$key.'_'.$property), '', $GLOBALS['LANG']->sL('LLL:EXT:tcaobjects/res/locallang.xml:quickform.deleteFile'));
+									if (!in_array('required', array_keys($this->getEvals($parameter)))) {
+										// if file upload is required it is not possible to delete files
+										$elements[] = HTML_QuickForm::createElement('checkbox', $this->getElementName('__qf_del_'.$key.'_'.$property), '', $GLOBALS['LANG']->sL('LLL:EXT:tcaobjects/res/locallang.xml:quickform.deleteFile'));
+									}
 								} else {
 									// TODO: render filelink?
 								}
