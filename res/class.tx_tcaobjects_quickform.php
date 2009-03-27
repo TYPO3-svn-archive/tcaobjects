@@ -24,11 +24,35 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 */
 	protected $renderer;
 
+	/**
+	 * @var	array|string
+	 */
 	protected $onValidated;
 
+	/**
+	 * @var	array|string
+	 */
 	protected $onNotValidated;
 
+	/**
+	 * @var	array|string
+	 */
 	protected $onCancel;
+	
+	/**
+	 * @var	array
+	 */
+	protected $onValidatedConf;
+
+	/**
+	 * @var	array
+	 */
+	protected $onNotValidatedConf;
+
+	/**
+	 * @var	array
+	 */
+	protected $onCancelConf;
 
 	protected $cancelButton;
 
@@ -47,10 +71,31 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @param 	string	(optional) target
 	 * @param 	array	(optional) attributes
 	 * @param 	bool	(optional) track submit flag
+	 * @param	tx_tcaobjects_objects	(optional) model object inheriting from tx_tcaobjects_object
+	 * @param 	string	(optional) form definition
+	 * @param 	array|string	(optional) onValidated "callback"
+	 * @param	array|string 	(optional) onNotValidated "callback"
+	 * @param 	array|string	(optional) onCancel "callback"
+	 * @param 	string	(optional) cancel button
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-04-02
 	 */
-	public function __construct ($prefix, $formName, $method='post', $action='', $target='', array $attributes = array(), $trackSubmit = false, tx_tcaobjects_object $object = null, $formDefinition = '', array $onValidated = array(), array $onNotValidated = array(), array $onCancel = array(), $cancelButton = 'cancel') {
+	public function __construct (
+		$prefix, 
+		$formName, 
+		$method='post', 
+		$action='', 
+		$target='', 
+		array $attributes = array(), 
+		$trackSubmit = false, 
+		tx_tcaobjects_object $object = null, 
+		$formDefinition = '', 
+		$onValidated = null, 
+		$onNotValidated = null, 
+		$onCancel = null, 
+		$cancelButton = 'cancel') {
+			
+			
 
 		$this->formname = $formName;
 		$this->prefix = $prefix;
@@ -68,10 +113,17 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		if (!empty($formDefinition)) {
 			$this->set_formDefinition($formDefinition);
 		}
+		
+		if (!empty($onValidated)) {
+			$this->set_onValidated($onValidated);
+		}
+		if (!empty($onNotValidated)) {
+			$this->set_onNotValidated($onNotValidated);
+		}
+		if (!empty($onCancel)) {
+			$this->set_onCancel($onCancel);
+		}
 
-		$this->onValidated = $onValidated;
-		$this->onNotValidated = $onNotValidated;
-		$this->onCancel = $onCancel;
 		$this->cancelButton = $cancelButton;
 	}
 
@@ -95,42 +147,63 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			 * Cancel (Returning to the default action
 			 ******************************************************************/
 
-			tx_pttools_assert::isObject($this->onCancel[0]);
-			tx_pttools_assert::isNotEmptyString($this->onCancel[1]);
-
-			if (!method_exists($this->onCancel[0], $this->onCancel[1])) {
-				throw new tx_pttools_exception('Method "'.$this->onCancel[1].'" does not exist in object/class "'.get_class($this->onCancel[0]).'" for the "onCancel" action!');
+			if (is_array($this->onCancel)) {
+				tx_pttools_assert::isObject($this->onCancel[0]);
+				tx_pttools_assert::isNotEmptyString($this->onCancel[1]);
+	
+				if (!method_exists($this->onCancel[0], $this->onCancel[1])) {
+					throw new tx_pttools_exception('Method "'.$this->onCancel[1].'" does not exist in object/class "'.get_class($this->onCancel[0]).'" for the "onCancel" action!');
+				}
+	
+				$content = $this->onCancel[0]->{$this->onCancel[1]}($this, $this->onCancel[2]);
+			} elseif (is_string($this->onCancel)) {
+				$params = array('conf' => $this->onCancelConf);
+				$content = t3lib_div::callUserFunction($this->onCancel, $params, $this);
+			} else {
+				throw new tx_pttools_exception('Invalid "onCancel" callback');
 			}
-
-			$content = $this->onCancel[0]->{$this->onCancel[1]}($this, $this->onCancel[2]);
 
 		} elseif ($this->validate()) {
 			/*******************************************************************
-			 * Form was submitted succesfully
+			 * Form was submitted successfully
 			 ******************************************************************/
 
-			tx_pttools_assert::isObject($this->onValidated[0]);
-			tx_pttools_assert::isNotEmptyString($this->onValidated[1]);
-
-			if (!method_exists($this->onValidated[0], $this->onValidated[1])) {
-				throw new tx_pttools_exception('Method "'.$this->onValidated[1].'" does not exist in object/class "'.get_class($this->onValidated[0]).'" for the "onValidated" action!');
+			if (is_array($this->onValidated)) {
+				tx_pttools_assert::isObject($this->onValidated[0]);
+				tx_pttools_assert::isNotEmptyString($this->onValidated[1]);
+	
+				if (!method_exists($this->onValidated[0], $this->onValidated[1])) {
+					throw new tx_pttools_exception('Method "'.$this->onValidated[1].'" does not exist in object/class "'.get_class($this->onValidated[0]).'" for the "onValidated" action!');
+				}
+	
+				$content = $this->onValidated[0]->{$this->onValidated[1]}($this, $this->onValidated[2]);
+			} elseif (is_string($this->onValidated)) {
+				$params = array('conf' => $this->onValidatedConf);
+				$content = t3lib_div::callUserFunction($this->onValidated, $params, $this);
+			} else {
+				throw new tx_pttools_exception('Invalid "onValidated" callback');
 			}
-
-			$content = $this->onValidated[0]->{$this->onValidated[1]}($this, $this->onValidated[2]);
 
 		} else {
 			/*******************************************************************
 			 * Displaying the form
 			 ******************************************************************/
 
-			tx_pttools_assert::isObject($this->onNotValidated[0]);
-			tx_pttools_assert::isNotEmptyString($this->onNotValidated[1]);
-
-			if (!method_exists($this->onNotValidated[0], $this->onNotValidated[1])) {
-				throw new tx_pttools_exception('Method "'.$this->onNotValidated[1].'" does not exist in object/class "'.get_class($this->onNotValidated[0]).'" for the "onNotValidated" action!');
+			if (is_array($this->onNotValidated)) {
+				tx_pttools_assert::isObject($this->onNotValidated[0]);
+				tx_pttools_assert::isNotEmptyString($this->onNotValidated[1]);
+	
+				if (!method_exists($this->onNotValidated[0], $this->onNotValidated[1])) {
+					throw new tx_pttools_exception('Method "'.$this->onNotValidated[1].'" does not exist in object/class "'.get_class($this->onNotValidated[0]).'" for the "onNotValidated" action!');
+				}
+	
+				$content = $this->onNotValidated[0]->{$this->onNotValidated[1]}($this, $this->onNotValidated[2]);
+			} elseif (is_string($this->onNotValidated)) {
+				$params = array('conf' => $this->onNotValidatedConf);
+				$content = t3lib_div::callUserFunction($this->onNotValidated, $params, $this);
+			} else {
+				$content = $this->render($this->renderer);
 			}
-
-			$content = $this->onNotValidated[0]->{$this->onNotValidated[1]}($this, $this->onNotValidated[2]);
 
 		}
 
@@ -173,6 +246,27 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 */
 	public function set_object(tx_tcaobjects_object $object) {
 		$this->object = $object;
+	}
+	
+	
+	
+	public function set_onValidated($callback, array $conf = array()) {
+		$this->onValidated = $callback;
+		$this->onValidatedConf = $conf;
+	}
+	
+	
+	
+	public function set_onNotValidated($callback, array $conf = array()) {
+		$this->onNotValidated = $callback;
+		$this->onNotValidatedConf = $conf;
+	}
+	
+	
+	
+	public function set_onCancel($callback, array $conf = array()) {
+		$this->onCancel = $callback;
+		$this->onCancelConf = $conf;
 	}
 
 
@@ -236,15 +330,42 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @since	2008-04-02
 	 */
 	public function set_renderer(HTML_QuickForm_Renderer $renderer) {
-		if (!$renderer instanceof tx_tcaobjects_iQuickformRenderer) {
-			throw new tx_pttools_exception('Renderer does not implement the "tx_tcaobjects_iQuickformRenderer" interface');
-		}
-
+		tx_pttools_assert::isInstanceOf($renderer, 'tx_tcaobjects_iQuickformRenderer', array('message' => 'Renderer does not implement the "tx_tcaobjects_iQuickformRenderer" interface'));
 		$this->renderer = $renderer;
 	}
 	
 	
 	
+	/**
+	 * Gets the parts from the parameter string
+	 * 
+	 * @param	string	parameter string
+	 * @return	array	parsed parameter (keys: property, altLabel, specialtype, content, rules, attributes)
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2009-03-24
+	 */
+	protected function getPartsFromParameter($parameter) {
+		list ($property, $altLabel, $specialtype, $content, $rules, $attributes) = t3lib_div::trimExplode(';', $parameter);
+		return array(
+			'property' => $this->object->resolveAlias($property),
+			'altLabel' => $altLabel,
+			'specialtype' => $specialtype,
+			'content' => $content,
+			'rules' => $rules,
+			'attributes' => $attributes,
+		);
+	}
+	
+	
+	
+	/**
+	 * Get evals from parameter string
+	 * 
+	 * @param	string 	parameter string
+	 * @return	array	array('<rule>' => '<message>');
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>, Dirk Reinbold <dirk@scrbl.net>
+	 * @since	2009-03-23 (T3BOARD09!:)
+	 */
 	protected function getEvals($parameter) {
 		list ($property, /* $altLabel */, /* $specialtype */ , /* $content */, $rules /* , $attributes */) = t3lib_div::trimExplode(';', $parameter);
 
@@ -790,6 +911,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	}
 
 
+	
 	/**
 	 * Set properties from HTML_Quickforms submit values
 	 *

@@ -30,11 +30,7 @@
  * @author	Fabrizio Branca <mail@fabrizio-branca.de>
  * @since	2008-03-21
  */
-class tx_tcaobjects_fe_usersCollection extends tx_tcaobjects_objectCollection{   
-
-    public function addItem(tx_tcaobjects_fe_users $feUser) {
-        parent::addItem($feUser);
-    }
+class tx_tcaobjects_fe_usersCollection extends tx_tcaobjects_objectCollection {
     
 }
 
