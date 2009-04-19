@@ -637,14 +637,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 					} elseif (in_array('date', $this->object->getEval($property))) {
 
-						$minYearDelta = isset($attributes['minYearDelta']) ? $attributes['minYearDelta'] : 5;
-						$maxYearDelta = isset($attributes['maxYearDelta']) ? $attributes['maxYearDelta'] : 5;
-
 						$options = array(
 							'language'  		=> !empty($attributes['language']) ? $attributes['language'] : 'en',
 							'format'    		=> !empty($attributes['format']) ? $attributes['format'] : 'dMY',
-							'minYear'   		=> !empty($attributes['minYear']) ? $attributes['minYear'] : date('Y') - $minYearDelta,
-							'maxYear'   		=> !empty($attributes['maxYear']) ? $attributes['maxYear'] : date('Y') + $maxYearDelta,
+							'minYear'   		=> !empty($attributes['minYear']) ? $attributes['minYear'] : date('Y') - $attributes['minYearDelta'],
+							'maxYear'   		=> !empty($attributes['maxYear']) ? $attributes['maxYear'] : date('Y') + $attributes['maxYearDelta'],
 							'addEmptyOption'   	=> !empty($attributes['addEmptyOption']) ? $attributes['addEmptyOption'] : false,
 							'emptyOptionValue' 	=> !empty($attributes['emptyOptionValue']) ? $attributes['emptyOptionValue'] : '',
 							'emptyOptionText'  	=> !empty($attributes['emptyOptionText']) ? $attributes['emptyOptionText'] : '&nbsp;',
