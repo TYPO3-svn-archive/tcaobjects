@@ -40,11 +40,11 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 		return $content;
 	}
 
-	
-	
+
+
 	/**
 	 * cObject "TCAOBJECT"
-	 * 
+	 *
 	 * @param 	array	configuration array
 	 * @param 	tslib_cObj	parent objects
 	 * @return 	string 	content
@@ -56,7 +56,7 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 		$conf['uid'] = $parentObject->stdWrap($conf['uid'], $conf['uid.']);
 		$conf['className'] = $parentObject->stdWrap($conf['className'], $conf['className.']);
 
-		tx_pttools_assert::isNotEmptyString($conf['uid'], array('message' => 'No "uid" given!'));
+		// tx_pttools_assert::isNotEmptyString($conf['uid'], array('message' => 'No "uid" given!'));
 		tx_pttools_assert::isNotEmptyString($conf['className'], array('message' => 'No "className" given!'));
 
 		$parts = t3lib_div::trimExplode(':', $conf['className']);
@@ -70,16 +70,26 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 		}
 
 		$object = new $className($conf['uid']);
+
+		if (is_array($conf['override.'])) {
+
+			$conf['override.'] = tx_tcaobjects_div::stdWrapArray($conf['override.'], $parentObject);
+
+			foreach ($conf['override.'] as $key => $value) {
+				$object[$key] = $value;
+			}
+		}
+
 		tx_pttools_assert::isInstanceOf($object, 'tx_tcaobjects_object', array('message' => 'Created object is no instance of "tx_tcaobjects_object"'));
 
 		return $object;
 	}
 
-	
-	
+
+
 	/**
 	 * cObject "TCAOBJECTCOLLECTION"
-	 * 
+	 *
 	 * @param 	array	configuration array
 	 * @param 	tslib_cObj	parent objects
 	 * @return 	string 	content
@@ -115,12 +125,12 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 		return $object;
 
 	}
-	
 
-	
+
+
 	/**
 	 * cObject "SMARTYTEMPLATE"
-	 * 
+	 *
 	 * @param 	array	configuration array
 	 * @param 	tslib_cObj	parent objects
 	 * @return 	string 	content
@@ -134,6 +144,7 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 
 		// render marks
 		$markerArray = array();
+		$markerArray['currentPage'] = $GLOBALS['TSFE']->id;
 
 		if (is_array($conf['marks.']))	{
 			foreach ($conf['marks.'] as $theKey => $theValue) {
@@ -156,12 +167,12 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 
 		return $smarty->fetch('string:'.$content);
 	}
-	
 
-	
+
+
 	/**
 	 * cObject "TCAOBJECTFORM"
-	 * 
+	 *
 	 * @param 	array	configuration array
 	 * @param 	tslib_cObj	parent objects
 	 * @return 	string 	content
@@ -172,24 +183,24 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 		tx_pttools_assert::isNotEmptyString($conf['prefix'], array('message' => 'No "prefix" parameter given!'));
 		tx_pttools_assert::isNotEmptyString($conf['formName'], array('message' => 'No "formName" parameter given!'));
 		tx_pttools_assert::isNotEmptyArray($conf['formDefinition.'], array('message' => 'No "formDefinition" parameter given!'));
-		
+
 		// retrieve tcaObject
 		$conf['tcaObject'] = $parentObject->cObjGetSingle($conf['tcaObject'], $conf['tcaObject.']);
 		if (($conf['tcaObject']) && t3lib_div::isFirstPartOfStr($conf['tcaObject'], 'tcaobject')) {
 			$conf['tcaObject'] = tx_pttools_registry::getInstance()->get($conf['tcaObject']);
 		}
 		tx_pttools_assert::isInstanceOf($conf['tcaObject'], 'tx_tcaobjects_object', array('message' => 'Invalid "tcaObject" given!'));
-		
+
 		if (empty($conf['method'])) $conf['method'] = 'post';
 		tx_pttools_assert::isInArray(strtolower($conf['method']), array('post', 'get'), array('message' => 'Method must be either "post" or "get"!'));
-		
+
 		// action (TEXT/typolink with returnLast = url)
 		$conf['action'] = $parentObject->cObjGetSingle($conf['action'], $conf['action.']);
-		
+
 		if (empty($conf['onValidated'])) {
 			$conf['onValidated'] = 'EXT:tcaobjects/misc/class.tx_tcaobjects_cObjects.php:tx_tcaobjects_cObjects->saveOnValidated';
 		}
-		
+
 		$form = new tx_tcaobjects_quickform(
 			/* prefixId */ 			$conf['prefix'],
 			/* formname */ 			$conf['formName'],
@@ -201,11 +212,11 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 			/* tcaObject */ 		$conf['tcaObject'],
 			/* form definition */	$conf['formDefinition.']
 		);
-		
+
 		$form->set_onValidated($conf['onValidated'], is_array($conf['onValidated.']) ? $conf['onValidated.'] : array());
 		$form->set_onNotValidated($conf['onNotValidated'], is_array($conf['onNotValidated.']) ? $conf['onNotValidated.'] : array());
 		$form->set_onCancel($conf['onCancel'], is_array($conf['onCancel.']) ? $conf['onCancel.'] : array());
-		
+
 		// set renderer
 		if (empty($conf['renderer'])) {
 			$conf['renderer'] = 'EXT:tcaobjects/res/class.tx_tcaobjects_qfDefaultRenderer.php:tx_tcaobjects_qfDefaultRenderer';
@@ -220,18 +231,18 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 
 		// processes "onCancel", "onValidate" or "onNotValidate"
 		return $form->processController();
-		
+
 	}
-	
+
 	public static function saveOnValidated(array $params, tx_tcaobjects_quickform $form) {
 		$form->setObjectPropertiesFromSubmitValues();
 
 		$modelObj = $form->get_object();
 		$modelObj->storeSelf();
-		
+
 		$cObj = clone $GLOBALS['TSFE']->cObj;
 		$cObj->data = $modelObj->getDataArray();
-		
+
 		return $cObj->cObjGetSingle($params['conf']['message'], $params['conf']['message.']);
 	}
 
