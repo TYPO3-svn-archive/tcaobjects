@@ -387,6 +387,7 @@ class tx_tcaobjects_div {
 	 * @since	2008-04-27
 	 */
 	public static function convertQuickformDateToUnixTimestamp(array $value) {
+
 		/*
 		  D = Short names of days
 		  l = Long names of days
@@ -405,8 +406,8 @@ class tx_tcaobjects_div {
 		  see: http://midnighthax.com/quickform.php
 
 		 */
-		$day = max($value['D'], $value['l'], $value['d']);
-		$month = max($value['M'], $value['F'], $value['m']);
+		$day = max($value['D'], $value['l'], $value['d'], 1);
+		$month = max($value['M'], $value['F'], $value['m'], 1);
 		$year = $value['Y'];
 		// TODO: support other formats
 
