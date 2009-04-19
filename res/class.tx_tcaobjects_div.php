@@ -428,16 +428,21 @@ class tx_tcaobjects_div {
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-03-26
 	 */
-	public static function stdWrapArray(array $data) {
+	public static function stdWrapArray(array $data, tslib_cObj $cObj=NULL) {
+
+		if (is_null($cObj)) {
+			$cObj = $GLOBALS['TSFE']->cObj;
+		}
+
 		$newData = array();
 		foreach (array_keys($data) as $key) {
 			if (substr($key, -1) != '.') {
 				if (empty($newData[$key])) {
-					$newData[$key] = $GLOBALS['TSFE']->cObj->stdWrap($data[$key], $data[$key.'.']);
+					$newData[$key] = $cObj->stdWrap($data[$key], $data[$key.'.']);
 				}
 			} else {
 				if (empty($newData[substr($key, 0, -1)])) {
-					$newData[substr($key, 0, -1)] = $GLOBALS['TSFE']->cObj->stdWrap($data[substr($key, 0, -1)], $data[$key]);
+					$newData[substr($key, 0, -1)] = $cObj->stdWrap($data[substr($key, 0, -1)], $data[$key]);
 				}
 			}
 		}
