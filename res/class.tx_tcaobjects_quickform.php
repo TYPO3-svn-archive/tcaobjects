@@ -637,8 +637,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 					} elseif (in_array('date', $this->object->getEval($property))) {
 
-						$minYearDelta = !isset($attributes['minYearDelta']) ? $attributes['minYearDelta'] : 5;
-						$maxYearDelta = !isset($attributes['maxYearDelta']) ? $attributes['maxYearDelta'] : 5;
+						$minYearDelta = isset($attributes['minYearDelta']) ? $attributes['minYearDelta'] : 5;
+						$maxYearDelta = isset($attributes['maxYearDelta']) ? $attributes['maxYearDelta'] : 5;
 
 						$options = array(
 							'language'  		=> !empty($attributes['language']) ? $attributes['language'] : 'en',
