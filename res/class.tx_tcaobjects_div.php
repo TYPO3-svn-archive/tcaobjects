@@ -468,6 +468,7 @@ class tx_tcaobjects_div {
 	 * 			keyWithoutValue
 	 * 		}
 	 * 		comment = <stdWrap>
+	 * 		wrap = <stdWrap> // TODO
 	 * }
 	 *
 	 * <GROUP> {
