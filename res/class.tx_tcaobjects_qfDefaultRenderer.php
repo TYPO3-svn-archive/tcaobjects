@@ -85,15 +85,19 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
     * @access public
     * @return void
     */
-    public function startGroup (&$group, $required, $error) {
+    public function startGroup(&$group, $required, $error) {
+
         $name = $group->getName();
         $this->_groupTemplate = $this->_prepareTemplate($name, $group->getLabel(), $required, $error);
+
         if (!empty($this->_groupTemplates[$name])) {
         	$this->_groupElementTemplate = $this->_groupTemplates[$name];
         }
         if (!empty($this->_groupWraps[$name])) {
         	$this->_groupWrap            = $this->_groupWraps[$name];
         }
+
+        $this->_groupWrap = $this->replace('comment', $group->getComment(), $this->_groupWrap);
 
         $this->_groupElements        = array();
         $this->_inGroup              = true;
@@ -140,6 +144,30 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 
 
 
+    /**
+     * Replace marker and remove complete subpart if content is not set
+     *
+     * @param 	string 	marker
+     * @param 	string 	content
+     * @param 	string 	html
+     * @return 	string	html
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since	2009-04-19
+     */
+    public function replace($marker, $content, $html) {
+		if (!empty($content)) {
+            $html = str_replace('{'.$marker.'}', $content, $html);
+            $html = str_replace('<!-- BEGIN '.$marker.' -->', '', $html);
+            $html = str_replace('<!-- END '.$marker.' -->', '', $html);
+        } else {
+        	// if there is no comment the whole "subpart" will be removed
+            $html = preg_replace("/([ \t\n\r]*)?<!-- BEGIN ".$marker." -->.*<!-- END ".$marker." -->([ \t\n\r]*)?/isU", '', $html);
+        }
+        return $html;
+    }
+
+
+
    /**
     * Helper method for renderElement
     *
@@ -159,27 +187,13 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 	    	$html = parent::_prepareTemplate($name, $label, $required, $error);
 	    	if (!is_null($element)) {
 		    	$html = str_replace('{id}', $element->getAttribute('id'), $html);
-		    	$html = str_replace('{comment}', $element->getComment(), $html);
-
-		    	$comment = $element->getComment();
-
-		        if (!empty($comment)) {
-		            $html = str_replace('{comment}', $comment, $html);
-		            $html = str_replace('<!-- BEGIN comment -->', '', $html);
-		            $html = str_replace('<!-- END comment -->', '', $html);
-		        } else {
-		        	// if there is no comment the whole "subpart" will be removed
-		            $html = preg_replace("/([ \t\n\r]*)?<!-- BEGIN comment -->.*<!-- END comment -->([ \t\n\r]*)?/isU", '', $html);
-		        }
+		    	$html = $this->replace('comment', $element->getComment(), $html);
 
 	    	} else {
 	    		// if the element is NULL all markers will be deleted
 	    		$html = str_replace('{id}', '', $html);
-		    	$html = str_replace('{comment}', '', $html);
-		    	$html = preg_replace("/([ \t\n\r]*)?<!-- BEGIN comment -->.*<!-- END comment -->([ \t\n\r]*)?/isU", '', $html);
+	    		$html = $this->replace('comment', '', $html);
 	    	}
-
-
     	}
     	return $html;
     }
@@ -199,25 +213,43 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
      */
     public function renderElement(HTML_QuickForm_element $element, $required, $error) {
         if (!$this->_inGroup) {
+
+        	// element is not in a group
+
         	// passes $element to "_prepareTemplate"
             $html = $this->_prepareTemplate($element->getName(), $element->getLabel(), $required, $error, $element);
             $this->_html .= str_replace('{element}', $element->toHtml(), $html);
 
-        } elseif (!empty($this->_groupElementTemplate)) {
-            $html = str_replace('{label}', $element->getLabel(), $this->_groupElementTemplate);
-            // replaces "{id}" with current element's id
-            $html = str_replace('{id}', $element->getAttribute('id'), $html);
-	    	$html = str_replace('{comment}', $element->getComment(), $html);
-            if ($required) {
-                $html = str_replace('<!-- BEGIN required -->', '', $html);
-                $html = str_replace('<!-- END required -->', '', $html);
-            } else {
-                $html = preg_replace("/([ \t\n\r]*)?<!-- BEGIN required -->.*<!-- END required -->([ \t\n\r]*)?/isU", '', $html);
-            }
-            $this->_groupElements[] = str_replace('{element}', $element->toHtml(), $html);
-
         } else {
-            $this->_groupElements[] = $element->toHtml();
+
+        	// element is in a group
+
+        	if (!empty($this->_groupElementTemplate)) {
+
+        		// TODO: why not use "_prepareTemplate()" here?
+
+        		$html = str_replace('{label}', $element->getLabel(), $this->_groupElementTemplate);
+	            // replaces "{id}" with current element's id
+	            $html = str_replace('{id}', $element->getAttribute('id'), $html);
+
+
+		    	$html = $this->replace('comment', $element->getComment(), $html);
+
+	            if ($required) {
+	                $html = str_replace('<!-- BEGIN required -->', '', $html);
+	                $html = str_replace('<!-- END required -->', '', $html);
+	            } else {
+	                $html = preg_replace("/([ \t\n\r]*)?<!-- BEGIN required -->.*<!-- END required -->([ \t\n\r]*)?/isU", '', $html);
+	            }
+	            $this->_groupElements[] = str_replace('{element}', $element->toHtml(), $html);
+
+        	} else {
+
+        		$html = $element->toHtml();
+
+        		$this->_groupElements[] = $html;
+
+        	}
         }
     } // end func renderElement
 

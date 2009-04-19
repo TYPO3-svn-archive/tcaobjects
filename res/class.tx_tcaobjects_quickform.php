@@ -575,7 +575,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				 * Textarea
 				 **************************************************************/
 				case 'text': {
-					$elements[] = HTML_QuickForm::createElement('textarea', $this->getElementName($property), $label, $attributes);
+					$tmpElement = HTML_QuickForm::createElement('textarea', $this->getElementName($property), $label, $attributes);
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				} break;
 
 
@@ -591,7 +593,10 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 						$this->setMaxFileSize(max($this->object->getConfig($property, 'max_size'), $this->getMaxFileSize()));
 
-						$elements[] = HTML_QuickForm::createElement('file', $this->getElementName($property), $label);
+						// display file upload field
+						$tmpElement = HTML_QuickForm::createElement('file', $this->getElementName($property), $label);
+						$tmpElement->setComment($comment);
+						$elements[] = $tmpElement;
 
 						$propertyValue = $this->object[$property];
 						if (!empty($propertyValue)) {
@@ -603,7 +608,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 								if (in_array($fI['fileext'], $imagefile_ext)) {
 									$conf = $GLOBALS['TSFE']->tmpl->setup['config.']['tx_tcaobjects.']['formThumbnail.'];
 									$conf['file'] = $this->object->getConfig($property, 'uploadfolder') . DIRECTORY_SEPARATOR . $file;
+
+									// display current image
 									$elements[] = HTML_QuickForm::createElement('static', '', '', $GLOBALS['TSFE']->cObj->IMAGE($conf));
+
+									// display "delete" checkbox
 									if (!in_array('required', array_keys($this->getEvals($parameter)))) {
 										// if file upload is required it is not possible to delete files
 										$elements[] = HTML_QuickForm::createElement('checkbox', $this->getElementName('__qf_del_'.$key.'_'.$property), '', $GLOBALS['LANG']->sL('LLL:EXT:tcaobjects/res/locallang.xml:quickform.deleteFile'));
@@ -620,7 +629,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 							throw new tx_pttools_exception('Maxitems > 1 not implemented yet'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
 						}
 
-						$elements[] = HTML_QuickForm::createElement('text', $this->getElementName($property), $label);
+						$tmpElement = HTML_QuickForm::createElement('text', $this->getElementName($property), $label);
+						$tmpElement->setComment($comment);
+						$elements[] = $tmpElement;
 					} else {
 						throw new tx_pttools_exception('Cannot process internal_type "' . $this->object->getConfig($property, 'internal_type'). '" found in property "' . $property . '"');
 					}
@@ -633,7 +644,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				case 'input': {
 					if (in_array('password', $this->object->getEval($property))) {
 
-						$elements[] = HTML_QuickForm::createElement('password', $this->getElementName($property), $label, $attributes);
+						$tmpElement = HTML_QuickForm::createElement('password', $this->getElementName($property), $label, $attributes);
+						$tmpElement->setComment($comment);
+						$elements[] = $tmpElement;
 
 					} elseif (in_array('date', $this->object->getEval($property))) {
 
@@ -646,7 +659,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 							'emptyOptionValue' 	=> !empty($attributes['emptyOptionValue']) ? $attributes['emptyOptionValue'] : '',
 							'emptyOptionText'  	=> !empty($attributes['emptyOptionText']) ? $attributes['emptyOptionText'] : '&nbsp;',
 						);
-						$elements[] = HTML_QuickForm::createElement('date', $this->getElementName($property), $label, $options);
+						$tmpElement = HTML_QuickForm::createElement('date', $this->getElementName($property), $label, $options);
+						$tmpElement->setComment($comment);
+						$elements[] = $tmpElement;
 
 					} else {
 
@@ -661,7 +676,10 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				 * Checkbox
 				 **************************************************************/
 				case 'check': {
-					$elements[] = HTML_QuickForm::createElement('advcheckbox', $this->getElementName($property), $label);
+					$tmpElement = HTML_QuickForm::createElement('advcheckbox', $this->getElementName($property), $label);
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
+
 				} break;
 
 
@@ -703,7 +721,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 						$elements[] = HTML_QuickForm::createElement('hidden', $this->getElementName('__qf_ms_' . $property), 1);
 					}
 
-					$elements[] = HTML_QuickForm::createElement($elementType, $this->getElementName($property), $label, $selectionArray, $addAttributes);
+					$tmpElement = HTML_QuickForm::createElement($elementType, $this->getElementName($property), $label, $selectionArray, $addAttributes);
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 
 				} break;
 
@@ -754,7 +774,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 						$groupElements[] = HTML_QuickForm::createElement('checkbox', $value, '', $itemLabel);
 					}
 
-					$elements[] = HTML_QuickForm::createElement('group', $this->getElementName($property), $label, $groupElements, $separator=null, $appendName = true);
+					$tmpElement = HTML_QuickForm::createElement('group', $this->getElementName($property), $label, $groupElements, $separator=null, $appendName = true);
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 
 				} break;
 
@@ -770,37 +792,53 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			switch (strtolower($specialtype)){
 
 				case 'header': {
-					$elements[] = HTML_QuickForm::createElement('header', '', $GLOBALS['LANG']->sL($content));
+					$tmpElement = HTML_QuickForm::createElement('header', '', $GLOBALS['LANG']->sL($content));
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				} break;
 
 				case 'static': {
-					$elements[] = HTML_QuickForm::createElement('static', '', $GLOBALS['LANG']->sL($altLabel), $content);
+					$tmpElement = HTML_QuickForm::createElement('static', '', $GLOBALS['LANG']->sL($altLabel), $content);
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				} break;
 
 				case 'submit': {
-					$elements[] = HTML_QuickForm::createElement('submit', $this->getElementName($content), $GLOBALS['LANG']->sL($altLabel));
+					$tmpElement = HTML_QuickForm::createElement('submit', $this->getElementName($content), $GLOBALS['LANG']->sL($altLabel));
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				} break;
 
 				case 'text': {
-					$elements[] = HTML_QuickForm::createElement('text', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel));
+					$tmpElement = HTML_QuickForm::createElement('text', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel));
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				} break;
 
 				case 'password': {
-					$elements[] = HTML_QuickForm::createElement('password', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $attributes);
+					$tmpElement = HTML_QuickForm::createElement('password', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $attributes);
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				} break;
 
 				case 'checkbox': {
 					// TODO: use advcheckbox here?
 					// TODO: extra field for unsetting checkbox?
-					$elements[] = HTML_QuickForm::createElement('checkbox', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $GLOBALS['LANG']->sL($content));
+					$tmpElement = HTML_QuickForm::createElement('checkbox', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $GLOBALS['LANG']->sL($content));
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				 } break;
 
 				case 'static' : {
-					$elements[] = HTML_QuickForm::createElement('static', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
+					$tmpElement = HTML_QuickForm::createElement('static', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				} break;
 
 				case 'rawstatic' : {
-					$elements[] = HTML_QuickForm::createElement('rawstatic', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
+					$tmpElement = HTML_QuickForm::createElement('rawstatic', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
+					$tmpElement->setComment($comment);
+					$elements[] = $tmpElement;
 				} break;
 
 				default: {
