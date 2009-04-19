@@ -38,7 +38,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @var	array|string
 	 */
 	protected $onCancel;
-	
+
 	/**
 	 * @var	array
 	 */
@@ -81,21 +81,21 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @since	2008-04-02
 	 */
 	public function __construct (
-		$prefix, 
-		$formName, 
-		$method='post', 
-		$action='', 
-		$target='', 
-		array $attributes = array(), 
-		$trackSubmit = false, 
-		tx_tcaobjects_object $object = null, 
-		$formDefinition = '', 
-		$onValidated = null, 
-		$onNotValidated = null, 
-		$onCancel = null, 
+		$prefix,
+		$formName,
+		$method='post',
+		$action='',
+		$target='',
+		array $attributes = array(),
+		$trackSubmit = false,
+		tx_tcaobjects_object $object = null,
+		$formDefinition = '',
+		$onValidated = null,
+		$onNotValidated = null,
+		$onCancel = null,
 		$cancelButton = 'cancel') {
-			
-			
+
+
 
 		$this->formname = $formName;
 		$this->prefix = $prefix;
@@ -113,7 +113,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		if (!empty($formDefinition)) {
 			$this->set_formDefinition($formDefinition);
 		}
-		
+
 		if (!empty($onValidated)) {
 			$this->set_onValidated($onValidated);
 		}
@@ -150,11 +150,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			if (is_array($this->onCancel)) {
 				tx_pttools_assert::isObject($this->onCancel[0]);
 				tx_pttools_assert::isNotEmptyString($this->onCancel[1]);
-	
+
 				if (!method_exists($this->onCancel[0], $this->onCancel[1])) {
 					throw new tx_pttools_exception('Method "'.$this->onCancel[1].'" does not exist in object/class "'.get_class($this->onCancel[0]).'" for the "onCancel" action!');
 				}
-	
+
 				$content = $this->onCancel[0]->{$this->onCancel[1]}($this, $this->onCancel[2]);
 			} elseif (is_string($this->onCancel)) {
 				$params = array('conf' => $this->onCancelConf);
@@ -171,11 +171,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			if (is_array($this->onValidated)) {
 				tx_pttools_assert::isObject($this->onValidated[0]);
 				tx_pttools_assert::isNotEmptyString($this->onValidated[1]);
-	
+
 				if (!method_exists($this->onValidated[0], $this->onValidated[1])) {
 					throw new tx_pttools_exception('Method "'.$this->onValidated[1].'" does not exist in object/class "'.get_class($this->onValidated[0]).'" for the "onValidated" action!');
 				}
-	
+
 				$content = $this->onValidated[0]->{$this->onValidated[1]}($this, $this->onValidated[2]);
 			} elseif (is_string($this->onValidated)) {
 				$params = array('conf' => $this->onValidatedConf);
@@ -192,11 +192,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			if (is_array($this->onNotValidated)) {
 				tx_pttools_assert::isObject($this->onNotValidated[0]);
 				tx_pttools_assert::isNotEmptyString($this->onNotValidated[1]);
-	
+
 				if (!method_exists($this->onNotValidated[0], $this->onNotValidated[1])) {
 					throw new tx_pttools_exception('Method "'.$this->onNotValidated[1].'" does not exist in object/class "'.get_class($this->onNotValidated[0]).'" for the "onNotValidated" action!');
 				}
-	
+
 				$content = $this->onNotValidated[0]->{$this->onNotValidated[1]}($this, $this->onNotValidated[2]);
 			} elseif (is_string($this->onNotValidated)) {
 				$params = array('conf' => $this->onNotValidatedConf);
@@ -247,23 +247,23 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	public function set_object(tx_tcaobjects_object $object) {
 		$this->object = $object;
 	}
-	
-	
-	
+
+
+
 	public function set_onValidated($callback, array $conf = array()) {
 		$this->onValidated = $callback;
 		$this->onValidatedConf = $conf;
 	}
-	
-	
-	
+
+
+
 	public function set_onNotValidated($callback, array $conf = array()) {
 		$this->onNotValidated = $callback;
 		$this->onNotValidatedConf = $conf;
 	}
-	
-	
-	
+
+
+
 	public function set_onCancel($callback, array $conf = array()) {
 		$this->onCancel = $callback;
 		$this->onCancelConf = $conf;
@@ -333,12 +333,12 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		tx_pttools_assert::isInstanceOf($renderer, 'tx_tcaobjects_iQuickformRenderer', array('message' => 'Renderer does not implement the "tx_tcaobjects_iQuickformRenderer" interface'));
 		$this->renderer = $renderer;
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Gets the parts from the parameter string
-	 * 
+	 *
 	 * @param	string	parameter string
 	 * @return	array	parsed parameter (keys: property, altLabel, specialtype, content, rules, attributes)
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
@@ -355,12 +355,12 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			'attributes' => $attributes,
 		);
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Get evals from parameter string
-	 * 
+	 *
 	 * @param	string 	parameter string
 	 * @return	array	array('<rule>' => '<message>');
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>, Dirk Reinbold <dirk@scrbl.net>
@@ -370,21 +370,21 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		list ($property, /* $altLabel */, /* $specialtype */ , /* $content */, $rules /* , $attributes */) = t3lib_div::trimExplode(';', $parameter);
 
 		$property = $this->object->resolveAlias($property);
-		
+
 		$evalFromTcaArray = empty($property) ? array() : $this->object->getEval($property);
 		$evalFromConfigArray = t3lib_div::trimExplode(':', $rules);
 
 		if (in_array('ignoretcaeval', $evalFromConfigArray)) {
 			$evalFromTcaArray = array();
 		}
-		
+
 		$items = array();
-		
+
 		foreach (array_merge($evalFromTcaArray, $evalFromConfigArray) as $item) {
 			list($eval, $message) = t3lib_div::trimExplode('=', $item);
 			$items[$eval] = $message;
 		}
-		
+
 		return $items;
 	}
 
@@ -535,7 +535,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		// urldecode text values
 		$comment = urldecode($comment);
 		$content = urldecode($content);
-		
+
 		tx_pttools_assert::isFalse(
 			empty($property) && empty($specialtype),
 			array(
@@ -637,8 +637,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 					} elseif (in_array('date', $this->object->getEval($property))) {
 
-						$minYearDelta = !empty($attributes['minYearDelta']) ? $attributes['minYearDelta'] : 5;
-						$maxYearDelta = !empty($attributes['maxYearDelta']) ? $attributes['maxYearDelta'] : 5;
+						$minYearDelta = !isset($attributes['minYearDelta']) ? $attributes['minYearDelta'] : 5;
+						$maxYearDelta = !isset($attributes['maxYearDelta']) ? $attributes['maxYearDelta'] : 5;
 
 						$options = array(
 							'language'  		=> !empty($attributes['language']) ? $attributes['language'] : 'en',
@@ -911,7 +911,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	}
 
 
-	
+
 	/**
 	 * Set properties from HTML_Quickforms submit values
 	 *

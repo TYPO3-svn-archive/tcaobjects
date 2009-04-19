@@ -263,6 +263,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 				throw new tx_pttools_exception(sprintf('No method "%s" found (for sort use)', $methodName));
 			}
     		return $this;
+    	} elseif ($offset == 'count') {
+    		return count($this->itemsArr);
     	} else {
 	        return $this->getItemById($offset);
     	}

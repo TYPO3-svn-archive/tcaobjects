@@ -964,7 +964,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
              * Case 2: TCA type "group"
              ******************************************************************/
             throw new tx_pttools_exception('Not implemented yet :)');
+        } else {
+        	throw new tx_pttools_exception('Not supported!');
         }
+
+        tx_pttools_assert::isInstanceOf($value, 'tx_tcaobjects_objectCollection');
 
         return $value;
     }
@@ -1010,7 +1014,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         }
 
         // TODO: can this be something like "tt_content_18"?
-        return new $classname($this[$property]);
+        $object = new $classname($this[$property]);
+        tx_pttools_assert::isInstanceOf($objectCollection, 'tx_tcaobjects_object');
+        return $object;
     }
 
 
