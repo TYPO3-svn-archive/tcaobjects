@@ -163,7 +163,7 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 
 		    	$comment = $element->getComment();
 
-		        if (!emtpy($comment)) {
+		        if (!empty($comment)) {
 		            $html = str_replace('{comment}', $comment, $html);
 		            $html = str_replace('<!-- BEGIN comment -->', '', $html);
 		            $html = str_replace('<!-- END comment -->', '', $html);
