@@ -1015,7 +1015,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         // TODO: can this be something like "tt_content_18"?
         $object = new $classname($this[$property]);
-        tx_pttools_assert::isInstanceOf($objectCollection, 'tx_tcaobjects_object');
+        tx_pttools_assert::isInstanceOf($object, 'tx_tcaobjects_object');
         return $object;
     }
 
