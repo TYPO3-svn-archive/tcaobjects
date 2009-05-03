@@ -70,6 +70,10 @@ class tx_tcaobjects_divForm {
 		return trim($value);
 	}
 	
+	public static function filter_striptags($value) {
+		return strip_tags($value);
+	}
+	
 	
 
 

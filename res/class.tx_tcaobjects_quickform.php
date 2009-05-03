@@ -451,7 +451,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				case 'num':
 				case 'alphanum':
 				case 'alphanum_x':
-				case 'trim': {
+				case 'trim':
+				case 'striptags': {
 					$this->applyFilter($this->getElementName($property), array('tx_tcaobjects_divForm', 'filter_' . $eval));
 				} break;
 
