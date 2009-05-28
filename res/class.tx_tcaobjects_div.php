@@ -490,13 +490,15 @@ class tx_tcaobjects_div {
 	 */
 	public static function tsToQuickformString(array $conf) {
 
-		tx_pttools_assert::isNotEmpty($conf, array('message' => 'Typoscript array was empty!'));
+		tx_pttools_assert::isNotEmptyArray($conf, array('message' => 'Typoscript configuration has to be an array that is not empty!'));
 
 		// TODO: groups!
 		$quickform = array();
 		uksort($conf, 'strnatcmp'); // this is the missing knatsort
 
 		foreach ($conf as $fieldconf) {
+			
+			tx_pttools_assert::isNotEmptyArray($fieldconf, array('message' => 'Field configuration has to be an array that is not empty!'));
 
 			$rulesTmp = $fieldconf['rules.'];
 			$attrTmp = $fieldconf['attributes.'];
