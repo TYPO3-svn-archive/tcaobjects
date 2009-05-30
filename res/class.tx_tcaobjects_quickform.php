@@ -490,6 +490,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				} break;
 
 				case '': break;
+				
+				// eval values from other extensions, that will be simply ignored here
+				case 'tx_t3secsaltedpw_salted_fe': break;
 
 				default: {
 					throw new tx_pttools_exception('Eval "'.$eval.'" not valid!');
