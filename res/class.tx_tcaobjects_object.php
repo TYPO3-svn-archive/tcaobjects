@@ -219,7 +219,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function loadSelf($uid, $ignoreEnableFields = false) {
-
+    	
     	if ($this->notStoredChanges) {
     		throw new tx_pttools_exception('There are unstored changed in this object. You cannot reload this object! Those changes would get lost.');
     	}
@@ -231,6 +231,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         } else {
             throw new tx_pttools_exception('Record "' . $this->_table . ':' . $uid . '" could not be loaded', 0);
         }
+        
+        tx_pttools_assert::isTrue($this->checkReadAccess(), array('message' => sprintf('No read access on "%s"', $this->getIdentifier())));
     }
 
 
@@ -244,7 +246,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function storeSelf($updateSubitems = false, $pidForMmRecords = 0) {
-
+    	
+    	tx_pttools_assert::isTrue($this->checkWriteAccess(), array('message' => sprintf('No write access on "%s"', $this->getIdentifier())));
+    	
         // TODO: save aggregated objects and dependencies
 
         $dataArray = $this->getDataArray();
@@ -349,6 +353,28 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $this->notStoredChanges = false;
 
     } // end method
+    
+    
+    
+    /**
+     * Overwrite this method in your inheriting class to control access on write operations (insert, update, delete)
+     * 
+     * @return bool
+     */
+    public function checkWriteAccess() {
+    	return true;
+    }
+    
+    
+    
+    /**
+     * Overwrite this method in your inheriting class to control access on read operations (select)
+     * 
+     * @return bool
+     */
+    public function checkReadAccess() {
+    	return true;
+    }
 
 
 
@@ -587,6 +613,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-10-27
      */
     public function deleteSelf($markOnlyAsDeleted = true) {
+    	
+    	tx_pttools_assert::isTrue($this->checkWriteAccess(), array('message' => sprintf('No write access on "%s"', $this->getIdentifier())));
 
     	tx_pttools_assert::isValidUid($this->__get('uid'), false, array('message' => 'This record cannot be deleted as it does not have a valid uid!'));
 
