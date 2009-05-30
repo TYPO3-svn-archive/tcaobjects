@@ -8,6 +8,9 @@ require_once PATH_t3lib . 'class.t3lib_basicfilefunc.php';
 
 class tx_tcaobjects_quickform extends HTML_QuickForm {
 
+	/**
+	 * @var string form name
+	 */
 	protected $formname;
 
 	protected $prefix;
@@ -100,12 +103,13 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->formname = $formName;
 		$this->prefix = $prefix;
 
-		parent::HTML_QuickForm ($formName, $method, $action, $target, $attributes, $trackSubmit);
+		parent::HTML_QuickForm($formName, $method, $action, $target, $attributes, $trackSubmit);
 
 		$this->registerElementType('rawstatic', t3lib_extMgm::extPath('tcaobjects') . 'res/class.tx_tcaobjects_qfRawStatic.php', 'tx_tcaobjects_qfRawStatic');
 
 		$this->setupAdditionalRules();
 		$this->setRequiredNote($GLOBALS['LANG']->sL('LLL:EXT:tcaobjects/res/locallang.xml:quickform.requiredNote'));
+		
 
 		if (!is_null($object)) {
 			$this->set_object($object);
@@ -510,6 +514,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @return 	string	element name
 	 */
 	public function getElementName($property) {
+		tx_pttools_assert::isInstanceOf($this->object, 'tx_tcaobjects_object', array('message' => 'No tcaobject found!'));
 		$property = $this->object->resolveAlias($property);
 		return $this->prefix . '[' . $this->formname . '][' . $property . ']';
 	}
@@ -972,8 +977,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		// use token
 		if (!self::$ignoreTokens) {
-			if (tx_pttools_formReloadHandler::checkToken($submitValues['__formToken']) == false) {
-				throw new tx_pttools_exception('Form was already submitted!', 0, 'Formname: "'.$this->formname.'"');
+			
+			if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Checking token "%s"', $submitValues['__formToken']), 'tcaobjects');
+			
+			if (tx_pttools_formReloadHandler::checkToken($submitValues['__formToken']) === false) {
+				throw new tx_pttools_exception(sprintf('Form was already submitted! (Formname: "%s", Token: "%s")', $this->formname, $submitValues['__formToken']));
 			}
 		}
 
