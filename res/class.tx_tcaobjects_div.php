@@ -63,6 +63,19 @@ class tx_tcaobjects_div {
 	}
 	
 	
+	
+	/**
+	 * Redirect function that can be called via typoscipt
+	 * 
+	 * @param string content
+	 * @param array configuration
+	 * @return void (never returns)
+	 */
+	public function typoscriptRedirectUserFunction($content, array $conf = array()) {
+		tx_pttools_div::localRedirect($content);
+	}
+	
+	
 	/**
 	 * Returns the full extension key from the condensed extension key (with caching)
 	 *
