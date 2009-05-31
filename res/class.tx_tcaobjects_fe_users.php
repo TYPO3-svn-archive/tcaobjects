@@ -140,15 +140,28 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
     	$loginData = array(
 			'uname' => $GLOBALS['TSFE']->fe_user->user['username'], // username
 			'uident'=> $password, //password
+    		'uident_text' => $password,
 			'status' =>'login'
 		);
 		
+		$tempuser = $GLOBALS['TSFE']->fe_user->user;
+		
+		if (TYPO3_DLOG) t3lib_div::devLog('Checking password ' . $password, 'tcaobjects', 1, $tempuser);
+		
     	$serviceChain='';
-		$subType = 'authUserFe';
+		$subType = 'authUserFE';
 		while (is_object($serviceObj = t3lib_div::makeInstanceService('auth', $subType, $serviceChain))) {
-			$serviceChain.=','.$serviceObj->getServiceKey();
-			$serviceObj->initAuth($subType, $loginData, $authInfo, $this);
-			if (($ret=$serviceObj->authUser($tempuser)) > 0) {
+			
+			$serviceKey = $serviceObj->getServiceKey();
+			
+			$serviceChain.=','.$serviceKey;
+			$serviceObj->initAuth($subType, $loginData, $authInfo, $GLOBALS['TSFE']->fe_user);
+			
+			$ret = $serviceObj->authUser($tempuser);
+			
+			if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Asking service "%s", returning: "%s"', $serviceKey, $ret), 'tcaobjects');
+			
+			if ($ret > 0) {
 
 					// if the service returns >=200 then no more checking is needed - useful for IP checking without password
 				if (intval($ret) >= 200)	{
