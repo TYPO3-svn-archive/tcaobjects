@@ -12,6 +12,11 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	protected $tcaObjectName = '';
 
 	protected $table = '';
+	
+	/**
+	 * @var string unique property (will be checked on add)
+	 */
+	protected $uniqueProperty = null;
 
 
 
@@ -157,16 +162,12 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 
 		$returnArray = array();
 		foreach ($this->itemsArr as $key => $item) {
-			$tmp = $item;
-			foreach ($propertyParts as $part) {
-				$tmp = $tmp[$part];
-			}
-			$returnArray[$key] = $tmp;
+			$returnArray[$key] = tx_tcaobjects_div::extractProperty($item, $propertyName);
 		}
 		return $returnArray;
 	}
-
-
+	
+	
 
     /**
      * Registers itself in the registry and return an identifier
@@ -180,6 +181,30 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	$registryIdentifier = uniqid('tcaobjectCollection_'.get_class($this).'_', true);
     	tx_pttools_registry::getInstance()->register($registryIdentifier, $this);
     	return $registryIdentifier;
+    }
+    
+    
+    
+    /**
+	 * Overwrite addItem method to check for unique fields;
+     */
+    public function addItem($itemObj, $id=0) {
+    	
+    	if (!is_null($this->uniqueProperty)) {
+    		
+    		if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Checking for unique property "%s"', $this->uniqueProperty), 'tcaobjects');
+    		
+			$property = tx_tcaobjects_div::extractProperty($itemObj, $this->uniqueProperty);
+			$existingProperties = $this->extractProperty($this->uniqueProperty);
+    		
+    		if (TYPO3_DLOG) t3lib_div::devLog('Unique check', 'tcaobjects', 1, array('property' => $property, 'existingProperties' => $existingProperties));
+    		
+    		if (in_array($property, $existingProperties)) {
+    			throw new tx_pttools_exception(sprintf('Property "%s" already in exists on collection!', $this->uniqueProperty));
+    		}
+    	}
+    	
+    	return parent::addItem($itemObj, $id);
     }
 
 

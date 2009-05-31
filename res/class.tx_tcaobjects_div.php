@@ -37,7 +37,32 @@ class tx_tcaobjects_div {
 	public static $extKeyLookupTable = array();
 
 
+	/**
+	 * Extracts a (deep) property from an object
+	 * E.g. 'foo|bar|hello|world' extracts $object['foo']['bar']['hello']['world']
+	 * 
+	 * @param array|ArrayAccess
+	 * @param string propertyname
+	 * @return mixed property value
+	 */
+	public static function extractProperty($object, $propertyName) {
+		
+		// t3lib_div::devLog('Property Name ' . $propertyName, 'tcaobjects');
+		
+		$propertyParts = t3lib_div::trimExplode('|', $propertyName);
 
+		$tmp = $object;
+		foreach ($propertyParts as $part) {
+			if (!is_array($tmp) && !($tmp instanceof ArrayAccess)) {
+				throw new tx_pttools_exception('Item must be an array or implement the ArrayAccess interface!');
+			}
+			$tmp = $tmp[$part];
+			
+		}
+		return $tmp;
+	}
+	
+	
 	/**
 	 * Returns the full extension key from the condensed extension key (with caching)
 	 *
