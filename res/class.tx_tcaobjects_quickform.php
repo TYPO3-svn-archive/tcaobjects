@@ -1102,7 +1102,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * Return the form name
 	 *
 	 * @return 	string	formname
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-06-23
 	 */
 	public function get_formname() {

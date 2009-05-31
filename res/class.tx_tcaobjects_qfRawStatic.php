@@ -15,7 +15,7 @@ class tx_tcaobjects_qfRawStatic extends HTML_QuickForm_static {
 	 * @param 	string	(optional) element label
 	 * @param 	string	(optional) text
 	 * @return 	void
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-09-15
 	 */
 	public function tx_tcaobjects_qfRawStatic($elementName=null, $elementLabel=null, $text=null) {

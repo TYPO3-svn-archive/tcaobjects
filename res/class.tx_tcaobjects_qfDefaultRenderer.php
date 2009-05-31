@@ -10,7 +10,7 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 	 * Constructor
 	 *
 	 * @param 	string	(optional) templateFile
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-06-22
 	 */
 	public function __construct($templateFile = null) {
@@ -27,7 +27,7 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 	 *
 	 * @param 	string	path to the template file (EXT:... is supported here)
 	 * @return 	void
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-04-27
 	 */
 	public function setTemplateFile($templateFile) {

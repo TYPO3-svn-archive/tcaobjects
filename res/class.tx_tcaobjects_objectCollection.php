@@ -153,7 +153,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 *
 	 * @param 	string	property name, use "|" to access properties of subitems
 	 * @return 	array	array with all property values
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-09-24
 	 */
 	public function extractProperty($propertyName) {
@@ -277,7 +277,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      *
      * @param 	mixed	offset
      * @return 	mixed	element of the collection or a collection
-     * @author	Fabrizio Branca <branca@punkt.de>
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-05-29
      */
     public function offsetGet($offset) {

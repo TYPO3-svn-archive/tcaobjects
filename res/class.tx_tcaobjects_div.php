@@ -130,7 +130,7 @@ class tx_tcaobjects_div {
 	 * @param 	string		property name
 	 * @param 	string		config element
 	 * @return 	string		configuration
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-04-27
 	 */
 	public static function getColumnConfig($table, $column, $config) {
@@ -173,7 +173,7 @@ class tx_tcaobjects_div {
 	 * @param 	int		(optional) 1: add slash, -1: remove slash, 0: do nothing at the end
 	 * @param 	int		(optiomal) 1: add slash, -1: remove slash, 0: do nothing at the beginning
 	 * @return 	string	string
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-06-09
 	 */
 	public static function slashes($string, $end = 0, $beginning = 0) {

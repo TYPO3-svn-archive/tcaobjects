@@ -4,7 +4,7 @@
  *
  * $Id: class.tx_ptclibase_clibase.php,v 1.1 2007/10/31 08:21:21 ry44 Exp $
  *
- * @author 	Fabrizio Branca <branca@punkt.de>
+ * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
  */
 class tx_tcaobjects_clibase {
 
@@ -27,7 +27,7 @@ class tx_tcaobjects_clibase {
 	 * @param 	array	command line arguments
 	 * @param 	int		status code (reference)
 	 * @param 	mixed	(optional) additional parameter
-	 * @author 	Fabrizio Branca <branca@punkt.de>
+	 * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
 	 */
 	public function __construct($argv, &$statuscode, $param = false){
 		// taken from ezCLI
@@ -110,7 +110,7 @@ class tx_tcaobjects_clibase {
 	 * @param   bool    (optional) true to add end of line, default: true
 	 * @param	string	(optional) terminalstyle, default: none
 	 * @return  void
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	06.09.2007
 	 */
 	public function output($text, $addEol = true, $style = ''){
@@ -123,7 +123,7 @@ class tx_tcaobjects_clibase {
 	 * Switches terminal style. See constructor for modes
 	 *
 	 * @param 	string	Style
-	 * @author 	Fabrizio Branca <branca@punkt.de>
+	 * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
 	 */
 	public function switchStyle($name){
 		if (isset($this->TerminalStyles[$name])){
@@ -136,7 +136,7 @@ class tx_tcaobjects_clibase {
 	 *
 	 * @param 	string	parameter
 	 * @return 	bool
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 */
 	public function isParameter($parameter){
 		return in_array($parameter, $this->argv);
@@ -147,7 +147,7 @@ class tx_tcaobjects_clibase {
 	 *
 	 * @param 	string	parameter
 	 * @return 	string|false 	next parameter
-	 * @author 	Fabrizio Branca <branca@punkt.de>
+	 * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
 	 */
 	public function valueIfParameter($parameter){
 		if (($pos = array_search($parameter, $this->argv)) !== false) {

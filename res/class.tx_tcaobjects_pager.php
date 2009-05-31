@@ -134,7 +134,7 @@ class tx_tcaobjects_pager {
 	 *
 	 * @param 	array 	typoscript configuratation
 	 * @return 	void
-	 * @author	Fabrizio Branca <branca@punkt.de>
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-06-10
 	 */
 	public function set_typoscriptConfiguration(array $conf) {

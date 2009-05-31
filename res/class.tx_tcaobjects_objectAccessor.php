@@ -285,7 +285,7 @@ class tx_tcaobjects_objectAccessor {
      * @param 	string	where clause
      * @param 	array 	update fields
      * @return 	void
-     * @author	Fabrizio Branca <branca@punkt.de>
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-10-27
      */
     public function updateTable($table, $where, array $updateFieldsArr) {

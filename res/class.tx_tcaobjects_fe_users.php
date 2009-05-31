@@ -204,7 +204,7 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
      * 
      * @param 	void
      * @return 	void
-     * @author	Fabrizio Branca <branca@punkt.de>
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-06-19
      */
     public function copyToSessionUser() {
