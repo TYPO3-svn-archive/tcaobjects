@@ -234,16 +234,20 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 
 	}
 
+	/**
+	 * Save on validated action
+	 * 
+	 * @params array parameters
+	 * @params tx_tcaobjects_quickform form
+	 * @return string HTML output
+	 */
 	public static function saveOnValidated(array $params, tx_tcaobjects_quickform $form) {
 		$form->setObjectPropertiesFromSubmitValues();
 
 		$modelObj = $form->get_object();
 		$modelObj->storeSelf();
 
-		$cObj = clone $GLOBALS['TSFE']->cObj;
-		$cObj->data = $modelObj->getDataArray();
-
-		return $cObj->cObjGetSingle($params['conf']['message'], $params['conf']['message.']);
+		return $GLOBALS['TSFE']->cObj->cObjGetSingle($params['conf']['output'], $params['conf']['output.']);
 	}
 
 }
