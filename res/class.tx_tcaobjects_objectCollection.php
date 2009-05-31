@@ -212,11 +212,26 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	/***************************************************************************
 	 * Methods for the "tx_tcaobjects_iPageable" interface
 	 **************************************************************************/
+    
+    /**
+	 * Get total item count
+	 * 
+	 * @param string where clause
+	 * @return int total item count
+     */
 	public function getTotalItemCount($where = '') {
 		return tx_tcaobjects_objectAccessor::selectCollectionCount($this->getTable(), $where);
 	}
 
 
+	/**
+	 * Get items
+	 * 
+	 * @param string where clause
+	 * @param string limit clause
+	 * @param string order by clause
+	 * @return tx_tcaobjects_objectCollection self
+	 */
 	public function getItems($where = '', $limit = '', $order = ''){
 		$this->loadItems($where, $limit, $order);
 		return $this;
