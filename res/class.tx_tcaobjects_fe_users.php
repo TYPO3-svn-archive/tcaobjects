@@ -107,7 +107,7 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
     		throw new tx_pttools_exception('No username set.');
     	}
     	
-		$loginData=array(
+		$loginData = array(
 			'uname' => $username, // username
 			'uident'=> $password, //password
 			'status' =>'login'
@@ -115,13 +115,60 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
 
 		$GLOBALS['TSFE']->fe_user->checkPid = 0; //do not use a particular pid
 		$info = $GLOBALS['TSFE']->fe_user->getAuthInfoArray();
-		$user = $GLOBALS['TSFE']->fe_user->fetchUserRecord($info['db_user'],$loginData['uname']);
-		if ($withoutPassword || $GLOBALS['TSFE']->fe_user->compareUident($user, $loginData)) {
+		$user = $GLOBALS['TSFE']->fe_user->fetchUserRecord($info['db_user'],$username);
+		
+		if ($withoutPassword || $this->checkPassword($password)) {
 			$GLOBALS['TSFE']->fe_user->createUserSession($user);
 			return true;
 		} else {
 			return false;
 		}
+    }
+    
+    
+    
+    /**
+	 * Check users password
+	 * 
+	 * @param string password
+	 * @return bool
+     */
+    public function checkPassword($password) {
+    	
+    	tx_pttools_assert::isEqual($GLOBALS['TSFE']->fe_user->user['username'], $this->get_username(), array('message' => 'Can only check password if the current user is the user matching this object'));
+    	
+    	$loginData = array(
+			'uname' => $GLOBALS['TSFE']->fe_user->user['username'], // username
+			'uident'=> $password, //password
+			'status' =>'login'
+		);
+		
+    	$serviceChain='';
+		$subType = 'authUserFe';
+		while (is_object($serviceObj = t3lib_div::makeInstanceService('auth', $subType, $serviceChain))) {
+			$serviceChain.=','.$serviceObj->getServiceKey();
+			$serviceObj->initAuth($subType, $loginData, $authInfo, $this);
+			if (($ret=$serviceObj->authUser($tempuser)) > 0) {
+
+					// if the service returns >=200 then no more checking is needed - useful for IP checking without password
+				if (intval($ret) >= 200)	{
+					$authenticated = TRUE;
+					break;
+				} elseif (intval($ret) >= 100) {
+					// Just go on. User is still not authenticated but there's no reason to stop now.
+				} else {
+					$authenticated = TRUE;
+				}
+
+			} else {
+				$authenticated = FALSE;
+				break;
+			}
+			unset($serviceObj);
+		}
+		unset($serviceObj);
+		
+		return $authenticated;
     }
     
     
