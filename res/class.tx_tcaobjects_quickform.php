@@ -58,6 +58,11 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	protected $onCancelConf;
 
 	protected $cancelButton;
+	
+	/**
+	 * @var string userfunction to convert filenames before saving
+	 */
+	protected $fileNameUserFunc = '';
 
 	public static $ignoreTokens = false;
 
@@ -96,7 +101,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$onValidated = null,
 		$onNotValidated = null,
 		$onCancel = null,
-		$cancelButton = 'cancel') {
+		$cancelButton = 'cancel',
+		$fileNameUserFunc = null) {
 
 
 
@@ -109,7 +115,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		$this->setupAdditionalRules();
 		$this->setRequiredNote($GLOBALS['LANG']->sL('LLL:EXT:tcaobjects/res/locallang.xml:quickform.requiredNote'));
-		
+
 
 		if (!is_null($object)) {
 			$this->set_object($object);
@@ -126,6 +132,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		}
 		if (!empty($onCancel)) {
 			$this->set_onCancel($onCancel);
+		}
+		if (!is_null($fileNameUserFunc)) {
+			$this->set_fileNameUserFunc($fileNameUserFunc);
 		}
 
 		$this->cancelButton = $cancelButton;
@@ -237,6 +246,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->registerRule('rule_alphanum', 'callback', 'rule_alphanum', 'tx_tcaobjects_divForm');
 		$this->registerRule('rule_alphanum_x', 'callback', 'rule_alphanum_x', 'tx_tcaobjects_divForm');
 		$this->registerRule('rule_fullAge', 'callback', 'rule_fullAge', 'tx_tcaobjects_divForm');
+		return $this;
 	}
 
 
@@ -250,6 +260,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 */
 	public function set_object(tx_tcaobjects_object $object) {
 		$this->object = $object;
+		return $this;
 	}
 
 
@@ -257,6 +268,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	public function set_onValidated($callback, array $conf = array()) {
 		$this->onValidated = $callback;
 		$this->onValidatedConf = $conf;
+		return $this;
 	}
 
 
@@ -264,6 +276,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	public function set_onNotValidated($callback, array $conf = array()) {
 		$this->onNotValidated = $callback;
 		$this->onNotValidatedConf = $conf;
+		return $this;
 	}
 
 
@@ -271,6 +284,20 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	public function set_onCancel($callback, array $conf = array()) {
 		$this->onCancel = $callback;
 		$this->onCancelConf = $conf;
+		return $this;
+	}
+	
+	
+	
+	/**
+	 * Sets the filename user function
+	 * 
+	 * @param string user function
+	 * @return tx_tcaobjects_quickform
+	 */
+	public function set_fileNameUserFunc($fileNameUserFunc) {
+		$this->fileNameUserFunc = $fileNameUserFunc;
+		return $this;
 	}
 
 
@@ -494,7 +521,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				} break;
 
 				case '': break;
-				
+
 				// eval values from other extensions, that will be simply ignored here
 				case 'tx_t3secsaltedpw_salted_fe': break;
 
@@ -546,13 +573,13 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$content = urldecode($content);
 
 		tx_pttools_assert::isFalse(
-			empty($property) && empty($specialtype),
-			array(
+		empty($property) && empty($specialtype),
+		array(
 				'message' => 'Property AND specialtype are empty!"',
 				'formname' => $this->formname,
 				'parameter' => $parameter,
 				'formdefinition' => $this->formDefinition
-			)
+		)
 		);
 
 		$property = $this->object->resolveAlias($property);
@@ -836,7 +863,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 					$tmpElement = HTML_QuickForm::createElement('checkbox', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $GLOBALS['LANG']->sL($content));
 					$tmpElement->setComment($comment);
 					$elements[] = $tmpElement;
-				 } break;
+				} break;
 
 				case 'static' : {
 					$tmpElement = HTML_QuickForm::createElement('static', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $content);
@@ -867,15 +894,15 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 				if (!empty($tstamp)) {
 					$defaultArray = array(
-						// day fields
+					// day fields
 						'D' => date ('d', $tstamp),
 						'l' => date ('d', $tstamp),
 						'd' => date ('d', $tstamp),
-						// month fields
+					// month fields
 						'M' => date ('n', $tstamp),
 						'F' => date ('n', $tstamp),
 						'm' => date ('n', $tstamp),
-						// year field
+					// year field
 						'Y' => date ('Y', $tstamp),
 					);
 					$this->setDefaults(array($this->getElementName($property) => $defaultArray));
@@ -959,9 +986,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	/**
 	 * Set properties from HTML_Quickforms submit values
 	 *
-	 * @param 	HTML_QuickForm 	Quickform object
-	 * @param 	string			prefix string
-	 * @param 	string			formname
+	 * @param 	string (optional) userfunc to process filenames before saving
 	 * @return	void
 	 * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
 	 */
@@ -977,9 +1002,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		// use token
 		if (!self::$ignoreTokens) {
-			
+				
 			if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Checking token "%s"', $submitValues['__formToken']), 'tcaobjects');
-			
+				
 			if (tx_pttools_formReloadHandler::checkToken($submitValues['__formToken']) === false) {
 				throw new tx_pttools_exception(sprintf('Form was already submitted! (Formname: "%s", Token: "%s")', $this->formname, $submitValues['__formToken']));
 			}
@@ -997,11 +1022,20 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 					'webspace' => array(
 						'allow' => $this->object->getConfig($property, 'allowed'),
 						'deny' => $this->object->getConfig($property, 'disallowed')
-					)
+				)
 				));
 
 				$val = $element->getValue();
 				$filename = basename($val['name']);
+				
+				// convert filename through a user func
+				if (!empty($this->fileNameUserFunc)) {
+					$params = array(
+						'filename' => $filename,
+					);
+					$filename = t3lib_div::callUserFunction($this->fileNameUserFunc, $params, $this);
+				}
+				
 				$destination = PATH_site . $this->object->getConfig($property, 'uploadfolder');
 				$fI = t3lib_div::split_fileref($filename);
 				if ($fileFunc->checkIfAllowed($fI['fileext'], $destination, $fI['file'])) {
