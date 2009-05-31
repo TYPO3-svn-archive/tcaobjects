@@ -52,14 +52,11 @@ class tx_tcaobjects_objectAccessor {
 
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
-        trace(tx_pttools_div::returnLastBuiltSelectQuery($GLOBALS['TYPO3_DB'], $select, $from, $where, $groupBy, $orderBy, $limit));
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
+        
         $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
 
-        trace($a_row);
         return $a_row;
     }
 
@@ -93,10 +90,8 @@ class tx_tcaobjects_objectAccessor {
 
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
-        trace(tx_pttools_div::returnLastBuiltSelectQuery($GLOBALS['TYPO3_DB'], $select, $from, $where, $groupBy, $orderBy, $limit));
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
+        
         $rows = array();
         while (($a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) == true) {
             $rows[] = $a_row;
@@ -133,10 +128,8 @@ class tx_tcaobjects_objectAccessor {
 
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
-        trace(tx_pttools_div::returnLastBuiltSelectQuery($GLOBALS['TYPO3_DB'], $select, $from, $where, $groupBy, $orderBy, $limit));
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
+
         $rows = array();
         while (($a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) == true) {
             $rows[] = $a_row;
@@ -172,10 +165,7 @@ class tx_tcaobjects_objectAccessor {
 
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
-        trace(tx_pttools_div::returnLastBuiltSelectQuery($GLOBALS['TYPO3_DB'], $select, $from, $where, $groupBy, $orderBy, $limit));
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
 
         $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
@@ -227,13 +217,10 @@ class tx_tcaobjects_objectAccessor {
 
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $insertFieldsArr);
-        trace(tx_pttools_div::returnLastBuiltInsertQuery($GLOBALS['TYPO3_DB'], $table, $insertFieldsArr));
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
+
         $lastInsertedId = $GLOBALS['TYPO3_DB']->sql_insert_id();
 
-        trace($lastInsertedId);
         return $lastInsertedId;
     }
 
@@ -262,10 +249,7 @@ class tx_tcaobjects_objectAccessor {
     public function deleteWhere($table, $where) {
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_DELETEquery($table, $where);
-
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
     }
 
 
@@ -308,10 +292,7 @@ class tx_tcaobjects_objectAccessor {
 
     	// exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, $where, $updateFieldsArr);
-        trace(tx_pttools_div::returnLastBuiltInsertQuery($GLOBALS['TYPO3_DB'], $table, $updateFieldsArr));
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
     }
 
 
@@ -343,10 +324,8 @@ class tx_tcaobjects_objectAccessor {
 
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
-        trace(tx_pttools_div::returnLastBuiltSelectQuery($GLOBALS['TYPO3_DB'], $select, $from, $where, $groupBy, $orderBy, $limit));
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
+
         $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
 
@@ -391,10 +370,8 @@ class tx_tcaobjects_objectAccessor {
 
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
-        trace(tx_pttools_div::returnLastBuiltSelectQuery($GLOBALS['TYPO3_DB'], $select, $from, $where, $groupBy, $orderBy, $limit));
-        if ($res == false) {
-            throw new tx_pttools_exception('Query failed', 1, $GLOBALS['TYPO3_DB']->sql_error());
-        }
+        tx_pttools_assert::isMySQLRessource($res);
+        
         $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $GLOBALS['TYPO3_DB']->sql_free_result($res);
 
