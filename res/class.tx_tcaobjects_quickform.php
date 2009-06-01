@@ -150,6 +150,13 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	}
 
 
+	/**
+	 * Form controller
+	 * 
+	 * @param void
+	 * @return string HTML output
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
 	public function processController() {
 
 		$submitValues = $this->getSubmitValues(true);
@@ -203,6 +210,10 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			 ******************************************************************/
 
 			if (is_array($this->onNotValidated)) {
+				
+				/**
+				 * Callback
+				 */
 				tx_pttools_assert::isObject($this->onNotValidated[0]);
 				tx_pttools_assert::isNotEmptyString($this->onNotValidated[1]);
 
@@ -212,10 +223,18 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 				$content = $this->onNotValidated[0]->{$this->onNotValidated[1]}($this, $this->onNotValidated[2]);
 			} elseif (is_string($this->onNotValidated)) {
+				
+				/**
+				 * Userfunction defined by typoscript
+				 */
 				$params = array('conf' => $this->onNotValidatedConf);
 				$content = t3lib_div::callUserFunction($this->onNotValidated, $params, $this);
 			} else {
-				$content = $this->render($this->renderer);
+				
+				/**
+				 * Render
+				 */
+				$content = $this->render();
 			}
 
 		}
@@ -327,6 +346,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			$this->set_renderer($renderer);
 		}
 		$this->accept($this->renderer);
+		
+		if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Rendering form "%s" with renderer "%s"', $this->formname, get_class($this->renderer)), 'tcaobjects');
+		
 		return $this->renderer->toHtml();
 	}
 

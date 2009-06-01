@@ -2,7 +2,7 @@
 
 require_once 'HTML/QuickForm/Renderer/Default.php';
 
-class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default implements tx_tcaobjects_iQuickformRenderer {
+class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default implements tx_tcaobjects_iQuickformRenderer, tx_tcaobjects_iInitializeByTyposcript {
 
 
 
@@ -19,8 +19,24 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 			$this->setTemplateFile($templateFile);
 		}
 	}
+	
 
+	
+	/**
+	 * Initialize by typoscript
+	 * (Implementing the "tx_tcaobjects_iInitializeByTyposcript" interface)
+	 * 
+	 * @param array typoscript
+	 * @return void
+	 */
+	public function initializeByTyposcript(array $typoscript) {
+		if (!empty($typoscript['templateFile'])) {
+			$template = $GLOBALS['TSFE']->cObj->stdWrap($typoscript['templateFile'], $typoscript['templateFile.']);
+			$this->setTemplateFile($template);
+		}
+	}
 
+	
 
 	/**
 	 * Set the template from a template file

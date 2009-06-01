@@ -184,6 +184,7 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 		tx_pttools_assert::isNotEmptyString($conf['formName'], array('message' => 'No "formName" parameter given!'));
 		tx_pttools_assert::isNotEmptyArray($conf['formDefinition.'], array('message' => 'No "formDefinition" parameter given!'));
 
+		
 		// retrieve tcaObject
 		$conf['tcaObject'] = $parentObject->cObjGetSingle($conf['tcaObject'], $conf['tcaObject.']);
 		if (($conf['tcaObject']) && t3lib_div::isFirstPartOfStr($conf['tcaObject'], 'tcaobject')) {
@@ -212,22 +213,21 @@ class tx_tcaobjects_cObjects /* extends tslib_cObj */ implements tslib_content_c
 			/* tcaObject */ 		$conf['tcaObject'],
 			/* form definition */	$conf['formDefinition.']
 		);
-
+		
+		if (!empty($conf['renderer'])) {
+			$renderer = t3lib_div::getUserObj($conf['renderer']);
+			tx_pttools_assert::isInstanceOf($renderer, 'tx_tcaobjects_iQuickformRenderer', array('message' => 'Renderer does not implement the "tx_tcaobjects_iQuickformRenderer" interface!'));
+			
+			if ($renderer instanceof tx_tcaobjects_iInitializeByTyposcript) {
+				$renderer->initializeByTyposcript($conf['renderer.']);
+			}
+			$form->set_renderer($renderer);
+		}
+		
 		$form->set_onValidated($conf['onValidated'], is_array($conf['onValidated.']) ? $conf['onValidated.'] : array());
 		$form->set_onNotValidated($conf['onNotValidated'], is_array($conf['onNotValidated.']) ? $conf['onNotValidated.'] : array());
 		$form->set_onCancel($conf['onCancel'], is_array($conf['onCancel.']) ? $conf['onCancel.'] : array());
 
-		// set renderer
-		if (empty($conf['renderer'])) {
-			$conf['renderer'] = 'EXT:tcaobjects/res/class.tx_tcaobjects_qfDefaultRenderer.php:tx_tcaobjects_qfDefaultRenderer';
-		}
-		$renderer = t3lib_div::getUserObj($conf['renderer']);
-		tx_pttools_assert::isInstanceOf($renderer, 'tx_tcaobjects_iQuickformRenderer');
-		tx_pttools_assert::isInstanceOf($renderer, 'HTML_QuickForm_Renderer');
-		if (method_exists($renderer, 'setTemplateFile') && !empty($conf['templateFile'])) {
-			$renderer->setTemplateFile($conf['templateFile']);
-		}
-		$form->set_renderer($renderer);
 
 		// processes "onCancel", "onValidate" or "onNotValidate"
 		return $form->processController();
