@@ -1064,6 +1064,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 					$filename = $fileFunc->getUniqueName($filename, $destination);
 					$submitValues[$property] = basename($filename);
 					$element->moveUploadedFile($destination, basename($filename));
+					t3lib_div::fixPermissions($destination . DIRECTORY_SEPARATOR . basename($filename));
+					tx_pttools_assert::isFilePath($destination . DIRECTORY_SEPARATOR. basename($filename), array('message' => sprintf('Error while moving file "%s"', $destination . DIRECTORY_SEPARATOR . basename($filename))));
 				} else {
 					throw new tx_pttools_exception('File/Extension (file: "'.$fI['file'].'", extension: "'.$fI['fileext'].'") is not allowed for destination "'.$destination.'"!');
 				}
