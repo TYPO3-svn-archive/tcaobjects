@@ -140,6 +140,15 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->cancelButton = $cancelButton;
 	}
 
+	
+	
+	/**
+	 * Generates ids for all elements
+	 *
+	 * @param void
+	 * @return void
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
 	public function generateIds() {
 		foreach ($this->_elements as $element) {
 			if (is_object($element) && method_exists($element, '_generateId')) {
@@ -158,6 +167,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
 	 */
 	public function processController() {
+		
+		$this->applyFilter('__ALL__', 'trim');
 
 		$submitValues = $this->getSubmitValues(true);
 		$cancel = $submitValues[$this->prefix][$this->formname][$this->cancelButton];
