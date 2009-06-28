@@ -1035,7 +1035,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             )
         );
 
-        $classname = $this->getConfig($property, 'foreign_tcaobject_class');
+        $classname = $this->getClassNameForObjModifier($property, $calledProperty);
 
         if (empty($classname)) {
         	$classname = tx_tcaobjects_div::getClassname($this->_table, $property);
@@ -1045,6 +1045,22 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $object = new $classname($this[$property]);
         tx_pttools_assert::isInstanceOf($object, 'tx_tcaobjects_object');
         return $object;
+    }
+    
+    
+    
+    /**
+	 * Returns the classname of the object to construct in the "_obj" modifier
+	 * By default this is configured in TCA in "foreign_tcaobject_class"
+	 * Overrride this method if you want a different behaviour
+	 * 
+     * @param 	string		property name
+     * @param 	string		property name that was originally called
+     * @return	string		classname
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     */
+    protected function getClassNameForObjModifier($property, $calledProperty) {
+    	return $this->getConfig($property, 'foreign_tcaobject_class');
     }
 
 
