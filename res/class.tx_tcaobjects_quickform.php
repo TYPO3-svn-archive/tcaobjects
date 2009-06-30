@@ -85,6 +85,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @param	array|string 	(optional) onNotValidated "callback"
 	 * @param 	array|string	(optional) onCancel "callback"
 	 * @param 	string	(optional) cancel button
+	 * @param	string	(optional) filename user function
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-04-02
 	 */
@@ -157,7 +158,22 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			}
 		}
 	}
+	
+	
+	
+	/**
+	 * Override original getSubmitValue method to pick only the values for this prefix and formname
+	 * 
+	 * @param bool merge files
+	 * @return array array of submit values
+	 */
+	public function getSubmitValues($mergeFiles = false){
+		$submitValues = parent::getSubmitValues($mergeFiles);
+		$submitValues = $submitValues[$this->prefix][$this->formname];
+		return $submitValues;
+	}
 
+	
 
 	/**
 	 * Form controller
@@ -171,7 +187,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->applyFilter('__ALL__', 'trim');
 
 		$submitValues = $this->getSubmitValues(true);
-		$cancel = $submitValues[$this->prefix][$this->formname][$this->cancelButton];
+		$cancel = $submitValues[$this->cancelButton];
 
 		if (!empty($cancel)) {
 			/*******************************************************************
@@ -1011,6 +1027,13 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		$this->addElement('hidden', $this->getElementName('__formToken'), tx_pttools_formReloadHandler::createToken());
 		// $this->addElement('static', $this->getElementName('__messages'));
+		
+		
+		$submitValues = $this->getSubmitValues();
+		
+		$originalReferer = !empty($submitValues['__originalReferer']) ? $submitValues['__originalReferer'] : t3lib_div::getIndpEnv('HTTP_REFERER'); 
+		
+		$this->addElement('hidden', $this->getElementName('__originalReferer'), $originalReferer);
 
 	}
 
@@ -1029,7 +1052,6 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		// process values
 		$submitValues = $this->getSubmitValues(true);
-		$submitValues = $submitValues[$this->prefix][$this->formname];
 
 		if (TYPO3_DLOG) t3lib_div::devLog('Raw submit values', 'tcaobjects', 0, $submitValues);
 
