@@ -1036,6 +1036,17 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->addElement('hidden', $this->getElementName('__originalReferer'), $originalReferer);
 
 	}
+	
+	/**
+	 * Get the original referer
+	 * 
+	 * @param void
+	 * @return string original referer
+	 */
+	public function getOriginalReferer() {
+		$submitValues = $this->getSubmitValues();
+		return $submitValues['__originalReferer'];
+	}
 
 
 
