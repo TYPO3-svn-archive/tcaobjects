@@ -851,7 +851,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function getIdentifier() {
-        return get_class($this) . ':' . (!empty($this->uid) ? $this->uid : 'NEW'.time());
+        return get_class($this) . ':' . (!empty($this['uid']) ? $this['uid'] : 'NEW'.time());
     }
 
 
