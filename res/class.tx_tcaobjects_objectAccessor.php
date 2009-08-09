@@ -206,7 +206,7 @@ class tx_tcaobjects_objectAccessor {
      * @throws	tx_pttools_exception	if insert fails
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function insert ($table, array $insertFieldsArr) {
+    public function insert($table, array $insertFieldsArr) {
 
     	// check if all values are scalar or null
     	foreach($insertFieldsArr as $key => $value) {
@@ -234,7 +234,7 @@ class tx_tcaobjects_objectAccessor {
      * @return 	void
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function delete ($table, $uid) {
+    public function delete($table, $uid) {
         self::deleteWhere($table, 'uid = '.intval($uid));
     }
 
@@ -263,7 +263,7 @@ class tx_tcaobjects_objectAccessor {
      * @throws	tx_pttools_exception if uid is empty
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function updateExistingRecord ($table, array $updateFieldsArr) {
+    public function updateExistingRecord($table, array $updateFieldsArr) {
 
         if (empty($updateFieldsArr['uid'])) {
             throw new tx_pttools_exception('No uid set (needed for updating the record)!');

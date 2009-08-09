@@ -166,6 +166,21 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		}
 		return $returnArray;
 	}
+
+	/**
+	 * Call "storeSelf" on all items
+	 * 
+	 * @return void
+	 * @return void
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since 2009-08-09
+	 */
+	public function storeAll() {
+		/* @var $element tx_tcaobjects_object */
+		foreach ($this 	as $element) {
+			$element->storeSelf();
+		}
+	}
 	
 	
 
