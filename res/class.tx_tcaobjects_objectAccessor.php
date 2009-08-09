@@ -110,13 +110,13 @@ class tx_tcaobjects_objectAccessor {
      * @param 	string	(optional) where
      * @param 	string	(optional) limit
      * @param 	string	(optional) orderBy
-     * @param	bool	(opiotnal) ignore enable fields, default: false
+     * @param	bool	(optional) ignore enable fields, default: false
+     * @param	string	(optional) select fields
      * @return	array 	array of data arrays
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function selectCollection($table, $where = '', $limit = '', $orderBy = '', $ignoreEnableFields = false) {
+    public function selectCollection($table, $where = '', $limit = '', $orderBy = '', $ignoreEnableFields = false, $select='*') {
         // query preparation
-        $select  = '*';
         $from    = $table;
         $where   = ($where != '') ? $where : '1';
         if (!$ignoreEnableFields) {
