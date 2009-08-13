@@ -221,6 +221,43 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	
     	return parent::addItem($itemObj, $id);
     }
+    
+    
+    /**
+     * Returns the first item in the collection where the given value matches the value of the given property
+     * 
+     * @param string property name
+     * @param string value
+     * @return false|tx_tcaobjects_object
+     */
+    public function getItemByProperty($propertyName, $propertyValue) {
+    	/* @var $item tx_tcaobjects_object */
+    	foreach ($this as $item) {
+    		if ($item[$propertyName] == $propertyValue) {
+    			return $item;
+    		} 
+    	}
+    	return false;
+    }
+    
+    
+    
+    /**
+     * Filter: Returns only items which's specified property equals a given value
+     * 
+     * @param string property name
+     * @param string value
+     * @return tx_tcaobjects_objectCollection
+     */
+    public function where_propertyEquals($propertyName, $propertyValue) {
+    	$collection = new tx_tcaobjects_objectCollection();
+    	foreach ($this as $key => $item) {
+    		if ($item[$propertyName] == $propertyValue) {
+    			$collection->addItem($item, $key);
+    		} 
+    	}
+    	return $collection;
+    }
 
 
 

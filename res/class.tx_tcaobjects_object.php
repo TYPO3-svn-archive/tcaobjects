@@ -152,20 +152,24 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         // Ignored fields
         foreach ($this->_ignoredFields as $field) {
-        	if (!is_array($this->_properties[$field])) { // do not overwrite existing local configuration
+        	if (!isset($this->_properties[$field])) { // do not overwrite existing local configuration
             	$this->_properties[$field] = true;
         	}
         }
 
         // Standard fields
         foreach (t3lib_div::trimExplode(',', self::standardFields) as $field) {
-            $this->_properties[$field] = true;
+        	if (!isset($this->_properties[$field])) {
+            	$this->_properties[$field] = true;
+        	}
         }
 
         // Required fields for versioning
         if ($this->isVersionable()) {
             foreach (t3lib_div::trimExplode(',', self::versioningFields) as $field) {
-                $this->_properties[$field] = true;
+            	if (!isset($this->_properties[$field])) {
+                	$this->_properties[$field] = true;
+            	}
             }
         }
 
@@ -708,7 +712,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $data = array();
 
         foreach (array_keys($this->_properties) as $property) {
-            if (is_array($this->_properties[$property]) && $this->getConfig($property, 'type') != 'inline' && !in_array($property, $this->_ignoredFields) || in_array($property, array('uid', 'pid', 'sorting'))) {
+            if (is_array($this->_properties[$property]) 
+            	&& $this->getConfig($property, 'type') != 'inline' 
+            	&& !in_array($property, $this->_ignoredFields) || in_array($property, array('uid', 'pid', 'sorting'))) {
                 if (!$this->resolveAlias($property, true)) { // no data from aliases
                 	$data[$property] = $this->__get($property);
                 }
