@@ -167,10 +167,23 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 * @param bool merge files
 	 * @return array array of submit values
 	 */
-	public function getSubmitValues($mergeFiles = false){
+	public function getSubmitValues($mergeFiles = false) {
 		$submitValues = parent::getSubmitValues($mergeFiles);
 		$submitValues = $submitValues[$this->prefix][$this->formname];
 		return $submitValues;
+	}
+	
+	
+	
+	/**
+	 * Get single submit value
+	 * 
+	 * @param string field name
+	 * @return string field content
+	 */
+	public function getSingleSubmitValue($field) {
+		$submitValues = $this->getSubmitValues();
+		return $submitValues[$field];
 	}
 
 	
