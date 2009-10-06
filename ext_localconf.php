@@ -63,14 +63,6 @@ if (t3lib_extMgm::isLoaded('pt_mail')) {
 	);
 }
 
-// Extending smarty
-$GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']['ext/smarty/class.tx_smarty_wrapper.php'] = t3lib_extMgm::extPath($_EXTKEY).'misc/class.ux_tx_smarty_wrapper.php';
-
-// nicht schoen, ich weiss... :)
-// geht aber nicht anders, weil in tx_smarty_wrapper die XCLASS nicht required wird, weil dort TYPO3_CONF_VARS nicht global ist...
-tx_smarty::_getSmarty();
-require_once t3lib_extMgm::extPath($_EXTKEY).'misc/class.ux_tx_smarty_wrapper.php';
-
 // t3lib_extMgm::addPItoST43($_EXTKEY,'plugins/class.tx_tcaobjects_display_uncachedobject.php','_display_uncachedobject','list_type',0);
 // t3lib_extMgm::addPItoST43($_EXTKEY,'plugins/class.tx_tcaobjects_display_cachedobject.php','_display_cachedobject','list_type',1);
 
