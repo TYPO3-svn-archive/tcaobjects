@@ -1,3 +1,8 @@
+2009-09-10
+
++ (Fabrizio)
+  + Added custom syslog handler class.tx_tcaobjects_syslog.php
+
 2009-09-24
 
 + (Fabrizio)

@@ -70,5 +70,9 @@ if (t3lib_extMgm::isLoaded('pt_mail')) {
 // creating our own cObjects...
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['cObjTypeAndClassDefault'][] = 'EXT:tcaobjects/misc/class.tx_tcaobjects_cObjects.php:tx_tcaobjects_cObjects';
 
+$baseConfArr = unserialize($TYPO3_CONF_VARS['EXT']['extConf']['tcaobjects']);
+if ($baseConfArr['activateCustomSysLogHandler']) {
+	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLog'][] = 'EXT:tcaobjects/res/class.tx_tcaobjects_syslog.php:tx_tcaobjects_syslog->user_syslog';
+}
 
 ?>
