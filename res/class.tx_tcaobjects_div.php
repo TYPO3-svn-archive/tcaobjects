@@ -544,6 +544,9 @@ class tx_tcaobjects_div {
 			$fieldconf = self::stdWrapArray($fieldconf);
 			if (is_array($rulesTmp)) {
 				$fieldconf['rules.'] = self::stdWrapArray($rulesTmp);
+				foreach ($fieldconf['rules.'] as $key => &$value) {
+					$value = urlencode($value);
+				}
 			}
 			if (is_array($attrTmp)) {
 				$fieldconf['attributes.'] = self::stdWrapArray($attrTmp);

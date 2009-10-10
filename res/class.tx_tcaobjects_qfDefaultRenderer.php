@@ -211,6 +211,10 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 	    		$html = $this->replace('comment', '', $html);
 	    	}
     	}
+    	// remove label part if empty
+    	if (empty($label)) {
+    		$html = preg_replace('/\s*<!-- BEGIN label -->.*<!-- END label -->\s*/is', '', $html);
+    	}
     	return $html;
     }
 
@@ -229,15 +233,15 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
      */
     public function renderElement(HTML_QuickForm_element $element, $required, $error) {
         if (!$this->_inGroup) {
-
+        	
         	// element is not in a group
 
         	// passes $element to "_prepareTemplate"
             $html = $this->_prepareTemplate($element->getName(), $element->getLabel(), $required, $error, $element);
             $this->_html .= str_replace('{element}', $element->toHtml(), $html);
-
+            
         } else {
-
+        	
         	// element is in a group
 
         	if (!empty($this->_groupElementTemplate)) {
@@ -258,16 +262,38 @@ class tx_tcaobjects_qfDefaultRenderer extends HTML_QuickForm_Renderer_Default im
 	                $html = preg_replace("/([ \t\n\r]*)?<!-- BEGIN required -->.*<!-- END required -->([ \t\n\r]*)?/isU", '', $html);
 	            }
 	            $this->_groupElements[] = str_replace('{element}', $element->toHtml(), $html);
-
+	            
         	} else {
 
         		$html = $element->toHtml();
 
         		$this->_groupElements[] = $html;
-
+        		
         	}
         }
     } // end func renderElement
+    
+    function finishGroup(&$group) {
+        $separator = $group->_separator;
+        if (is_array($separator)) {
+            $count = count($separator);
+            $html  = '';
+            for ($i = 0; $i < count($this->_groupElements); $i++) {
+                $html .= (0 == $i? '': $separator[($i - 1) % $count]) . $this->_groupElements[$i];
+            }
+        } else {
+            if (is_null($separator)) {
+                $separator = '&nbsp;';
+            }
+            $html = implode((string)$separator, $this->_groupElements);
+        }
+        if (!empty($this->_groupWrap)) {
+            $html = str_replace('{content}', $html, $this->_groupWrap);
+        }
+        
+        $this->_html   .= str_replace('{element}', $html, $this->_groupTemplate);
+        $this->_inGroup = false;
+    } // end func finishGroup
 
 }
 

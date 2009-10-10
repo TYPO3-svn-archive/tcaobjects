@@ -2,6 +2,8 @@
 
 + (Fabrizio)
   + Added custom syslog handler class.tx_tcaobjects_syslog.php
+  + LLL is supported in form rules now
+  + added the possibility to remove label part when it is empty in a form
 
 2009-09-24
 

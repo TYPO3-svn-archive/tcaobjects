@@ -511,6 +511,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		}
 
 		foreach ($this->getEvals($parameter) as $eval => $message) {
+			
+			$message = urldecode($message);
 
 			switch ($eval) {
 
@@ -635,13 +637,13 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$content = urldecode($content);
 
 		tx_pttools_assert::isFalse(
-		empty($property) && empty($specialtype),
-		array(
+			empty($property) && empty($specialtype),
+			array(
 				'message' => 'Property AND specialtype are empty!"',
 				'formname' => $this->formname,
 				'parameter' => $parameter,
 				'formdefinition' => $this->formDefinition
-		)
+			)
 		);
 
 		$property = $this->object->resolveAlias($property);
@@ -902,13 +904,13 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				} break;
 
 				case 'submit': {
-					$tmpElement = HTML_QuickForm::createElement('submit', $this->getElementName($content), $GLOBALS['LANG']->sL($altLabel));
+					$tmpElement = HTML_QuickForm::createElement('submit', $this->getElementName($content), $GLOBALS['LANG']->sL($altLabel), $attributes);
 					$tmpElement->setComment($comment);
 					$elements[] = $tmpElement;
 				} break;
 
 				case 'text': {
-					$tmpElement = HTML_QuickForm::createElement('text', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel));
+					$tmpElement = HTML_QuickForm::createElement('text', $this->getElementName($property), $GLOBALS['LANG']->sL($altLabel), $attributes);
 					$tmpElement->setComment($comment);
 					$elements[] = $tmpElement;
 				} break;
