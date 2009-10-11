@@ -184,11 +184,6 @@ class tx_tcaobjects_objectAccessor {
      */
     public function store($table, array $dataArray) {
         if (isset($dataArray['uid'])) {
-            // not possible to change these values when updating (reason: policy, not technical!)
-            unset($dataArray['crdate']);
-            unset($dataArray['cruser_id']);
-            // unset($dataArray['pid']); uncommenting allows moving record by changing the pid and storing the record
-
             return self::updateExistingRecord($table, $dataArray);
         } else {
         	return self::insert($table, $dataArray);

@@ -270,6 +270,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             if (($fieldName = $this->getSpecialField('crdate')) !== false) {
                 $dataArray[$fieldName] = time();
             }
+        } else {
+        	// not possible to change these values when updating (reason: policy, not technical!)
+            unset($dataArray['crdate']);
+            unset($dataArray['cruser_id']);
+            // unset($dataArray['pid']); uncommenting allows moving record by changing the pid and storing the record
         }
 
         // if "pid" if empty try to get storagePid from classConf or extConf (out of the registry)
