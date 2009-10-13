@@ -188,7 +188,7 @@ class tx_tcaobjects_divForm {
 		$fields = $fields[$prefix][$formname];
 		
 		if ($fields['password'] != $fields['passwordRepeat']) {
-			$errors[$prefix.'['.$formname.'][passwordRepeat]'] = 'Passwords do not match';
+			$errors[$prefix.'['.$formname.'][passwordRepeat]'] = $GLOBALS['LANG']->sL('LLL:EXT:tcaobjects/res/locallang.xml:quickform.rule.formRule_checkPasswords');
 		}
 		
 		if (empty($errors)) {
@@ -214,7 +214,7 @@ class tx_tcaobjects_divForm {
 		$fields = $fields[$prefix][$formname];
 		
 		if (self::rule_checktoken($fields['__formToken'], '') == false) {
-			$errors[$prefix.'['.$formname.'][__messages]'] = 'Form already submitted';
+			$errors[$prefix.'['.$formname.'][__messages]'] = $GLOBALS['LANG']->sL('LLL:EXT:tcaobjects/res/locallang.xml:quickform.rule.formRule_checkToken');
 		}
 		
 		if (empty($errors)) {

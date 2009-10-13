@@ -1,3 +1,11 @@
+2009-09-13
+
++ (Fabrizio)
+  + Added some labels
+  + Added tx_tcaobjects_object->setDeleted()
+  + Added tx_tcaobjects_object->setDisabled()
+
+
 2009-09-10
 
 + (Fabrizio)

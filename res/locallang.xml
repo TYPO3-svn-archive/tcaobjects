@@ -30,6 +30,10 @@
 			<label index="quickform.rule.qf_rule_nonzero">The input must not begin with zero.</label>
 			
 			<label index="quickform.rule.unique">Value exists already (has to be unique)</label>
+			
+			<label index="quickform.rule.formRule_checkPasswords">Password do not match.</label>
+			<label index="quickform.rule.formRule_checktoken">Form already submitted.</label>
+			
 			<label index="quickform.requiredNote">* denotes required field</label>
 			<label index="quickform.deleteFile">Delete this file</label>
 		</languageKey>
@@ -37,6 +41,9 @@
 			<label index="quickform.rule.required">Bitte ausfüllen</label>
 			<label index="quickform.rule.unique">Wert schon vorhanden. (muss eindeutig sein)</label>
 			<label index="quickform.requiredNote">* kennzeichnet Pflichtfeld</label>
+			
+			<label index="quickform.rule.formRule_checkPasswords">Die Passwörter stimmen nicht überein.</label>
+			<label index="quickform.rule.formRule_checktoken">Das Formular wurde bereits abgeschickt.</label>
 		</languageKey>
 	</data>
 </T3locallang>

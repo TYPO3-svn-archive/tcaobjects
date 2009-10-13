@@ -418,6 +418,40 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     }
 
 
+
+    /**
+     * Sets the deleted flag
+     *
+     * @param	bool (optional)
+     * @return 	void
+     * @throws	tx_pttools_exception 	if there is not "delete" field in TCA
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since	2008-03-22
+     */
+    public function setDeleted($deleted = true) {
+        $deletedField = $GLOBALS['TCA'][$this->_table]['ctrl']['delete'];
+        tx_pttools_assert::isNotEmpty($deletedField, array('message' => 'No "delete" field set in TCA!'));
+        $this->__set($deletedField, $deleted);
+    }
+
+
+
+    /**
+     * Sets the disabled falg
+     *
+     * @param 	bool (optional)
+     * @return 	void
+     * @throws	tx_pttools_exception 	if there is not "disabled" field in TCA
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since	2008-03-22
+     */
+    public function setDisabled($disabled = true) {
+        $disabledField = $GLOBALS['TCA'][$this->_table]['ctrl']['enablecolumns']['disabled'];
+        tx_pttools_assert::isNotEmpty($disabledField, array('message' => 'No "disabled" field set in TCA!'));
+        $this->__set($disabledField, $disabled);
+    }
+
+
     /***************************************************************************
      * Versioning methods (only if versioning is available for this class)
      *
