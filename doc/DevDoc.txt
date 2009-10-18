@@ -1,3 +1,9 @@
+2009-09-18
+
++ (Fabrizio)
+  + Tracking of dirty properties possible
+  + Added new modifier '_label' that returns the field label/caption
+
 2009-09-13
 
 + (Fabrizio)

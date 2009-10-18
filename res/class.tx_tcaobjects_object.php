@@ -87,6 +87,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         'explode',
         'rte',
         'sL',
+    	'label' // returns the label of the field as defined in TCA
 	);
 
 	/**
@@ -98,6 +99,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 * @var bool	if true, there are changes that aren't stored to database yet
 	 */
 	protected $notStoredChanges = false;
+	
+	/**
+	 * @var array	properties that where changed since last save
+	 */
+	protected $dirtyFields = array();
 
 	/**
 	 * @var	string	comma separated list of standard field names
@@ -205,6 +211,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         } elseif (!empty($dataArr)) {
             $this->setDataArray($dataArr);
         }
+        
+        $this->resetDirtyFields();
 
     }
 
@@ -289,9 +297,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         }
 
         $uid = tx_tcaobjects_objectAccessor::store($this->_table, $dataArray);
+        
         // TODO: do not set via __set but via ...?
         $this->__set('uid', $uid);
-
+        
+        // reset dirtyFields
+        $this->resetDirtyFields();
+        
         // process inline relations
         // TODO: only process them if objects were load (do NOT load them here if they were not loaded before!)
         foreach (array_keys($this->_properties) as $property) {
@@ -509,7 +521,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      *
      * @param	void
      * @return 	tx_tcaobjects_objectCollection
-     * @author	Fabrizio Branca <mail@fabrizio-branca.des>
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-10-27
      */
     public function getVersions() {
@@ -520,6 +532,34 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	        $this->versions = new $collectionClassname('versions', array('uid' => $this->getOid()));
     	}
         return $this->versions;
+    }
+    
+    
+    
+    /**
+     * Get a list of fields that have changed since the last save
+     *  
+     * @param void
+     * @return array
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since	2009-10-18
+     */
+    public function getDirtyFields() {
+    	return $this->dirtyFields;
+    }
+    
+    
+    
+    /**
+     * Reset dirty fields
+     *  
+     * @param void
+     * @return void
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since	2009-10-18
+     */
+    public function resetDirtyFields() {
+    	$this->dirtyFields = array();
     }
 
 
@@ -1283,6 +1323,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         return $GLOBALS['TSFE']->cObj->parseFunc($this->__get($property), $parseFunc);
     }
+    
+    protected function processModifier_label($property, $calledProperty) {
+    	return $this->getCaption($property);
+    }
 
 
 
@@ -1363,7 +1407,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid and cannot be set!'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
         }
 
-        $this->_values[$property] = $value;
+        if ($value !== $this->_values[$property]) {
+        	 if (!array_key_exists($property, $this->dirtyFields)) {
+        	 	$this->dirtyFields[$property] = $this->_values[$property];     		
+         	}
+        	
+        	$this->_values[$property] = $value;
+        }
 
         // TODO: type checking with information from tca
         // TODO: special "objColl", "obj",... ?
