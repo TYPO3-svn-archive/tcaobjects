@@ -544,7 +544,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         $tce = t3lib_div::makeInstance('t3lib_TCEmain'); /* @var $tce t3lib_TCEmain */
 		$tce->stripslashes_values = 0;
-		$tce->start(Array(),Array());
+		$tce->start(array(), array(), tx_tcaobjects_div::createFakeBeUser());
 
 		$oid = $this->getOid();
 		$tce->version_swap($this->getTable(), $oid, $this->__get('uid'));
@@ -600,7 +600,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 		$tce = t3lib_div::makeInstance('t3lib_TCEmain'); /* @var $tce t3lib_TCEmain */
 		$tce->stripslashes_values = 0;
-		$tce->start(Array(),Array());
+		$tce->start(Array(),Array(), tx_tcaobjects_div::createFakeBeUser());
 
 		$newUid = $tce->versionizeRecord($this->getTable(), $this->getOid(), $label);
 
