@@ -183,6 +183,10 @@ class tx_tcaobjects_divForm {
 			if (substr($prefix, 0, 3) == 'tx_') break;
 		}
 		
+		if (!is_array($fields[$prefix])) {
+			return false;
+		}
+		
 		list($formname) = array_keys($fields[$prefix]);
 		
 		$fields = $fields[$prefix][$formname];

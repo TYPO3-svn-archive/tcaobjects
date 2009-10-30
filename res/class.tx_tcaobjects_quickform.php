@@ -729,7 +729,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 							throw new tx_pttools_exception('Maxitems > 1 not implemented yet'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
 						}
 
-						$tmpElement = HTML_QuickForm::createElement('text', $this->getElementName($property), $label);
+						$tmpElement = HTML_QuickForm::createElement('text', $this->getElementName($property), $label, $attributes);
 						$tmpElement->setComment($comment);
 						$elements[] = $tmpElement;
 					} else {
@@ -810,7 +810,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 					}
 
 					$elementType = 'select';
-					$addAttributes = array();
+					$addAttributes = $attributes;
 					if ($this->object->getConfig($property, 'size') > 1) {
 						$addAttributes['size'] = $this->object->getConfig($property, 'size');
 					}
@@ -821,7 +821,10 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 						$elements[] = HTML_QuickForm::createElement('hidden', $this->getElementName('__qf_ms_' . $property), 1);
 					}
 
-					$tmpElement = HTML_QuickForm::createElement($elementType, $this->getElementName($property), $label, $selectionArray, $addAttributes);
+					$tmpElement = HTML_QuickForm::createElement($elementType, $this->getElementName($property), $label, NULL, $addAttributes);
+					foreach($selectionArray as $value => $text) {
+						$tmpElement->addOption($text, $value, array('class' => 'value_'.urlencode($value)));
+					}
 					$tmpElement->setComment($comment);
 					$elements[] = $tmpElement;
 
