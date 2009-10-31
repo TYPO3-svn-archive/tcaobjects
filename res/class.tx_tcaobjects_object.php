@@ -530,6 +530,12 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 	        $collectionClassname = get_class($this) . 'Collection';
 	        $this->versions = new $collectionClassname('versions', array('uid' => $this->getOid()));
+	        // find current object and select it
+	        foreach ($this->versions as $key => $version) {
+	        	if ($key == $this->get_uid()) {
+	        		$this->versions->set_selectedId($key);
+	        	}
+	        }
     	}
         return $this->versions;
     }

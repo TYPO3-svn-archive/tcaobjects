@@ -17,6 +17,11 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @var string unique property (will be checked on add)
 	 */
 	protected $uniqueProperty = null;
+	
+	/**
+	 * @var bool if set the object's uid i will automatically used as the collections id if no other is set
+	 */
+	protected $useUidAsCollectionId = false;
 
 
 
@@ -142,7 +147,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	protected function setDataArray(array $dataArr) {
 		$tcaObjectName = $this->getClassName();
 		foreach ($dataArr as $row) {
-			$this->addItem(new $tcaObjectName('', $row));
+			$object = new $tcaObjectName('', $row);
+			$this->addItem($object);
 		}
 	}
 
@@ -202,8 +208,14 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     
     /**
 	 * Overwrite addItem method to check for unique fields;
+	 * If the property "uniqueProperty" is set this method checks if there are existing items having the same value
+	 * in this property
+	 * 
+     * @param	tx_tcaobjects_object	item to add
+     * @param	mixed	(optional) array key
+     * @return	void
      */
-    public function addItem($itemObj, $id=0) {
+    public function addItem(tx_tcaobjects_object $itemObj, $id=0) {
     	
     	if (!is_null($this->uniqueProperty)) {
     		
@@ -219,8 +231,13 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     		}
     	}
     	
+    	if (($id === 0) && $this->useUidAsCollectionId) {
+    		$id = $itemObj->get_uid();
+    	}
+    	
     	return parent::addItem($itemObj, $id);
     }
+    
     
     
     /**
@@ -238,6 +255,47 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     		} 
     	}
     	return false;
+    }
+    
+    
+    
+    /**
+     * Returns the index for a given id
+     * 
+     * @param string id
+     * @return int index
+     */
+    public function getIndexForId($id) {
+    	if (!$this->hasItem($id)) {
+    		throw new tx_pttools_exception(sprintf('Item with id "%s" does not exist.', $id));
+    	}
+    	return array_search($id, array_keys($this->itemsArr));
+    }
+    
+    
+    
+    /**
+     * Get next item if exists
+     * 
+     * @param mixed $id
+     * @return false|tx_tcaobjects_object
+     */
+    public function getNextItem($id) {
+    	$currentIndex = $this->getIndexForId($id);
+    	return ($currentIndex >= count($this)) ? false : $this->getItemByIndex($currentIndex+1);
+    }
+    
+    
+    
+    /**
+     * Get previous item if exists
+     * 
+     * @param mixed $id
+     * @return false|tx_tcaobjects_object
+     */
+    public function getPreviousItem($id) {
+    	$currentIndex = $this->getIndexForId($id);
+    	return ($currentIndex <= 0) ? false : $this->getItemByIndex($currentIndex-1);
     }
     
     
@@ -275,6 +333,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		return tx_tcaobjects_objectAccessor::selectCollectionCount($this->getTable(), $where);
 	}
 
+	
 
 	/**
 	 * Get items

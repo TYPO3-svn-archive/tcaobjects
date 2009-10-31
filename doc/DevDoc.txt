@@ -1,3 +1,13 @@
+2009-10-30
+
++ (Fabrizio)
+  + tx_tcaobjects_objectCollection
+    + Added method: "getIndexForId()"
+    + Added method: "getNextItem()"
+	+ Added method: "getPreviousItem()"
+	+ Added property/feature: useUidAsCollectionId
+  + tx_tcaobjects_object: current object is selected in the object collection getVersions returns
+	
 2009-09-18
 
 + (Fabrizio)
