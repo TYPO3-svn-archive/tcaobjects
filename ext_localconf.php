@@ -9,7 +9,7 @@ $TYPO3_CONF_VARS['EXTCONF']['kickstarter']['sections']['tcaobjects'] = array(
 	'filepath'    => 'EXT:tcaobjects/sections/class.tx_kickstarter_section_tcaobjects.php',
 	'title'       => 'tcaobjects',
 	'description' => 'Prepares object, accessor and collection files.',
-	'singleItem'  => '',
+	'singleItem'  => '1',
 );
 
 // these require_onces are needed to get the autoloader running

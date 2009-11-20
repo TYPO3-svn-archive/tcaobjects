@@ -30,6 +30,7 @@
 
 
 require_once(t3lib_extMgm::extPath('kickstarter').'class.tx_kickstarter_sectionbase.php');
+require_once(t3lib_extMgm::extPath('tcaobjects').'lib/spyc.php');
 
 /**
  * Adds a section to the extension kickstarter
@@ -55,14 +56,32 @@ class tx_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
 	 * @return	HTML
 	 */
 	public function render_wizard() {
-		$action = explode(':',$this->wizard->modData['wizAction']);
+		$action = explode(':', $this->wizard->modData['wizAction']);
+		
+		// overwrite current tables with the pared yaml content
+		if (!empty($this->wizard->modData['wizArray_upd'][$this->sectionID]['yaml_tables'])) {
+			$this->wizard->wizArray['tables'] = Spyc::YAMLLoadString($this->wizard->modData['wizArray_upd'][$this->sectionID]['yaml_tables']);
+		}
 
 		if ($action[0]=='edit')	{
 			$action[1]=1;
-			$this->regNewEntry($this->sectionID,$action[1]);
+			$this->regNewEntry($this->sectionID, $action[1]);
 		}
-
-		return 'This will create class files for tcaobjects<br />';
+		
+		$output = '';
+		
+		$output .= '<strong>This will create class files for tcaobjects<strong><br /><br />';
+		
+		$output .= '<strong>Table definition as YAML</strong><br />';
+		
+		$value = Spyc::YAMLDump($this->wizard->wizArray['tables']);
+		$ffPrefix ='['.$this->sectionID.']';
+		
+		$output .= $this->renderTextareaBox($ffPrefix.'[yaml_tables]', $value);
+		
+		$output .= '<br /><br />';
+		
+		return $output;
 	}
 
 	/**
@@ -73,27 +92,49 @@ class tx_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
 	 * @param	string		$extKey: extension key
 	 * @return	void
 	 */
-	public function render_extPart($k,$config,$extKey) {
+	public function render_extPart($k, array $config, $extKey) {
+		
+		// var_dump($this->wizard->wizArray['tables']);
+		
+		// echo Spyc::YAMLDump($this->wizard->wizArray['tables']);
+		
 		$piConf   = $this->wizard->wizArray['tables'];
+		
+		$pathSuffix = 'model/';
 
 		$this->wizard->ext_localconf[] = '
-// Register class path to tcaobject\'s autoloader
-$GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'tcaobjects\'][\'autoLoadingPath\'][str_replace(\'_\',\'\',$_EXTKEY)] = \'EXT:\'.$_EXTKEY.\'/res/\';
+// setting up tcaobjects autoloader
+$GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'tcaobjects\'][\'autoloader\'][$_EXTKEY] = array(
+	\'partsMatchDirectories\' => true,
+	// \'classMap\' => array(
+	//		\'<classname>\' => \'<path relative to the extension directory>\',
+	// ),
+	\'classPaths\' => array(
+		// ordered by where the most classes are to be autoloaded
+		\'model\',
+		// \'misc\',
+		// \'controller\', // this is not needed, as controller classes are loaded by TYPO3 directly
+		// \'view\' // this is not needed, as view classes are loaded by the controller
+	)
+);
+
 ';
 
 		$tables = array();
 		foreach ((array)$piConf as $table) {
-			$tables[] = array ('tablename' => $table['tablename'],
-							   'isexttable' => false);
+			$tables[] = array (
+				'tablename' => $table['tablename'],
+				'isexttable' => false
+			);
 		}
 
 		$piConfFields = $this->wizard->wizArray['fields'];
 		foreach ((array)$piConfFields as $table) {
-			$tables[] = array ('tablename' => $table['which_table'],
-							   'isexttable' => true);
+			$tables[] = array (
+				'tablename' => $table['which_table'],
+				'isexttable' => true
+			);
 		}
-
-		$pathSuffix = 'res/';
 
 		foreach ($tables as $table) {
 
