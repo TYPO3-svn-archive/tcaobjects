@@ -5,10 +5,18 @@ if (!defined('TYPO3_MODE')) {
 }
 
 $TYPO3_CONF_VARS['EXTCONF']['kickstarter']['sections']['tcaobjects'] = array(
-	'classname'   => 'tx_kickstarter_section_tcaobjects',
-	'filepath'    => 'EXT:tcaobjects/sections/class.tx_kickstarter_section_tcaobjects.php',
-	'title'       => 'tcaobjects',
+	'classname'   => 'tx_tcaobjects_kickstarter_section_tcaobjects',
+	'filepath'    => 'EXT:tcaobjects/sections/class.tx_tcaobjects_kickstarter_section_tcaobjects.php',
+	'title'       => 'Create tcaobjects classes',
 	'description' => 'Prepares object, accessor and collection files.',
+	'singleItem'  => '1',
+);
+
+$TYPO3_CONF_VARS['EXTCONF']['kickstarter']['sections']['yaml'] = array(
+	'classname'   => 'tx_tcaobjects_kickstarter_section_yaml',
+	'filepath'    => 'EXT:tcaobjects/sections/class.tx_tcaobjects_kickstarter_section_yaml.php',
+	'title'       => 'Edit tables and fields via YAML',
+	'description' => 'Edit tables and files via a YAML dump.',
 	'singleItem'  => '1',
 );
 

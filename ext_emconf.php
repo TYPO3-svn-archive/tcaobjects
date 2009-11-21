@@ -33,14 +33,15 @@ $EM_CONF[$_EXTKEY] = array(
 	'constraints' => array(
 		'depends' => array(
 			'php' => '5.1.0-0.0.0',
-			'typo3' => '4.1.0-0.0.0',
+			'typo3' => '4.2.0-0.0.0',
 			'smarty' => '1.2.6-0.0.0',
 			'pt_tools' => '0.2.4-0.0.0',
 		),
 		'conflicts' => array(
 		),
 		'suggests' => array(
-			'kickstarter' => '',
+			'pt_mvc' => '',
+			'kickstarter' => '0.4.0-',
 			'HTML_Quickform' => '',
 			'HTML_Quickform advmultiselect' => '',
 		),

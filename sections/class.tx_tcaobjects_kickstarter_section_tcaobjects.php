@@ -30,17 +30,15 @@
 
 
 require_once(t3lib_extMgm::extPath('kickstarter').'class.tx_kickstarter_sectionbase.php');
-require_once(t3lib_extMgm::extPath('tcaobjects').'lib/spyc.php');
 
 /**
  * Adds a section to the extension kickstarter
  *
- * $Id: class.tx_kickstarter_section_tcaobjects.php,v 1.9 2008/04/27 14:04:30 ry44 Exp $
- *
  * @author  Fabrizio Branca <mail@fabrizio-branca.de>
  * @since	2008-03-15
  */
-class tx_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
+class tx_tcaobjects_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
+
 	public $sectionID = 'tcaobjects';
 
 	public $pluginnr = -1;
@@ -58,28 +56,14 @@ class tx_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
 	public function render_wizard() {
 		$action = explode(':', $this->wizard->modData['wizAction']);
 		
-		// overwrite current tables with the pared yaml content
-		if (!empty($this->wizard->modData['wizArray_upd'][$this->sectionID]['yaml_tables'])) {
-			$this->wizard->wizArray['tables'] = Spyc::YAMLLoadString($this->wizard->modData['wizArray_upd'][$this->sectionID]['yaml_tables']);
-		}
-
-		if ($action[0]=='edit')	{
-			$action[1]=1;
+		if ($action[0] == 'edit') {
+			$action[1] = 1;
 			$this->regNewEntry($this->sectionID, $action[1]);
 		}
 		
 		$output = '';
 		
 		$output .= '<strong>This will create class files for tcaobjects<strong><br /><br />';
-		
-		$output .= '<strong>Table definition as YAML</strong><br />';
-		
-		$value = Spyc::YAMLDump($this->wizard->wizArray['tables']);
-		$ffPrefix ='['.$this->sectionID.']';
-		
-		$output .= $this->renderTextareaBox($ffPrefix.'[yaml_tables]', $value);
-		
-		$output .= '<br /><br />';
 		
 		return $output;
 	}
@@ -92,11 +76,7 @@ class tx_kickstarter_section_tcaobjects extends tx_kickstarter_sectionbase {
 	 * @param	string		$extKey: extension key
 	 * @return	void
 	 */
-	public function render_extPart($k, array $config, $extKey) {
-		
-		// var_dump($this->wizard->wizArray['tables']);
-		
-		// echo Spyc::YAMLDump($this->wizard->wizArray['tables']);
+	public function render_extPart($k, $config, $extKey) {
 		
 		$piConf   = $this->wizard->wizArray['tables'];
 		
@@ -138,7 +118,7 @@ $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'tcaobjects\'][\'autoloader\'][$_EXT
 
 		foreach ($tables as $table) {
 
-			$cN = $this->returnName($extKey,'class',$table['tablename']);
+			$cN = $this->returnName($extKey, 'class', $table['tablename']);
 
 			$cnO = $cN;
 			$cnA = $cN.'Accessor';
