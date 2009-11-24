@@ -104,7 +104,8 @@ $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'tcaobjects\'][\'autoloader\'][$_EXT
 		foreach ((array)$piConf as $table) {
 			$tables[] = array (
 				'tablename' => $table['tablename'],
-				'isexttable' => false
+				'isexttable' => false,
+				'conf' => $table
 			);
 		}
 
@@ -131,6 +132,80 @@ $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'tcaobjects\'][\'autoloader\'][$_EXT
 
 			// accessor
 			if ($table['isexttable']) $tableproperty = "\n\t".'static protected $_table = \''.$table['tablename'].'\';'."\n";
+			
+			$properties = "\n\t/**\n";
+			$properties .= "\t * Fields (auto-generated in kickstarter):\n";
+			$properties .= "\t * \n";
+			
+			$standardFields = array('uid', 'pid', 'tstamp', 'crdate', 'cruser_id');
+			$properties .= "\t * (Standard fields)\n";
+			foreach ($standardFields as $standardField) {
+				$properties .= "\t * $standardField\n";
+			}
+			
+			
+			$config = $table['conf'];
+			
+			if (is_array($config)) {
+				
+				if ($config['versioning']) {
+					$versioningFields = array('t3ver_oid', 't3ver_id', 't3ver_wsid', 't3ver_label', 't3ver_state', 't3ver_stage', 't3ver_count', 't3ver_tstamp', 't3_origuid');
+					$properties .= "\t * \n";
+					$properties .= "\t * (Versioning fields)\n";
+					foreach ($versioningFields as $versioningField) {
+						$properties .= "\t * $versioningField\n";
+					}
+				}
+	
+				if ($config['localization']) {
+					$localizationFields = array('sys_language_uid', 'l10n_parent', 'l10n_diffsource');
+					$properties .= "\t * \n";
+					$properties .= "\t * (Localization fields)\n";
+					foreach ($localizationFields as $localizationField) {
+						$properties .= "\t * $localizationField\n";
+					}
+				}
+				
+				$properties .= "\t * \n";
+				$properties .= "\t * (Other fields)\n";
+				if ($config['sorting'])	{
+					$properties .= "\t * sorting\n";
+				}
+				
+				if ($config['add_deleted'])	{
+					$properties .= "\t * deleted\n";
+				}
+				if ($config["add_hidden"])	{
+					$properties .= "\t * hidden\n";
+				}
+				if ($config["add_starttime"])	{
+					$properties .= "\t * starttime\n";
+				}
+				if ($config["add_endtime"])	{
+					$properties .= "\t * endtime\n";
+				}
+				if ($config["add_access"])	{
+					$properties .= "\t * fe_group\n";
+				}
+			}
+			
+			if (is_array($config['fields'])) {
+				$properties .= "\t * \n";
+				$properties .= "\t * (Custom fields)\n";
+				foreach ($config['fields'] as $field) {
+					
+					$type = $field['fieldname'];
+					if ($field['type'] == 'rel') {
+						$type .= '['.$field['conf_relations'].']';
+						$type .= ' ('.$field['conf_rel_table'].')';
+					}
+					
+					$properties .= "\t * ".$type."\n";
+				}
+			}
+			
+			
+			$properties .= "\t */\n";
 
 
 			$class = "class $cnA extends tx_tcaobjects_objectAccessor {\n$tableproperty\n}";
@@ -139,7 +214,7 @@ $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'tcaobjects\'][\'autoloader\'][$_EXT
 			$this->addFileToFileArray($fnA, $file);
 
 			// object
-			$class = "class $cnO extends tx_tcaobjects_object {\n\n}";
+			$class = "class $cnO extends tx_tcaobjects_object {\n$properties\n}";
 			$description = 'tcaobject for table "'.$table['tablename'].'"';
 			$file = $this->PHPclassFile($extKey, $fnO, $class, $description);
 			$this->addFileToFileArray($fnO, $file);

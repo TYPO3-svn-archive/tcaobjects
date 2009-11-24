@@ -71,16 +71,118 @@ class tx_tcaobjects_kickstarter_section_yaml extends tx_kickstarter_sectionbase 
 		
 		$output .= '<strong>Table definition as YAML</strong><br />';
 		
-		$value = Spyc::YAMLDump($this->wizard->wizArray['tables']);
+			
+		$tableArray = $this->wizard->wizArray['tables'];
+		
+		$unsetEmptyFields = true;
+		
+		// remove some fields
+		if (is_array($tableArray)) {
+			foreach ($tableArray as $tableKey => &$table) {
+				if (is_array($table['fields'])) {
+					
+					// move the fields key to the end of the array:
+					$tmpFields = $table['fields'];
+					unset($table['fields']);
+					$table['fields'] = $tmpFields;
+					
+					foreach ($table['fields'] as $fieldKey => &$field) {
+						if (isset($field['_DELETE']) && $field['_DELETE'] == 0) {
+							unset($field['_DELETE']);
+						}
+						if (empty($field['fieldname'])) {
+							unset($table['fields'][$fieldKey]);
+						}
+						if ($unsetEmptyFields) {
+							foreach ($field as $valueKey => $fieldValue) {
+								if (empty($fieldValue)) {
+									unset($field[$valueKey]);
+								}
+							}
+						}
+					}
+					if ($unsetEmptyFields) {
+						foreach ($table as $valueKey => $tableValue) {
+							if (empty($tableValue)) {
+								unset($table[$valueKey]);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		$summary = '<table border="1" style="border-collapse:collapse">';
+		
+		// creaate summary
+		if (is_array($tableArray)) {
+			foreach ($tableArray as $tableKey => &$table) {
+				$first = true;		
+				if (is_array($table['fields'])) {
+					foreach ($table['fields'] as $fieldKey => &$field) {
+						$summary .= '<tr>';
+							if ($first) {
+								$summary .= '<th rowspan="'.count($table['fields']).'">'.$table['tablename'].'</th>';
+								$first = false;
+							}
+							$fieldName = $field['fieldname'];
+							if ($field['conf_required']) {
+								$fieldName .= '*';	
+							}
+							if ($field['fieldname'] == $table['type_field']) {
+								$fieldName = '<u>'.$fieldName.'</u>';
+							} 
+							if ($field['fieldname'] == $table['header_field']) {
+								$fieldName = '<b>'.$fieldName.'</b>';
+							}
+							if ($field['fieldname'] == $table['sorting_field']) {
+								$fieldName = '<i>'.$fieldName.'</i>';
+							}
+							$summary .= '<td>'.$fieldName.'</td>';
+							$type = $field['type'];
+							if ($field['type'] == 'rel') {
+								$type .= '['.$field['conf_relations'].']';
+								$type .= ' ('.$field['conf_rel_table'].')';
+							}
+							$summary .= '<td>'.$type.'</td>';
+						$summary .= '</tr>';											
+					}
+				}
+		
+			}
+		}
+		
+		$summary .= '</table>';
+		
+		
+		$value = Spyc::YAMLDump($tableArray);
 		$ffPrefix ='['.$this->sectionID.']';
 		
-		$output .= $this->renderTextareaBox($ffPrefix.'[yaml_tables]', $value);
+		$textArea = $this->renderTextareaBox($ffPrefix.'[yaml_tables]', $value, 50);
+		
+		$output .= '<table><tr><td style="vertical-align:top">'.$textArea.'</td><td style="vertical-align:top">'.$summary.'</td></tr></table>';
+		
 		
 		$output .= '<br /><br />';
 		
 		return $output;
 	}
+	
 
+
+	/**
+	 * Overriding: renders a textarea with default value
+	 *
+	 * @param	string		field prefix
+	 * @param	string		default value
+	 * @return	string		the complete textarea
+	 */
+	public function renderTextareaBox($prefix, $value, $rows=10)	{
+		$onCP = $this->getOnChangeParts($prefix);
+		return $this->wopText($prefix).$onCP[0].'<textarea name="'.$this->piFieldName('wizArray_upd').$prefix.'" style="width:600px;" rows="'.$rows.'" wrap="off" onchange="'.$onCP[1].'" title="'.htmlspecialchars('WOP:'.$prefix).'"'.$this->wop($prefix).'>'.t3lib_div::formatForTextarea($value).'</textarea>';
+	}
+
+	
 	/**
 	 * Renders the extension PHP code
 	 *

@@ -109,7 +109,8 @@ class tx_tcaobjects_div {
 	public static function getExtKeyFromCondensendExtKey($condensedExtKey) {
 		if (!is_string($condensedExtKey) || empty($condensedExtKey)) {
 			// pt_tools classes cannot be used here because they might not be loaded yet...
-			throw new InvalidArgumentException('Invalid condensed extension key.');
+			//throw new InvalidArgumentException('Invalid condensed extension key.');
+			return false;
 		}
 		// tx_pttools_assert::isNotEmptyString($condensedExtKey);
 		static $cache = array();
