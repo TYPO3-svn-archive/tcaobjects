@@ -9,8 +9,14 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	protected $accessor;
 
+	/**
+	 * @var string class name of the tcaobject
+	 */
 	protected $tcaObjectName = '';
 
+	/**
+	 * @var string table name of the tcaobject
+	 */
 	protected $table = '';
 	
 	/**
@@ -114,10 +120,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	protected function getTable() {
 		if ($this->table == '') {
-			// get table name
-			$tcaObjectName = $this->getClassName();
-			$tmp = new $tcaObjectName();
-			$this->table = $tmp->getTable();
+			$this->table = tx_tcaobjects_div::getTableNameForClassName($this->getClassName());
 		}
 		return $this->table;
 	}
@@ -132,7 +135,11 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @since	2008-06-05
 	 */
 	protected function getClassName() {
-		return str_replace('Collection', '', get_class($this)); // assuming that "fooCollection" contains "foo" objects
+		if (empty($this->tcaObjectName)) {
+			// assuming that "fooCollection" contains "foo" objects
+			$this->tcaObjectName = str_replace('Collection', '', get_class($this)); 
+		}
+		return $this->tcaObjectName;
 	}
 
 
