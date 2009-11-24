@@ -36,7 +36,29 @@ class tx_tcaobjects_div {
 	 */
 	public static $extKeyLookupTable = array();
 
+	
+	
+	/**
+	 * Retrieves the table name a tcaobject class is mapped to
+	 * 
+	 * @param string $className
+	 * @return string table name
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since 2009-11-24
+	 */
+	public static function getTableNameForClassName($className) {
+		static $cache = array();
+		
+		if (empty($cache[$className])) {
+			$tmp = new $className();
+			$cache[$className] = $tmp->getTable();
+		}
+		
+		return $cache[$className];
+	}
 
+	
+	
 	/**
 	 * Extracts a (deep) property from an object
 	 * E.g. 'foo|bar|hello|world' extracts $object['foo']['bar']['hello']['world']
@@ -81,27 +103,28 @@ class tx_tcaobjects_div {
 	 *
 	 * @param 	string	condensedExtKey
 	 * @return 	mixed	full_extKey or false if no extKey found
-	 * @throws	tx_pttools_exception if no extension can be found
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
-	 * @since	2008-06-09
+	 * @since	2008-06-09 (rewritten 2009-11-24)
 	 */
 	public static function getExtKeyFromCondensendExtKey($condensedExtKey) {
-		// tx_pttools_assert::isNotEmpty($condensedExtKey);
-
-		if (isset(self::$extKeyLookupTable[$condensedExtKey])) {
-			return self::$extKeyLookupTable[$condensedExtKey];
-		} else {
+		if (!is_string($condensedExtKey) || empty($condensedExtKey)) {
+			// pt_tools classes cannot be used here because they might not be loaded yet...
+			throw new InvalidArgumentException('Invalid condensed extension key.');
+		}
+		// tx_pttools_assert::isNotEmptyString($condensedExtKey);
+		static $cache = array();
+		if (empty($cache[$condensedExtKey])) {
+			$foundKey = false;
 			$extKeys = t3lib_div::trimExplode(',', $GLOBALS['TYPO3_CONF_VARS']['EXT']['extList']);
 			foreach ($extKeys as $extKey) {
 				if ($condensedExtKey == str_replace('_', '', $extKey)) {
-					self::$extKeyLookupTable[$condensedExtKey] = $extKey;
-					return $extKey;
+					$foundKey = true;
+					break;
 				}
 			}
+			$cache[$condensedExtKey] = $foundKey ? $extKey : false;
 		}
-		// throw new tx_pttools_exception('Extension key for condensend extension key "'.$condensedExtKey.'" not found');
-
-		return false;
+		return $cache[$condensedExtKey];
 	}
 
 
@@ -216,7 +239,7 @@ class tx_tcaobjects_div {
 	 * @since 	2007-10-17
 	 */
 	public static function makeRandomHash($cut = 0){
-		$hash =  md5 (uniqid (rand()));
+		$hash =  md5(uniqid(rand()));
 		if ($cut > 0) {
 			$hash = substr($hash, 0, $cut);
 		}
@@ -227,7 +250,6 @@ class tx_tcaobjects_div {
 
 	/**
 	 * Autoload function for all tcaobjects
-	 * TODO: edit kickstarter sections!
 	 *
 	 * @param	string	$className
 	 * @return	void
