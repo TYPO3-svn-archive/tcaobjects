@@ -37,6 +37,23 @@ class tx_tcaobjects_div {
 	public static $extKeyLookupTable = array();
 
 	
+	public function createRandomString($length=10, $alphaLower=true, $alphaUpper=true, $num=true) {
+		$chars = array();
+		if ($alphaLower) {
+			$chars = array_merge($chars, range('a', 'z'));
+		}
+		if ($alphaUpper) {
+			$chars = array_merge($chars, range('A', 'Z'));
+		}
+		if ($num) {
+			$chars = array_merge($chars, range('0', '9'));
+		}
+		for ($i=0; $i<$length; $i++) {
+			$randomString .= $chars[array_rand($chars)];
+		}
+		return $randomString;
+	}
+	
 	
 	/**
 	 * Retrieves the table name a tcaobject class is mapped to
