@@ -259,13 +259,19 @@ class tx_tcaobjects_div {
 	 */
 	public static function autoLoad($className) {
 
-		$classNameParts = t3lib_div::trimExplode('_', $className);
-		array_shift($classNameParts); // get rid of the prefix (e.g. tx_ or user_)
-		$condensedExtKey = array_shift($classNameParts);
-
+		$condensedExtKey = self::getCondensedExtKeyFromClassName($className);
+		
+		if (empty($condensedExtKey)) {
+			return;
+		}
+		
 		$extKey = tx_tcaobjects_div::getExtKeyFromCondensendExtKey($condensedExtKey);
-
-		if ($extKey != false && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey])) {
+		
+		if (empty($extKey)) {
+			return;
+		}
+		
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey])) {
 
 			$validPath = false;
 
@@ -274,7 +280,9 @@ class tx_tcaobjects_div {
 			$partsMatchDirectories = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey]['partsMatchDirectories'];
 			$classMap = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey]['classMap'];
 			$basePath = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tcaobjects']['autoloader'][$extKey]['basePath'];
-				if (empty($basePath)) $basePath = 'EXT:'.$extKey.'/';
+				if (empty($basePath)) {
+					$basePath = 'EXT:'.$extKey.'/';
+				}
 				$basePath = self::slashes($basePath, 1); // add trailing slash
 
 			// look in classMap first
@@ -290,8 +298,8 @@ class tx_tcaobjects_div {
 
 			// look for partsMatchDirectories
 			if (!$validPath && $partsMatchDirectories == true) {
-				array_pop($classNameParts); // the last part is no directory
-				$path = $basePath . implode('/',$classNameParts) . '/class.' . $className . '.php';
+				$classNameParts = explode('_', $className);
+				$path = $basePath . implode('/', array_slice($classNameParts, 2, -1)) . '/class.' . $className . '.php';
 				$path = t3lib_div::getFileAbsFileName($path);
 				if (t3lib_div::validPathStr($path) && file_exists($path)) {
 					$validPath = $path;
