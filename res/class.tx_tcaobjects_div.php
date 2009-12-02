@@ -162,9 +162,11 @@ class tx_tcaobjects_div {
 		t3lib_div::loadTCA($callingtable);
 
 		$classname = self::getColumnConfig($callingtable, $callingproperty, 'foreign_tcaobject_class');
-
 		if (empty($classname)) {
-			$classname = self::getColumnConfig($callingproperty, $callingproperty, 'allowed');
+			$classname = self::getColumnConfig($callingtable, $callingproperty, 'allowed');
+		}
+		if (empty($classname)) {
+			$classname = self::getColumnConfig($callingtable, $callingproperty, 'foreign_table');
 		}
 		if (empty($classname)) {
 			$classname = $callingproperty;

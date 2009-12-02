@@ -38,9 +38,14 @@ require_once PATH_t3lib . 'class.t3lib_befunc.php';
 abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
     /**
-     * @var string	Name of the table. If empty get_class($this) will be used
+     * @var string	Name of the table. If empty $this->getClassName() will be used
      */
     protected $_table = '';
+    
+    /**
+     * @var string class name
+     */
+    protected $_className = '';
 
     /**
      * @var array	properties
@@ -137,23 +142,25 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         // write to ts log
         if ($GLOBALS['TT'] instanceof t3lib_timeTrack) {
-            $GLOBALS['TT']->setTSlogMessage('Creating new "'.get_class($this).'" object.', 0);
+            $GLOBALS['TT']->setTSlogMessage('Creating new "'.$this->getClassName().'" object.', 0);
         }
 
         // Load backend class "language" to process language labels
         tx_tcaobjects_div::loadLang();
 
         tx_tcaobjects_div::includeTCA();
+        
+        $this->_className = get_class($this);
 
         // Set table
         if (empty($this->_table)) {
-            $this->_table = get_class($this);
+            $this->_table = $this->getClassName();
         }
 
         t3lib_div::loadTCA($this->_table);
 
         // Override and extend TCA settings with local settings from (inheriting) class
-        tx_pttools_assert::isArray($GLOBALS['TCA'][$this->_table]['columns'], array('message' => 'No columns found in TCA for class: "'.get_class($this).'" / table: "'.$this->_table.'"'));
+        tx_pttools_assert::isArray($GLOBALS['TCA'][$this->_table]['columns'], array('message' => 'No columns found in TCA for class: "'.$this->getClassName().'" / table: "'.$this->_table.'"'));
         $this->_properties = t3lib_div::array_merge_recursive_overrule($GLOBALS['TCA'][$this->_table]['columns'], $this->_properties);
 
         // Ignored fields
@@ -194,13 +201,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         }
 
         // set class configuration array if found in registry
-        $classConfLabel = get_class($this) . '_conf';
+        $classConfLabel = $this->getClassName() . '_conf';
         if (tx_pttools_registry::getInstance()->has($classConfLabel)) {
             $this->_classConf = &tx_pttools_registry::getInstance()->get($classConfLabel);
         }
 
         // set extension configuration array if found in registry
-        $extConfLabel = tx_tcaobjects_div::getCondensedExtKeyFromClassName(get_class($this)) . '_conf';
+        $extConfLabel = tx_tcaobjects_div::getCondensedExtKeyFromClassName($this->getClassName()) . '_conf';
         if (tx_pttools_registry::getInstance()->has($extConfLabel)) {
             $this->_extConf = &tx_pttools_registry::getInstance()->get($extConfLabel);
         }
@@ -528,7 +535,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	if (empty($this->versions)) {
 	        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
 
-	        $collectionClassname = get_class($this) . 'Collection';
+	        $collectionClassname = $this->getClassName() . 'Collection';
 	        $this->versions = new $collectionClassname('versions', array('uid' => $this->getOid()));
 	        // find current object and select it
 	        foreach ($this->versions as $key => $version) {
@@ -621,7 +628,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         if (!$this->isOnlineVersion()) {
         	tx_pttools_assert::isNotEmpty($this->__get('t3ver_oid'), array('message' => 'No t3ver_oid defined'));
-			$classname = get_class($this);
+			$classname = $this->getClassName();
 			$onlineVersion = new $classname($this->__get('t3ver_oid'));
         } else {
         	if ($throwExceptionIfAlreadyOnline) {
@@ -650,7 +657,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 		$newUid = $tce->versionizeRecord($this->getTable(), $this->getOid(), $label);
 
-		$className = get_class($this);
+		$className = $this->getClassName();
 		return new $className($newUid);
     }
 
@@ -773,8 +780,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 $property = $this->resolveAlias($calledProperty);
 
                 if (!$this->offsetExists($property)) {
-                    throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid! ['.get_class($this).'::'.__FUNCTION__.']');
-                    // echo 'Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.get_class($this).']<br />'.chr(10);
+                    throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid! ['.$this->getClassName().'::'.__FUNCTION__.']');
+                    // echo 'Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.$this->getClassName().']<br />'.chr(10);
                 } else {
 
                     $this->__set($property, $value);
@@ -922,6 +929,19 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 
     /**
+     * Returns the class name
+     *
+     * @param 	void
+     * @return 	string	class name
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     */
+    public function getClassName() {
+        return $this->_className;
+    }
+
+
+
+    /**
      * Returns the table
      *
      * @param 	void
@@ -942,7 +962,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function getIdentifier() {
-        return get_class($this) . ':' . (!empty($this['uid']) ? $this['uid'] : 'NEW'.time());
+        return $this->getClassName() . ':' . (!empty($this['uid']) ? $this['uid'] : 'NEW'.time());
     }
 
 
@@ -1114,7 +1134,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $maxitems 		= $this->getConfig($property, 'maxitems');
 
         tx_pttools_assert::isTrue(
-            ($type == 'group') && ($internal_type == 'db') && ($maxitems == 1),
+            (($type == 'group') && ($internal_type == 'db') && ($maxitems == 1))
+            || (($type == 'select') && ($maxitems == 1)),
             array(
                 'message' 			=> 'Invalid modifier "obj" for called property!',
                 'modifier'			=> 'obj',
@@ -1126,6 +1147,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             )
         );
 
+        // TODO: is this step needed (as it will be retrivied in tx_tcaobjects_div::getClassname aswell
         $classname = $this->getClassNameForObjModifier($property, $calledProperty);
 
         if (empty($classname)) {
@@ -1315,7 +1337,16 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-04-27
      */
     protected function processModifier_rte($property, $calledProperty) {
-        $parseFunc = $GLOBALS['TSFE']->tmpl->setup['config.']['tx_tcaobjects.']['parseFunc_RTE.'];
+    	// class and field specific rte configuration
+    	$parseFunc = tx_pttools_div::getTS(sprintf('config.tx_tcaobjects.%s.%s.parseFunc_RTE.', $this->getClassName(), $property));
+    	if (empty($parseFunc)) {
+    		// class specific rte configuration
+    		$parseFunc = tx_pttools_div::getTS(sprintf('config.tx_tcaobjects.%s.parseFunc_RTE.', $this->getClassName()));
+    	}
+    	if (empty($parseFunc)) {
+    		// generic rte configuration
+	        $parseFunc = tx_pttools_div::getTS('config.tx_tcaobjects.parseFunc_RTE.');
+    	}
 
         tx_pttools_assert::isArray(
             $parseFunc,
@@ -1502,7 +1533,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2009-02-22
      */
     public function __toString() {
-    	$registryIdentifier = uniqid('tcaobject_'.get_class($this).'_', true);
+    	$registryIdentifier = uniqid('tcaobject_'.$this->getClassName().'_', true);
     	tx_pttools_registry::getInstance()->register($registryIdentifier, $this);
     	return $registryIdentifier;
     }

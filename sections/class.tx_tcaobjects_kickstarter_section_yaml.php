@@ -122,7 +122,11 @@ class tx_tcaobjects_kickstarter_section_yaml extends tx_kickstarter_sectionbase 
 					foreach ($table['fields'] as $fieldKey => &$field) {
 						$summary .= '<tr>';
 							if ($first) {
-								$summary .= '<th rowspan="'.count($table['fields']).'">'.$table['tablename'].'</th>';
+								$tableName = $table['tablename'];
+								if ($table['localization']) {
+									$tableName .= '&nbsp;<img height="10" width="15" src="'.$GLOBALS['BACK_PATH'].'../typo3conf/ext/tcaobjects/res/multilang.gif" />';
+								}
+								$summary .= '<th rowspan="'.count($table['fields']).'">'.$tableName.'</th>';
 								$first = false;
 							}
 							$fieldName = $field['fieldname'];
@@ -138,6 +142,10 @@ class tx_tcaobjects_kickstarter_section_yaml extends tx_kickstarter_sectionbase 
 							if ($field['fieldname'] == $table['sorting_field']) {
 								$fieldName = '<i>'.$fieldName.'</i>';
 							}
+							if ($field['l10n_mode'] == 'exclude' || t3lib_div::inList($field['l10n_display'], 'defaultAsReadonly')) {
+								$fieldName .= '&nbsp;<img height="10" width="15" src="'.$GLOBALS['BACK_PATH'].'../typo3conf/ext/tcaobjects/res/multilang_inactive.gif" />';
+							}
+							
 							$summary .= '<td>'.$fieldName.'</td>';
 							$type = $field['type'];
 							if ($field['type'] == 'rel') {
