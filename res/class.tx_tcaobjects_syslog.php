@@ -1,5 +1,7 @@
 <?php
 
+require_once t3lib_extMgm::extPath('pt_tools').'res/staticlib/class.tx_pttools_div.php';
+
 class tx_tcaobjects_syslog {
 	
 	/**
@@ -31,7 +33,7 @@ class tx_tcaobjects_syslog {
 					  	(strpos($params['msg'], 'Login-attempt from') === false)
 					  	) {
 				
-					  	$params['time'] = date(DATE_COOKIE);
+					  	// $params['time'] = date(DATE_COOKIE);
 						$params['HTTP_HOST'] = t3lib_div::getIndpEnv('HTTP_HOST');
 						$params['REQUEST_URI'] = t3lib_div::getIndpEnv('REQUEST_URI');
 						$params['HTTP_REFERER'] = t3lib_div::getIndpEnv('HTTP_REFERER');

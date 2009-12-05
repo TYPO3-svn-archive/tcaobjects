@@ -1385,7 +1385,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @throws	tx_pttools_exception 	if trying to invoke a invalid modifier to a property
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    protected function __get($calledProperty) {
+    public function __get($calledProperty) {
 
     	if (in_array($calledProperty, $this->_dynamicProperties)) {
     		$methodName = 'get_'.$calledProperty;
@@ -1434,7 +1434,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-03-20
      */
-    protected function __set($calledProperty, $value) {
+    public function __set($calledProperty, $value) {
 
     	$this->notStoredChanges = false;
 
@@ -1466,7 +1466,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @return 	mixed/void	in case of getter the value of the property will be returned
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    protected function __call($methodName, $parameters) {
+    public function __call($methodName, $parameters) {
 
         $methodParts = explode('_', $methodName);
 
