@@ -1057,46 +1057,65 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             tx_pttools_assert::isNotEmpty($foreign_table, array('message' => 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 
             $foreign_field = $this->getConfig($property, 'foreign_field');
-            tx_pttools_assert::isNotEmpty($foreign_field, array('message' => 'No "foreign_field" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
-            // TODO: If no foreign_field is defined, the field in the original table conatains a comma separeted list of uids in the foreign_table. See TYPO3 Core Apis. This may be implemented here...
+            
+            $classname = tx_tcaobjects_div::getForeignClassName($this->_table, $property);
+            
+            if (!empty($foreign_field)) {
+	            // array of records of the foreign table (mm records with uids or final data)
+	            $dataArr = tx_tcaobjects_objectAccessor::selectByParentUid(
+	                $this->uid,
+	                $foreign_table,
+	                $foreign_field,
+	                $this->getConfig($property, 'foreign_sortby')
+	                // TODO: consider foreign_table_field if available!
+	            );
 
-            // array of records of the foreign table (mm records with uids or final data)
-            $dataArr = tx_tcaobjects_objectAccessor::selectByParentUid(
-                $this->uid,
-                $foreign_table,
-                $foreign_field,
-                $this->getConfig($property, 'foreign_sortby')
-                // TODO: consider foreign_table_field if available!
-            );
+	            if (!empty($dataArr)) {
+	
+	                $isMM = tx_tcaobjects_div::ForeignTableIsMmTable($this->_table, $property);
+	
+	                // TODO: Document how and when to use the "foreign_mm_field"!
+	                if ($isMM == true) {
+	                    $foreign_mm_field = $this->getConfig($property, 'foreign_mm_field');
+	                }
+	
+	                // add items to the collection
+	                foreach ($dataArr as $data) {
+	                    try {
+	                        // create object directly or by its uid (in case of an mm table)
+	                        $tmpObj = $isMM ? new $classname($data[$foreign_mm_field]) : new $classname('', $data); /* @var $tmpObj tx_tcaobjects_object */
+	
+	                        if ($tmpObj->isDeleted() == false) {
+	                            $value->addItem($tmpObj);
+	                        }
+	                    } catch (tx_pttools_exception $exceptionObj) {
+	                        $exceptionObj->handleException();
+	                        $uid = $isMM ? $data[$foreign_mm_field] : $data['uid'];
+	                        throw new tx_pttools_exception('Was not able to construct object "'.$classname.':'.$uid.'" (over mm-table: '. ($isMM ? 'yes' : 'no').') and add it to the collection!');
+	                    }
+	                }
+	            }
 
-            if (!empty($dataArr)) {
-
-                $classname = tx_tcaobjects_div::getForeignClassName($this->_table, $property);
-
-                $isMM = tx_tcaobjects_div::ForeignTableIsMmTable($this->_table, $property);
-
-                // TODO: Document how and when to use the "foreign_mm_field"!
-                if ($isMM == true) {
-                    $foreign_mm_field = $this->getConfig($property, 'foreign_mm_field');
-                }
-
-                // add items to the collection
-                foreach ($dataArr as $data) {
-                    try {
-                        // create object directly or by its uid (in case of an mm table)
-                        $tmpObj = $isMM ? new $classname($data[$foreign_mm_field]) : new $classname('', $data); /* @var $tmpObj tx_tcaobjects_object */
+            } else {
+            	// If no foreign_field is defined, the field in the original table conatains a comma separeted list of uids in the foreign_table. See TYPO3 Core Apis. This may be implemented here...
+            	
+            	$uids = t3lib_div::trimExplode(',', $this->$property);
+            	
+            	foreach ($uids as $uid) {
+            		try {
+                        // create object
+                        $tmpObj = new $classname($uid); /* @var $tmpObj tx_tcaobjects_object */
 
                         if ($tmpObj->isDeleted() == false) {
                             $value->addItem($tmpObj);
                         }
                     } catch (tx_pttools_exception $exceptionObj) {
                         $exceptionObj->handleException();
-                        $uid = $isMM ? $data[$foreign_mm_field] : $data['uid'];
-                        throw new tx_pttools_exception('Was not able to construct object "'.$classname.':'.$uid.'" (over mm-table: '. ($isMM ? 'yes' : 'no').') and add it to the collection!');
+                        throw new tx_pttools_exception('Was not able to construct object "'.$classname.':'.$uid.'" and add it to the collection!');
                     }
-                }
+            	}
+            	
             }
-
 
         } elseif (($type == 'group') && ($internal_type == 'db')) {
             /*******************************************************************
@@ -1135,7 +1154,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         tx_pttools_assert::isTrue(
             (($type == 'group') && ($internal_type == 'db') && ($maxitems == 1))
-            || (($type == 'select') && ($maxitems == 1)),
+            || (($type == 'select') && ($maxitems == 1))
+            || (($type == 'inline') && ($maxitems == 1)),
             array(
                 'message' 			=> 'Invalid modifier "obj" for called property!',
                 'modifier'			=> 'obj',
@@ -1146,6 +1166,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 'calledProperty' 	=> $calledProperty
             )
         );
+        
+        $uid = $this[$property];
+        
+        tx_pttools_assert::isValidUid($uid, false, array('message' => 'No valid uid found for _obj modifier'));
 
         // TODO: is this step needed (as it will be retrivied in tx_tcaobjects_div::getClassname aswell
         $classname = $this->getClassNameForObjModifier($property, $calledProperty);
@@ -1155,7 +1179,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         }
 
         // TODO: can this be something like "tt_content_18"?
-        $object = new $classname($this[$property]);
+        $object = new $classname($uid);
         tx_pttools_assert::isInstanceOf($object, 'tx_tcaobjects_object');
         return $object;
     }
