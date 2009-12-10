@@ -977,7 +977,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function getEval($property) {
 
-        tx_pttools_assert::isNotEmpty($property, array('message', 'Parameter "property" empty!'));
+        tx_pttools_assert::isNotEmpty($property, array('message' => 'Parameter "property" empty!'));
 
         return t3lib_div::trimExplode(',', $this->getConfig($property, 'eval'));
     }
@@ -1054,10 +1054,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             $value = new $propertyCollectionName(); /* @var $value tx_tcaobjects_objectCollection */
 
             $foreign_table = $this->getConfig($property, 'foreign_table');
-            tx_pttools_assert::isNotEmpty($foreign_table, array('message', 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
+            tx_pttools_assert::isNotEmpty($foreign_table, array('message' => 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 
             $foreign_field = $this->getConfig($property, 'foreign_field');
-            tx_pttools_assert::isNotEmpty($foreign_field, array('message', 'No "foreign_field" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
+            tx_pttools_assert::isNotEmpty($foreign_field, array('message' => 'No "foreign_field" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
             // TODO: If no foreign_field is defined, the field in the original table conatains a comma separeted list of uids in the foreign_table. See TYPO3 Core Apis. This may be implemented here...
 
             // array of records of the foreign table (mm records with uids or final data)

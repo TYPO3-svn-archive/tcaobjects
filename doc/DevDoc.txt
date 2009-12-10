@@ -1,3 +1,8 @@
+2009-12-10
+
++ (Fabrizio)
+  + fixed some bugs in assertion messages
+
 2009-10-30
 
 + (Fabrizio)
