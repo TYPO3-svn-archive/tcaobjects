@@ -469,6 +469,79 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isNotEmpty($disabledField, array('message' => 'No "disabled" field set in TCA!'));
         $this->__set($disabledField, $disabled);
     }
+    
+    /***************************************************************************
+     * Language methods (only if translations are for this class)
+     *
+     * Hint: Access the versioning fields 't3ver_oid', 't3ver_id', 't3ver_wsid',...
+     * like normal properties (e.g. $this['t3ver_label'] = 'new label';)
+     **************************************************************************/
+    
+    public function supportsTranslations() {
+    	$supportsTranslation = $GLOBALS['TCA'][$this->_table]['ctrl']['languageField'];
+    	return ($supportsTranslation == true); 
+    }
+    
+    public function getLanguageField() {
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	return $GLOBALS['TCA'][$this->_table]['ctrl']['languageField'];
+    }
+    
+    public function getLanguageUid() {
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	return $this[$this->getLanguageField()];
+    }
+    
+    public function getTransOrigPointerField() {
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	return $GLOBALS['TCA'][$this->_table]['ctrl']['transOrigPointerField'];
+    }
+    
+    public function getDefaultLanguageObject() {
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	
+    	if ($this->getLanguageUid() == 0) {
+    		return $this;
+    	} else {
+    		$className = $this->getClassName(); 
+    		$defaultLanguageObj = new $className($this[$this->getTransOrigPointerField()]);
+    		return $defaultLanguageObj;
+    	}
+    }
+    
+    public function getLanguageVersion($sysLanguageUid) {
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	
+    	tx_pttools_assert::isValidUid($sysLanguageUid, true, array('message' => 'Invalid sysLanguageUid'));
+    	
+    	if ($sysLanguageUid == $this->getLanguageUid()) {
+    		$translationObj = $this;
+    	} else {
+	    	$defaultLanguageObject = $this->getDefaultLanguageObject();
+	    	$origDataArr = $defaultLanguageObject->getDataArray();
+	    	
+	    	// load data
+	    	
+	    	$dataArr = tx_tcaobjects_objectAccessor::selectTranslation(
+	    		$this->_table, 
+	    		$this->getTransOrigPointerField(), 
+	    		$defaultLanguageObject['uid'], 
+	    		$this->getLanguageField(), 
+	    		$sysLanguageUid
+	    	);
+	    	
+	    	$className = $this->getClassName(); 
+	    	
+	    	// merge data
+	    	$translatedData = array();
+	    	foreach ($origDataArr as $field => $value) {
+	    		$translatedData[$field] = $this->excludedFromTranslation($field) ? $value : $dataArr[$field];
+	    	}	
+	    	$translationObj = new $className('', $translatedData);
+    	}
+    	
+    	return $translationObj;
+    }
 
 
     /***************************************************************************
@@ -924,6 +997,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isNotEmpty($config, array('message' => 'Parameter "config" empty!'));
 
         return $this->_properties[$property]['config'][$config];
+    }
+    
+    public function excludedFromTranslation($property) {
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	return ($this->_properties[$property]['l10n_mode'] == 'exclude');
     }
 
 

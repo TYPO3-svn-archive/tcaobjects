@@ -101,6 +101,26 @@ class tx_tcaobjects_objectAccessor {
         return $rows;
     }
 
+    
+    public function selectTranslation($table, $transOrigPointerField, $origUid, $languageField, $sysLanguageUid, $select='*') {
+    	// query preparation
+        $from   = $table;
+        $where  = $transOrigPointerField . ' = '.intval($origUid);
+        $where .= ' AND ' . $languageField . ' = ' . intval($sysLanguageUid);
+        $where .= ' '.tx_pttools_div::enableFields($from);
+
+        $groupBy = '';
+        $limit   = '';
+
+        // exec query using TYPO3 DB API
+        $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
+        tx_pttools_assert::isMySQLRessource($res);
+        
+        $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+        $GLOBALS['TYPO3_DB']->sql_free_result($res);
+
+        return $a_row;
+    }
 
 
     /**
