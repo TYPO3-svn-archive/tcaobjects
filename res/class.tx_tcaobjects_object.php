@@ -862,6 +862,21 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             }
         }
     }
+    
+
+	
+    /**
+     * Set properties from xml object
+     * 
+     * @param SimpleXMLElement $xml
+     * @param bool $lowerCaseProperties if true all attributes names will be converted to lowercase
+     * @return void
+     */
+	public function setFromXml(SimpleXMLElement $xml, $lowerCaseProperties=false) {
+		foreach ($xml->attributes() as $name => $value) {
+			$this[$lowerCaseProperties ? strtolower($name) : $name] = (string) $value;
+		}
+	}
 
 
 
