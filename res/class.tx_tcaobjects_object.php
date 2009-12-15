@@ -35,8 +35,8 @@ require_once PATH_t3lib . 'class.t3lib_befunc.php';
  * @author	Fabrizio Branca <mail@fabrizio-branca.de>
  * @since	2008-03-20
  */
-abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
+abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     /**
      * @var string	Name of the table. If empty $this->getClassName() will be used
      */
@@ -509,7 +509,20 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	}
     }
     
-    public function getLanguageVersion($sysLanguageUid) {
+    
+    
+    /**
+     * Get language version
+     * If no translation is found for the given uid the method returns $this unless the second parameter is set to true
+     * (then false will be returnes)
+     * 
+     * @param int $sysLanguageUid
+     * @param bool (optional) $returnFalseIfNoTranslationFound
+     * @return tx_tcaobjects_object|false
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2009-12-14
+     */
+    public function getLanguageVersion($sysLanguageUid, $returnFalseIfNoTranslationFound = false) {
     	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
     	
     	tx_pttools_assert::isValidUid($sysLanguageUid, true, array('message' => 'Invalid sysLanguageUid'));
@@ -530,14 +543,20 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	    		$sysLanguageUid
 	    	);
 	    	
-	    	$className = $this->getClassName(); 
+	    	if ($dataArr === false) {
+	    		// no translation record found
+	    		$translationObj = $returnFalseIfNoTranslationFound ? false : $this;
+	    	} else {
 	    	
-	    	// merge data
-	    	$translatedData = array();
-	    	foreach ($origDataArr as $field => $value) {
-	    		$translatedData[$field] = $this->excludedFromTranslation($field) ? $value : $dataArr[$field];
-	    	}	
-	    	$translationObj = new $className('', $translatedData);
+		    	$className = $this->getClassName(); 
+		    	
+		    	// merge data
+		    	$translatedData = array();
+		    	foreach ($origDataArr as $field => $value) {
+		    		$translatedData[$field] = $this->excludedFromTranslation($field) ? $value : $dataArr[$field];
+		    	}	
+		    	$translationObj = new $className('', $translatedData);
+	    	}
     	}
     	
     	return $translationObj;
@@ -893,7 +912,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         foreach (array_keys($this->_properties) as $property) {
             if (is_array($this->_properties[$property]) 
-            	&& $this->getConfig($property, 'type') != 'inline' 
+            	// && $this->getConfig($property, 'type') != 'inline' 
             	&& !in_array($property, $this->_ignoredFields) || in_array($property, array('uid', 'pid', 'sorting'))) {
                 if (!$this->resolveAlias($property, true)) { // no data from aliases
                 	$data[$property] = $this->__get($property);
@@ -1137,9 +1156,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             /*******************************************************************
              * Case 1: TCA type: "inline"
              ******************************************************************/
+        	
+        	$classname = tx_tcaobjects_div::getForeignClassName($this->_table, $property);
 
             // create object collection
-            $propertyCollectionName = $property . 'Collection';
+            $propertyCollectionName = $classname . 'Collection';
 
             // Fallback if collection class does not exist
             $propertyCollectionName = class_exists($propertyCollectionName) ? $propertyCollectionName : 'tx_tcaobjects_objectCollection';
@@ -1150,8 +1171,6 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             tx_pttools_assert::isNotEmpty($foreign_table, array('message' => 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 
             $foreign_field = $this->getConfig($property, 'foreign_field');
-            
-            $classname = tx_tcaobjects_div::getForeignClassName($this->_table, $property);
             
             if (!empty($foreign_field)) {
 	            // array of records of the foreign table (mm records with uids or final data)

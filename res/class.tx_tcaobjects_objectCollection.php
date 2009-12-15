@@ -180,6 +180,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		return $returnArray;
 	}
 
+	
+	
 	/**
 	 * Call "storeSelf" on all items
 	 * 
@@ -248,6 +250,26 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     
     
     /**
+     * Prepend one or more elements to the beginning of the collection
+     * Multiple elements (like in array_unshift) are not supported!
+     *
+     * @param   mixed   element to prepend
+     * @param   bool    (optional) if true key won't be modified, else numerical keys will be renumbered, default if false
+     * @return  int     Returns the new number of elements in the collection
+     * @author  Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since   2008-06-07
+     */
+    public function unshift($element, $doNotModifyKeys = false, $useKey = NULL) {
+        if ((is_null($useKey)) && $this->useUidAsCollectionId) {
+    		$useKey = $element->get_uid();
+    	}
+    	return parent::unshift($element, $doNotModifyKeys, $useKey);
+    	
+    }
+    
+    
+    
+    /**
      * Returns the first item in the collection where the given value matches the value of the given property
      * 
      * @param string property name
@@ -255,10 +277,27 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      * @return false|tx_tcaobjects_object
      */
     public function getItemByProperty($propertyName, $propertyValue) {
+    	if (($key = $this->getItemKeyByProperty($propertyName, $propertyValue)) !== false) {
+    		return $this->itemsArr[$key];
+    	} else {
+    		return false;
+    	}
+    }
+    
+    
+    
+    /**
+     * Returns the key of the first item in the collection where the given value matches the value of the given property
+     * 
+     * @param string property name
+     * @param string value
+     * @return false|string|int key of the first found item
+     */
+    public function getItemKeyByProperty($propertyName, $propertyValue) {
     	/* @var $item tx_tcaobjects_object */
-    	foreach ($this as $item) {
+    	foreach ($this as $key => $item) {
     		if ($item[$propertyName] == $propertyValue) {
-    			return $item;
+    			return $key;
     		} 
     	}
     	return false;
@@ -277,6 +316,58 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     		throw new tx_pttools_exception(sprintf('Item with id "%s" does not exist.', $id));
     	}
     	return array_search($id, array_keys($this->itemsArr));
+    }
+
+
+    
+    /**
+     * Get item id from collection by Index
+     *
+     * @param   integer     index (position in array) of Collection Item
+     * @return  mixed       item that has been requested
+     * @remarks index starts with 0 for first element
+     * @throws  tx_pttools_exceptionInternal if idx is invalid
+     * @author  Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since   2009-12-14
+     */
+    public function getItemIdByIndex($idx) {
+
+        // check parameters
+        $idx = intval($idx);
+        if (($idx < 0) || ($idx >= $this->count())) {
+        	return false;
+            // throw new tx_pttools_exceptionInternal('Invalid index');
+        }
+        $itemArr = array_keys($this->itemsArr);
+
+        return $itemArr[$idx];
+
+    }
+    
+    
+    
+    /**
+     * Get next item if exists
+     * 
+     * @param mixed $id
+     * @return false|mixed id of the next item
+     */
+    public function getNextItemId($id) {
+    	$currentIndex = $this->getIndexForId($id);
+    	return ($currentIndex >= count($this)) ? false :$this->getItemIdByIndex($currentIndex+1);
+    }
+    
+    
+    
+    /**
+     * Get previous item if exists
+     * 
+     * @param mixed $id
+     * @return false|mixed id of the previous item
+     */
+    public function getPreviousItemId($id) {
+    	$currentIndex = $this->getIndexForId($id);
+    	return ($currentIndex <= 0) ? false : $this->getItemIdByIndex($currentIndex-1);
     }
     
     
