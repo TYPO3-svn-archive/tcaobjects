@@ -1116,6 +1116,22 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             return $property;
         }
     }
+    
+    
+    
+    /**
+	 * Returns the classname of the object to construct in the "_obj" modifier
+	 * By default this is configured in TCA in "foreign_tcaobject_class"
+	 * Overrride this method if you want a different behaviour
+	 * 
+     * @param 	string		property name
+     * @param 	string		property name that was originally called
+     * @return	string		classname
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     */
+    protected function getClassNameForObjModifier($property, $calledProperty) {
+    	return $this->getConfig($property, 'foreign_tcaobject_class');
+    }
 
 
 
@@ -1210,21 +1226,23 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
             } else {
             	// If no foreign_field is defined, the field in the original table conatains a comma separeted list of uids in the foreign_table. See TYPO3 Core Apis. This may be implemented here...
-            	
-            	$uids = t3lib_div::trimExplode(',', $this->$property);
-            	
-            	foreach ($uids as $uid) {
-            		try {
-                        // create object
-                        $tmpObj = new $classname($uid); /* @var $tmpObj tx_tcaobjects_object */
 
-                        if ($tmpObj->isDeleted() == false) {
-                            $value->addItem($tmpObj);
-                        }
-                    } catch (tx_pttools_exception $exceptionObj) {
-                        $exceptionObj->handleException();
-                        throw new tx_pttools_exception('Was not able to construct object "'.$classname.':'.$uid.'" and add it to the collection!');
-                    }
+            	if ($this->$property) {
+	            	$uids = t3lib_div::trimExplode(',', $this->$property);
+	            	
+	            	foreach ($uids as $uid) {
+	            		try {
+	                        // create object
+	                        $tmpObj = new $classname($uid); /* @var $tmpObj tx_tcaobjects_object */
+	
+	                        if ($tmpObj->isDeleted() == false) {
+	                            $value->addItem($tmpObj);
+	                        }
+	                    } catch (tx_pttools_exception $exceptionObj) {
+	                        $exceptionObj->handleException();
+	                        throw new tx_pttools_exception('Was not able to construct object "'.$classname.':'.$uid.'" and add it to the collection!');
+	                    }
+	            	}
             	}
             	
             }
@@ -1294,22 +1312,6 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $object = new $classname($uid);
         tx_pttools_assert::isInstanceOf($object, 'tx_tcaobjects_object');
         return $object;
-    }
-    
-    
-    
-    /**
-	 * Returns the classname of the object to construct in the "_obj" modifier
-	 * By default this is configured in TCA in "foreign_tcaobject_class"
-	 * Overrride this method if you want a different behaviour
-	 * 
-     * @param 	string		property name
-     * @param 	string		property name that was originally called
-     * @return	string		classname
-     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
-     */
-    protected function getClassNameForObjModifier($property, $calledProperty) {
-    	return $this->getConfig($property, 'foreign_tcaobject_class');
     }
 
 

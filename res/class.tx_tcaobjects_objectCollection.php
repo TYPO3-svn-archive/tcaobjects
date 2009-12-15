@@ -264,7 +264,6 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     		$useKey = $element->get_uid();
     	}
     	return parent::unshift($element, $doNotModifyKeys, $useKey);
-    	
     }
     
     
@@ -513,7 +512,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 			}
     		return $this;
     	} elseif ($offset == 'count') {
-    		return count($this->itemsArr);
+    		return count($this);
     	} else {
 	        return $this->getItemById($offset);
     	}
