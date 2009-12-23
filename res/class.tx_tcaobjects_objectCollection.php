@@ -28,6 +28,16 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @var bool if set the object's uid i will automatically used as the collections id if no other is set
 	 */
 	protected $useUidAsCollectionId = false;
+	
+	/**
+	 * @var string sorting field used by genericFieldSorter (for internal use only!)
+	 */
+	protected static $_sortingField;
+	
+	/**
+	 * @var string sorting direction used by genericFieldSorter (for internal use only!)
+	 */
+	protected static $_sortingDirection;
 
 
 
@@ -49,6 +59,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 
 		// load items
 		if (!empty($load)) {
+			tx_pttools_assert::isNotEmptyString($load, array('message' => 'No valid load parameter'));
 			$methodName = 'load_'.$load;
 			if (method_exists($this, $methodName)) {
 				$this->$methodName($params);
@@ -455,7 +466,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      * Returns the value for a given offset
      * and enables "filters" and "sorting".
      *
-     * FILTERS
+     * filter_
      * *******
      * You can ask a collection for a "filter_<nameOfTheFilter>" key via the ArrayAccess Interface
      * e.g. $myCollection['filter_elementsGreaterThanTen']
@@ -472,8 +483,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      * e.g.
      * $myCollection['filter_elementsGreaterThanTen']['filter_elementsAccesibleToCurrentUser']
      *
-     * SORTING
-     * *******
+     * sort_
+     * *****
      * Sorting works simular as filtering. Simply ask a collection for a "sort_<nameOfSorting>" key
      * via the ArrayAccess Interface
      * e.g. $userCollection['sort_byLastName']
@@ -482,9 +493,29 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      * as parameters and should decide which one is the greater one. The comparison function must return
      * an integer less than, equal to, or greater than zero if the first argument is considered to be
      * respectively less than, equal to, or greater than the second. (have a look at PHP's usort documentation)
-     *
+     * 
+     * You can also use the generic field sorter
+     * Syntax_
+     * sort_field_<fieldName>[_asc|_desc]
+     * 
+     * count
+     * *****
+     * Returns the total count of items in this collection
+     * 
+     * last
+     * ****
+     * Returns the last element of the collection
+     * 
+     * #<index>
+     * ********
+     * Access element by index
+     * 
+     * <id>
+     * ****
+     * Access element by id
+     * 
      * @param 	mixed	offset
-     * @return 	mixed	element of the collection or a collection
+     * @return 	mixed	element of the collection or a collection or a single value (count)
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2008-05-29
      */
@@ -506,15 +537,65 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	} elseif (substr($offset, 0, 5) == 'sort_') {
     		$methodName = 'compare_' .substr($offset, 5);
     		if (method_exists($this, $methodName)) {
-				usort($this->itemsArr, array(get_class($this), $methodName));
-			} else {
+				uasort($this->itemsArr, array(get_class($this), $methodName));
+    		} elseif (substr($offset, 5, 6) == 'field_') {
+    			$field = substr($offset, 11);
+    			if (substr($field, -4) == '_asc') {
+    				$field = substr($field, 0, -4);
+    				$direction = 'asc'; 
+    			} elseif (substr($field, -5) == '_desc') {
+    				$field = substr($field, 0, -5);
+    				$direction = 'desc';
+    			} else {
+    				$direction = 'asc';
+    			}
+    			// not nice, but the only way to pass parameters to a callback function
+    			self::$_sortingField = $field;
+    			self::$_sortingDirection = $direction;
+    			uasort($this->itemsArr, array(get_class($this), 'genericFieldSorter'));
+    		} else {
 				throw new tx_pttools_exception(sprintf('No method "%s" found (for sort use)', $methodName));
 			}
     		return $this;
     	} elseif ($offset == 'count') {
     		return count($this);
+    	} elseif (substr($offset, 0, 4) == 'idx_') {
+    		return $this->getItemByIndex(substr($offset, 4));
+    	} elseif ($offset == 'first') {
+    		return $this->getItemByIndex(0);
+    	} elseif ($offset == 'last') {
+    		return $this->getItemByIndex(count($this)-1);
     	} else {
 	        return $this->getItemById($offset);
+    	}
+    }
+    
+    /**
+     * Generic field sorter used as callback function for usort in the sort_ "magic method"
+     * 
+     * @param tx_tcaobjects_object $a
+     * @param tx_tcaobjects_object $b
+     * @return int -1, 0, 1
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2009-12-23 (<- the day before christmas)
+     */
+    protected function genericFieldSorter(tx_tcaobjects_object $a, tx_tcaobjects_object $b) {
+    	$res = ($a[self::$_sortingField] > $b[self::$_sortingField]) ? +1 : -1;
+    	if (self::$_sortingDirection == 'desc') {
+    		$res *= -1;
+    	}
+    	return $res;
+    }
+    
+    /**
+     * Add the elements of a collection to this one
+     *  
+     * @param tx_tcaobjects_objectCollection $collection
+     * @param unknown_type $preserveIDs
+     */
+    public function addCollection(tx_pttools_collection $collection, $preserveIDs=false) {
+    	foreach($collection as $key => $item) {
+    		$this->addItem($item, $preserveIDs ? $key : 0);
     	}
     }
 

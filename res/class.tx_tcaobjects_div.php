@@ -35,9 +35,32 @@ class tx_tcaobjects_div {
 	 * @var array	lookup table: array('condensedExtKey' => 'full_extKey') for method getExtKeyFromCondensendExtKey
 	 */
 	public static $extKeyLookupTable = array();
+	
+	
+	
+	/**
+	 * Returns the configured sorting field for a table
+	 * 
+	 * @param string $table
+	 * @return string sorting field
+	 */
+	public static function getSortingField($table) {
+		t3lib_div::loadTCA($table);
+		return $GLOBALS['TCA'][$table]['ctrl']['sortby'];
+	}
+	
 
 	
-	public function createRandomString($length=10, $alphaLower=true, $alphaUpper=true, $num=true) {
+	/**
+	 * Create a random string
+	 * 
+	 * @param int $length (optional) length
+	 * @param bool $alphaLower (optional) use lowercase letters
+	 * @param bool $alphaUpper (optional) use uppercase letters
+	 * @param bool $num (optional) use digits
+	 * @return string 
+	 */
+	public static function createRandomString($length=10, $alphaLower=true, $alphaUpper=true, $num=true) {
 		$chars = array();
 		if ($alphaLower) {
 			$chars = array_merge($chars, range('a', 'z'));
@@ -67,6 +90,9 @@ class tx_tcaobjects_div {
 		static $cache = array();
 		
 		if (empty($cache[$className])) {
+			if (!class_exists($className)) {
+				throw new tx_pttools_exception(sprintf('Class "%s" not found!', $className));
+			}
 			$tmp = new $className();
 			$cache[$className] = $tmp->getTable();
 		}
