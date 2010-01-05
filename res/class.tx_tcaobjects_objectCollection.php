@@ -88,8 +88,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	/**
 	 * Load all versions of a record
 	 *
-	 * @param 	array	params, key "
-	 *
+	 * @param array	params, key "uid"
+	 * @return void
 	 */
 	public function load_versions(array $params) {
 		tx_pttools_assert::isValidUid($params['uid'], false, array('message' => 'No valid uid given!'));
@@ -261,6 +261,89 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     
     
     /**
+     * Rewrite uids to keys (needed when useUidAsCollectionId)
+     * 
+     * @return void
+     */
+    protected function writeUidsToKeys() {
+    	$tmpArray = array();
+    	foreach ($this->itemsArr as $item) {
+    		$tmpArray[$item->get_uid()] = $item; 
+    	}
+    	$this->itemsArr = $tmpArray;
+    }
+    
+    
+    
+    /**
+     * Adds an item after a specified position
+     * 
+     * @param tx_tcaobjects_object $itemObj
+     * @param int $index
+     * @return void
+     */
+    public function addItemAfterIndex(tx_tcaobjects_object $itemObj, $index) {
+    	if (!$this->checkItemType($itemObj)) { 
+    		throw new tx_pttools_exceptionInternal('Item to add to collection is of wrong type');
+    	}
+    	array_splice($this->itemsArr, $index+1, 0, array($itemObj));
+    	
+    	// array_splice does not preserve numeric keys in the input array 
+    	if ($this->useUidAsCollectionId) {
+    		$this->writeUidsToKeys();
+    	}
+    }
+    
+    
+    
+    /**
+     * Adds an item before a specified position
+     * 
+     * @param tx_tcaobjects_object $itemObj
+     * @param int $index
+     * @return void
+     */
+	public function addItemBeforeIndex(tx_tcaobjects_object $itemObj, $index) {
+	    if (!$this->checkItemType($itemObj)) { 
+    		throw new tx_pttools_exceptionInternal('Item to add to collection is of wrong type');
+    	}
+    	array_splice($this->itemsArr, $index, 0, array($itemObj));
+    	
+    	// array_splice does not preserve numeric keys in the input array 
+    	if ($this->useUidAsCollectionId) {
+    		$this->writeUidsToKeys();
+    	}	
+    }
+    
+    
+    
+    /**
+     * Adds an item after a specified id
+     * 
+     * @param tx_tcaobjects_object $itemObj
+     * @param int $id 
+     * @return void
+     */
+	public function addItemAfterId(tx_tcaobjects_object $itemObj, $id) {
+    	$this->addItemAfterIndex($itemObj, $this->getIndexForId($id));
+    }
+    
+    
+    
+    /**
+     * Adds an item before a specified id
+     * 
+     * @param tx_tcaobjects_object $itemObj
+     * @param int $id
+     * @return void
+     */
+	public function addItemBeforeId(tx_tcaobjects_object $itemObj, $id) {
+    	$this->addItemBeforeIndexIndex($itemObj, $this->getIndexForId($id));
+    }
+    
+    
+    
+    /**
      * Prepend one or more elements to the beginning of the collection
      * Multiple elements (like in array_unshift) are not supported!
      *
@@ -327,6 +410,20 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	}
     	return array_search($id, array_keys($this->itemsArr));
     }
+    
+    
+    
+    /**
+     * Check if an item exists at the index 
+     * 
+     * @param int index
+     * @return bool true if item exists
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-01-05
+     */
+    public function hasIndex($idx) {
+     	return ($idx >= 0) && ($idx < $this->count());
+    }
 
 
     
@@ -344,9 +441,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 
         // check parameters
         $idx = intval($idx);
-        if (($idx < 0) || ($idx >= $this->count())) {
+        if (!$this->hasIndex($idx)) {
         	return false;
-            // throw new tx_pttools_exceptionInternal('Invalid index');
         }
         $itemArr = array_keys($this->itemsArr);
 
@@ -377,7 +473,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      */
     public function getPreviousItemId($id) {
     	$currentIndex = $this->getIndexForId($id);
-    	return ($currentIndex <= 0) ? false : $this->getItemIdByIndex($currentIndex-1);
+    	return (!$this->hasIndex($currentIndex)) ? false : $this->getItemIdByIndex($currentIndex-1);
     }
     
     
@@ -390,7 +486,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      */
     public function getNextItem($id) {
     	$currentIndex = $this->getIndexForId($id);
-    	return ($currentIndex >= count($this)) ? false : $this->getItemByIndex($currentIndex+1);
+    	return (!$this->hasIndex($currentIndex)) ? false : $this->getItemByIndex($currentIndex+1);
     }
     
     
@@ -403,7 +499,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      */
     public function getPreviousItem($id) {
     	$currentIndex = $this->getIndexForId($id);
-    	return ($currentIndex <= 0) ? false : $this->getItemByIndex($currentIndex-1);
+    	return (!$this->hasIndex($currentIndex)) ? false : $this->getItemByIndex($currentIndex-1);
     }
     
     
