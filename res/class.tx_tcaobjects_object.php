@@ -1299,7 +1299,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         
         $uid = $this[$property];
         
-        tx_pttools_assert::isValidUid($uid, false, array('message' => 'No valid uid found for _obj modifier'));
+        tx_pttools_assert::isValidUid($uid, false, array('message' => 'No valid uid found for _obj modifier (Current object: '.$this->getIdentifier().', Property '.$property.')'));
 
         // TODO: is this step needed (as it will be retrivied in tx_tcaobjects_div::getClassname aswell
         $classname = $this->getClassNameForObjModifier($property, $calledProperty);
