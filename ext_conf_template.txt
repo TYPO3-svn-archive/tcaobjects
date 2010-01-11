@@ -19,7 +19,7 @@ string (the default)        Just a string value
 
 
 
-# cat=basic; type=boolean; label=Custom syslog handler sends mails
+# cat=basic; type=boolean; label=Activate custom syslog handler
 activateCustomSysLogHandler = 0 
 
 # cat=basic; type=int; label=Minimum Severity  
@@ -30,3 +30,6 @@ customSysLogHandlerMailAddress =
 
 # cat=basic; type=string; label=Mail address  
 customSysLogHandlerLogFile = 
+
+# cat=basic; type=string; label=Exclude messages (regex)
+customSysLogHandleExcludeMessages = /^Unable to autoload class "\w+"$/
