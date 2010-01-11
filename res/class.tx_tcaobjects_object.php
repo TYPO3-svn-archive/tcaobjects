@@ -872,10 +872,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 $property = $this->resolveAlias($calledProperty);
 
                 if (!$this->offsetExists($property)) {
-                    throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid! ['.$this->getClassName().'::'.__FUNCTION__.']');
-                    // echo 'Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.$this->getClassName().']<br />'.chr(10);
+                    throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid');
                 } else {
-
                     $this->__set($property, $value);
                 }
             }
@@ -1212,15 +1210,16 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	                    try {
 	                        // create object directly or by its uid (in case of an mm table)
 	                        $tmpObj = $isMM ? new $classname($data[$foreign_mm_field]) : new $classname('', $data); /* @var $tmpObj tx_tcaobjects_object */
-	
-	                        if ($tmpObj->isDeleted() == false) {
-	                            $value->addItem($tmpObj);
-	                        }
+	                        
 	                    } catch (tx_pttools_exception $exceptionObj) {
 	                        $exceptionObj->handleException();
 	                        $uid = $isMM ? $data[$foreign_mm_field] : $data['uid'];
-	                        throw new tx_pttools_exception('Was not able to construct object "'.$classname.':'.$uid.'" (over mm-table: '. ($isMM ? 'yes' : 'no').') and add it to the collection!');
+	                        throw new tx_pttools_exception('Was not able to construct object "'.$classname.':'.$uid.'" (over mm-table: '. ($isMM ? 'yes' : 'no').') and add it to the collection! Original exception message: '.$exceptionObj->getMessage());
 	                    }
+	                    
+	                	if ($tmpObj->isDeleted() == false) {
+							$value->addItem($tmpObj);
+						}
 	                }
 	            }
 

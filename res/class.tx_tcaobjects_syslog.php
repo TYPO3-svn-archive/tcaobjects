@@ -23,6 +23,14 @@ class tx_tcaobjects_syslog {
 			
 				// the "severity" is available only in TYPO3 versions > 4.3 (Or patch add this to your sources manually)
 				if ((!isset($params['severity']) || $params['severity'] >= $minSeverity)) {
+					
+					
+					$pattern = $conf['customSysLogHandleExcludeMessages'];
+					if (!empty($pattern)) {
+						if (preg_match($pattern, $params['msg'])) {
+							return;
+						}
+					}
 	
 					if ((strpos($params['msg'], 'Possible abuse of t3lib_formmail: temporary file') === false) &&
 					  	(strpos($params['msg'], '$TSFE->set_no_cache() was triggered by') === false) &&
@@ -43,7 +51,7 @@ class tx_tcaobjects_syslog {
 								$params['FE_User'] = $GLOBALS['TSFE']->fe_user->user;
 								$params['FE_User']['password'] = '********';
 								foreach ($params['FE_User'] as &$value) {
-									$value = t3lib_div::fixed_lgd($value, 50);
+									$value = t3lib_div::fixed_lgd_cs($value, 50);
 								}
 							} else {
 								$params['FE_User'] = 'No user logged in!';							
@@ -52,7 +60,7 @@ class tx_tcaobjects_syslog {
 								$params['BE_User'] = $GLOBALS['BE_USER']->user;
 								$params['BE_User']['password'] = '********';
 								foreach ($params['BE_User'] as &$value) {
-									$value = t3lib_div::fixed_lgd($value, 50);
+									$value = t3lib_div::fixed_lgd_cs($value, 50);
 								}
 							} else {
 								$params['BE_User'] = 'No user logged in!';
