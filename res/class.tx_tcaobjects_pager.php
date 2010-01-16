@@ -324,7 +324,7 @@ class tx_tcaobjects_pager {
         
         // This can be handled by typolink.addQueryString, too 
 		foreach ($this->carryAlongParameter as $parameter) {
-			$this->pagerTypoLinkConf['additionalParams'] .= '&'.$parameter.'='.t3lib_div::GPvar($parameter);
+			$this->pagerTypoLinkConf['additionalParams'] .= '&'.$parameter.'='.t3lib_div::_GP($parameter);
 		}
         
         if ($this->amountPages > 1) {
