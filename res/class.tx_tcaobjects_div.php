@@ -37,6 +37,19 @@ class tx_tcaobjects_div {
 	public static $extKeyLookupTable = array();
 	
 	
+	public static function parse_query($url) {
+		$var = parse_url($url, PHP_URL_QUERY);
+		$var = html_entity_decode($var);
+		$var = explode('&', $var);
+		$arr = array();
+
+		foreach($var as $val) {
+			$x = explode('=', $val);
+			$arr[$x[0]] = $x[1];
+   		}
+		unset($val, $x, $var);
+		return $arr;
+	}
 	
 	/**
 	 * Returns the configured sorting field for a table

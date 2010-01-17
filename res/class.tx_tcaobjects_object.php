@@ -1524,12 +1524,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function __get($calledProperty) {
 
+    	// dynamic getter get_<calledProperty>
     	if (in_array($calledProperty, $this->_dynamicProperties)) {
     		$methodName = 'get_'.$calledProperty;
     		if (method_exists($this, $methodName)) {
     			return $this->$methodName();
     		} else {
-    			throw new tx_pttools_exception(sprintf('Metho "%s" for dynamic property "%s" not found!', $methodName, $calledProperty));
+    			throw new tx_pttools_exception(sprintf('Method "%s" for dynamic property "%s" not found!', $methodName, $calledProperty));
     		}
     	}
 
@@ -1572,6 +1573,16 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-03-20
      */
     public function __set($calledProperty, $value) {
+        
+    	// dynamic getter get_<calledProperty>
+    	if (in_array($calledProperty, $this->_dynamicProperties)) {
+    		$methodName = 'set_'.$calledProperty;
+    		if (method_exists($this, $methodName)) {
+    			return $this->$methodName($value);
+    		} else {
+    			throw new tx_pttools_exception(sprintf('Method "%s" for dynamic property "%s" not found!', $methodName, $calledProperty));
+    		}
+    	}
 
     	$this->notStoredChanges = false;
 

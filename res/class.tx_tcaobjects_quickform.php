@@ -1081,7 +1081,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		// process values
 		$submitValues = $this->getSubmitValues(true);
-
+		
 		if (TYPO3_DLOG) t3lib_div::devLog('Raw submit values', 'tcaobjects', 0, $submitValues);
 
 		// use token
@@ -1161,6 +1161,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			}
 
 			if ($this->object->offsetExists($property)) {
+				if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Processing property "%s"', $property), 'tcaobjects', 0);
 				// preprocess values
 
 				// select with maxitems > 1
@@ -1179,6 +1180,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				}
 
 				$this->object[$property] = $value;
+			} else {
+				if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Property "%s" does not exist in object', $property), 'tcaobjects', 0);
 			}
 		}
 	}
