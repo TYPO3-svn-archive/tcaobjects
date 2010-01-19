@@ -405,7 +405,19 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      * @return int index
      */
     public function getIndexForId($id) {
-    	if (!$this->hasItem($id)) {
+    	return $this->getIndexByItemId($id);
+    }
+    
+    
+    
+    /**
+     * Returns the index for a given id
+     * 
+     * @param string id
+     * @return int index
+     */
+    public function getIndexByItemId($id) {
+        if (!$this->hasItem($id)) {
     		throw new tx_pttools_exception(sprintf('Item with id "%s" does not exist.', $id));
     	}
     	return array_search($id, array_keys($this->itemsArr));
@@ -428,9 +440,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 
     
     /**
-     * Get item id from collection by Index
+     * Get item id from collection by index
      *
-     * @param   integer     index (position in array) of Collection Item
+     * @param   integer     index (position in array) of collection item
      * @return  mixed       item that has been requested
      * @remarks index starts with 0 for first element
      * @throws  tx_pttools_exceptionInternal if idx is invalid
