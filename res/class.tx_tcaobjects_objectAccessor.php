@@ -149,7 +149,9 @@ class tx_tcaobjects_objectAccessor {
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
         tx_pttools_assert::isMySQLRessource($res);
-
+        
+        // if (TYPO3_DLOG) t3lib_div::devLog($GLOBALS['TYPO3_DB']->debug_lastBuiltQuery, 'TYPO3_DB', 0);
+        
         $rows = array();
         while (($a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) == true) {
             $rows[] = $a_row;
