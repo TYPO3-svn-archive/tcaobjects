@@ -59,6 +59,7 @@ class tx_tcaobjects_div {
 	 */
 	public static function getSortingField($table) {
 		t3lib_div::loadTCA($table);
+		tx_pttools_assert::isNotEmptyArray($GLOBALS['TCA'][$table], array('message' => sprintf('No TCA found for table "%s"', $table)));
 		return $GLOBALS['TCA'][$table]['ctrl']['sortby'];
 	}
 	
