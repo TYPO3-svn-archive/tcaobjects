@@ -1607,7 +1607,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 
     /**
-     * get_* / set_* for properties
+     * get_* / set_* / find_by_* for properties
      *
      * @param 	string	method name
      * @param 	array	array of paramaters, use index "0" for setting values!
@@ -1659,11 +1659,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             // TODO: what if more than 1 result found? This should/could be a method for a collection
             if (is_array($dataArr[0])) {
                 $this->setDataArray($dataArr[0]);
-                return true;
-            } else {
-            	return false;
-                // throw new tx_pttools_exception('No record found "' . $fieldname . ':' . $parameters[0] . '"');
             }
+            return count($dataArr); // amount of records found
         } else {
             throw new ReflectionException('"'.$methodName.'" is no valid method (Only getters, setters and special methods allowed!)');
         }
