@@ -1642,7 +1642,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                      * Dynamic setter
                      */
                     $this->__set($property, $parameters[0]);
-                    return '';
+                    return null;
                 }
             }
         } elseif (t3lib_div::isFirstPartOfStr($methodName, 'find_by_')) {
@@ -1661,6 +1661,21 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 $this->setDataArray($dataArr[0]);
             }
             return count($dataArr); // amount of records found
+        } elseif (t3lib_div::isFirstPartOfStr($methodName, 'get')) {
+        	$property = substr($methodName, 3);
+        	$property = lcfirst($property);
+			if (!$this->offsetExists($property)) {
+                throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
+            }
+            return $this->__get($property);
+        } elseif (t3lib_div::isFirstPartOfStr($methodName, 'set')) {
+        	$property = substr($methodName, 3);
+        	$property = lcfirst($property);
+			if (!$this->offsetExists($property)) {
+                throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
+            }
+            $this->__set($property,  $parameters[0]);
+            return null;
         } else {
             throw new ReflectionException('"'.$methodName.'" is no valid method (Only getters, setters and special methods allowed!)');
         }
