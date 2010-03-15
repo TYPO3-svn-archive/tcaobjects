@@ -169,9 +169,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 			$this->addItem($object);
 		}
 	}
+	
 
-
-
+	
 	/**
 	 * Returns an array with the value of the property of all items
 	 *
@@ -341,7 +341,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	$this->addItemBeforeIndexIndex($itemObj, $this->getIndexForId($id));
     }
     
-    
+
     
     /**
      * Prepend one or more elements to the beginning of the collection
@@ -706,6 +706,30 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     		$this->addItem($item, $preserveIDs ? $key : 0);
     	}
     }
+    
+	/**
+	 * Creates a new collection with the translations of the items
+	 * 
+	 * @param bool (optional) if true untranslated items will be added to the new collection
+	 * @param int (optional) sysLanguageUid of the target language. If empty the current language will be taken
+	 * @return tx_tcaobjects_objectCollection
+	 */
+	public function translate($addUntranslatedItems = true, $sysLanguageUid=null) {
+		$className = get_class($this);
+		$newCollection = new $className(); /* @var tx_tcaobjects_objectCollection */
+		
+		foreach ($this as $key => $item) { /* @var $item tx_tcaobjects_object */
+			$languageVersion = $item->getLanguageVersion($sysLanguageUid, true);
+			if ($languageVersion !== false) {
+				tx_pttools_assert::isInstanceOf($languageVersion, 'tx_tcaobjects_object');
+				// replace item
+				$newCollection->addItem($languageVersion);	
+			} elseif ($addUntranslatedItems) {
+				$newCollection->addItem($item);
+			}
+		}
+    	return $newCollection;
+	}
 
 
 }
