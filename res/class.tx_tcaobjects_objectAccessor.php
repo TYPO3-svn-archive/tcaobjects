@@ -102,6 +102,20 @@ class tx_tcaobjects_objectAccessor {
     }
 
     
+    
+    /**
+     * Select translation record
+     * 
+     * @param string $table
+     * @param string $transOrigPointerField
+     * @param int $origUid
+     * @param string $languageField
+     * @param int $sysLanguageUid
+     * @param string $select (optional)
+     * @return array row
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-03-16
+     */
     public function selectTranslation($table, $transOrigPointerField, $origUid, $languageField, $sysLanguageUid, $select='*') {
     	// query preparation
         $from   = $table;
