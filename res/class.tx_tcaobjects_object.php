@@ -271,6 +271,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function storeSelf($updateSubitems = false, $pidForMmRecords = 0) {
     	
+    	if ($this->isTranslationOverlay()) {
+    		throw new tx_pttools_exception('Saving translation overlay is not implemented yet!');
+    	}
+    	
     	tx_pttools_assert::isTrue($this->checkWriteAccess(), array('message' => sprintf('No write access on "%s"', $this->getIdentifier())));
     	
         // TODO: save aggregated objects and dependencies
@@ -495,6 +499,17 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     }
     
     /**
+     * Check if this is a translation overlay
+     * 
+     * @return bool
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-03-16
+     */
+    public function isTranslationOverlay() {
+    	return $this->supportsTranslations() && ($this->getLanguageUid() != 0);
+    }
+    
+    /**
      * Get language field
      * 
      * @return string language field name
@@ -546,6 +561,25 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     
     
     /**
+     * Get the uid of the default language object
+     * 
+     * @return int uid
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-03-16
+     */
+    public function getDefaultLanguageUid() {
+    	if (!$this->isTranslationOverlay()) {
+    		$defaultLanguageUid = $this->__get('uid');
+    	} else {
+    		// we're in a translation record
+    		$defaultLanguageUid = $this->__get($this->getTransOrigPointerField());
+    	}
+    	return $defaultLanguageUid;
+    }
+    
+    
+    
+    /**
      * Get language version
      * If no translation is found for the given uid the method returns $this unless the second parameter is set to true
      * (then false will be returnes)
@@ -569,37 +603,43 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	
     	$sysLanguageUid = intval($sysLanguageUid);
     	$className = $this->getClassName(); 
-    	
     	if (is_null($this->languageObjects[$sysLanguageUid])) {
 	    	if ($sysLanguageUid == $this->getLanguageUid()) {
 	    		$this->languageObjects[$sysLanguageUid] = $this;
 	    	} elseif ($sysLanguageUid == 0) {
-	    		$this->languageObjects[$sysLanguageUid] = new $className($this[$this->getTransOrigPointerField()]);
+	    		$this->languageObjects[$sysLanguageUid] = new $className($this->getDefaultLanguageUid());
 	    		
 	    		// set reference to current object for performance reasons
 	    		$this->languageObjects[$sysLanguageUid]->setLanguageVersion($this->getLanguageUid(), $this);
 	    	} else {
-		    	$defaultLanguageObject = $this->getDefaultLanguageObject();
-		    	$origDataArr = $defaultLanguageObject->getDataArray();
 		    	
 		    	// load data
 		    	$dataArr = tx_tcaobjects_objectAccessor::selectTranslation(
 		    		$this->_table, 
 		    		$this->getTransOrigPointerField(), 
-		    		$defaultLanguageObject['uid'], 
+		    		$this->getDefaultLanguageUid(),
 		    		$this->getLanguageField(), 
 		    		$sysLanguageUid
 		    	);
 		    	
 		    	if ($dataArr === false) {
 		    		// no translation record found
-		    		$this->languageObjects[$sysLanguageUid] = $returnFalseIfNoTranslationFound ? false : $this;
 		    		$this->languageObjects[$sysLanguageUid] = false;
 		    	} else {
 			    	// merge data
+			    	$defaultLanguageObject = $this->getDefaultLanguageObject();
+			    	$origDataArr = $defaultLanguageObject->getDataArray();
+			    	// var_dump($origDataArr);
 			    	$translatedData = array();
 			    	foreach ($origDataArr as $field => $value) {
-			    		$translatedData[$field] = $this->excludedFromTranslation($field) ? $value : $dataArr[$field];
+			    		if ($this->excludedFromTranslation($field) /* || in_array($field, array('uid')) */ ) {
+			    			// echo $field . ': '. $value . '<br />';
+			    			// Original field value
+			    			$translatedData[$field] = $value;
+			    		} else {
+			    			// translated field value
+			    			$translatedData[$field] = $dataArr[$field];
+			    		}
 			    	}	
 			    	$this->languageObjects[$sysLanguageUid] = new $className('', $translatedData);
 			    	
@@ -931,13 +971,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function setDataArray(array $data) {
-
         foreach ($data as $calledProperty => $value) {
-
             if (substr($calledProperty, 0, 4) != 'zzz_') { // ignore old fields
-
                 $property = $this->resolveAlias($calledProperty);
-
                 if (!$this->offsetExists($property)) {
                     throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid');
                 } else {
@@ -1004,7 +1040,6 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since	2008-03-20
      */
     protected function getSpecial($property) {
-
         $propertyParts = explode('_', $property);
         $special = end($propertyParts);
         if (in_array($special, $this->_modifierList)) {
@@ -1056,13 +1091,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function getSpecialField($specialField) {
-
         tx_pttools_assert::isInArray(
             $specialField,
             t3lib_div::trimExplode(',', self::potentialSpecialFields),
             array('message' => '"'.$specialField.'" is an invalid field name')
         );
-
         $fieldName = $GLOBALS['TCA'][$this->_table]['ctrl'][$specialField];
         return (!empty($fieldName) ? $fieldName : false );
     }
@@ -1098,6 +1131,15 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         return $this->_properties[$property]['config'][$config];
     }
     
+    
+    
+    /**
+     * Check if this property is excluded from translation
+     * 
+     * @param string $property
+     * @return bool
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     */
     public function excludedFromTranslation($property) {
     	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
     	return ($this->_properties[$property]['l10n_mode'] == 'exclude');
@@ -1599,6 +1641,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     		} else {
     			throw new tx_pttools_exception(sprintf('Method "%s" for dynamic property "%s" not found!', $methodName, $calledProperty));
     		}
+    	}
+    	
+    	// get default language uid
+    	if ($calledProperty == 'dluid') {
+    		return $this->getDefaultLanguageUid();
     	}
     	
     	// get translation
