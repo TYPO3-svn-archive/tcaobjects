@@ -129,7 +129,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-06-01
 	 */
-	protected function getTable() {
+	public function getTable() {
 		if ($this->table == '') {
 			$this->table = tx_tcaobjects_div::getTableNameForClassName($this->getClassName());
 		}
@@ -678,6 +678,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	}
     }
     
+    
+    
     /**
      * Generic field sorter used as callback function for usort in the sort_ "magic method"
      * 
@@ -694,6 +696,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	}
     	return $res;
     }
+
+    
     
     /**
      * Add the elements of a collection to this one
@@ -707,6 +711,21 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	}
     }
     
+    
+    
+    /**
+     * Check if items of this collection can be translated
+     * 
+     * @return bool
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-03-17
+     */
+    public function supportsTranslation() {
+    	return tx_tcaobjects_div::supportsTranslations($this->getTable());
+    }
+    
+    
+    
 	/**
 	 * Creates a new collection with the translations of the items
 	 * 
@@ -715,6 +734,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return tx_tcaobjects_objectCollection
 	 */
 	public function translate($addUntranslatedItems = true, $sysLanguageUid=null) {
+		tx_pttools_assert::isTrue($this->supportsTranslation(), array('message' => 'Translation is not supported for items of this collection'));
+		
 		$className = get_class($this);
 		$newCollection = new $className(); /* @var tx_tcaobjects_objectCollection */
 		

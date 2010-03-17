@@ -37,6 +37,27 @@ class tx_tcaobjects_div {
 	public static $extKeyLookupTable = array();
 	
 	
+	
+	/**
+	 * Check if a table can be translated (by checking if the languageField is set
+	 * 
+	 * @param string $table table name
+	 * @return bool true if table can be translated
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since 2010-03-17
+	 */
+	public static function supportsTranslations($table) {
+		return ($GLOBALS['TCA'][$table]['ctrl']['languageField'] == true);
+	}
+	
+	
+	
+	/**
+	 * Parse query
+	 * 
+	 * @param $url
+	 * @return array
+	 */
 	public static function parse_query($url) {
 		$var = parse_url($url, PHP_URL_QUERY);
 		$var = html_entity_decode($var);

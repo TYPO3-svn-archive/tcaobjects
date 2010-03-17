@@ -494,8 +494,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since 2010-03-15
      */
     public function supportsTranslations() {
-    	$supportsTranslation = $GLOBALS['TCA'][$this->_table]['ctrl']['languageField'];
-    	return ($supportsTranslation == true); 
+    	return tx_tcaobjects_div::supportsTranslations($this->_table); 
     }
     
     /**
@@ -1273,6 +1272,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 'calledProperty' 	=> $calledProperty
             )
         );
+        
+        // caching!
+        static $cache_objColl = array();
+
+        if (isset($cache_objColl[$property])) {
+        	return $cache_objColl[$property];
+        }
 
 
         if ($type == 'inline') {
@@ -1288,6 +1294,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             // Fallback if collection class does not exist
             $propertyCollectionName = class_exists($propertyCollectionName) ? $propertyCollectionName : 'tx_tcaobjects_objectCollection';
 
+            // create object collection
             $value = new $propertyCollectionName(); /* @var $value tx_tcaobjects_objectCollection */
 
             $foreign_table = $this->getConfig($property, 'foreign_table');
@@ -1333,9 +1340,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	            }
 
             } else {
-            	// If no foreign_field is defined, the field in the original table conatains a comma separeted list of uids in the foreign_table. See TYPO3 Core Apis. This may be implemented here...
+            	// If no foreign_field is defined, the field in the original table contains a comma separated list of uids in the foreign_table. 
+            	// See TYPO3 Core Apis. This may be implemented here...
 
-            	if ($this->$property) {
+            	if ($this->__get($property)) {
 	            	$uids = t3lib_div::trimExplode(',', $this->$property);
 	            	
 	            	foreach ($uids as $uid) {
@@ -1365,6 +1373,14 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         }
 
         tx_pttools_assert::isInstanceOf($value, 'tx_tcaobjects_objectCollection');
+        
+        // replace collection by translated collection if translation is supported
+        if ($value->supportsTranslation()) {
+        	$value = $value->translate(true, $this->getLanguageUid());
+        }
+        
+        // store in cache
+        $cache_objColl[$property] = $value;
 
         return $value;
     }
