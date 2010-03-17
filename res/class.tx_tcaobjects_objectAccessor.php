@@ -80,10 +80,13 @@ class tx_tcaobjects_objectAccessor {
         $from    = $foreign_table;
         $where   = $foreign_field .' = '.intval($parentUid);
         $where .= ' '.tx_pttools_div::enableFields($from);
+        if (($languageField = tx_tcaobjects_div::getLanguageField($foreign_table)) == true) {
+        	$where .= ' AND ' . $foreign_table . '.' . $languageField . ' in (0,-1)';
+        }
         if (!empty($additionalWhere)) {
         	$where .= ' AND '.$additionalWhere;
         }
-
+        
         $groupBy = '';
         $orderBy = $foreign_sortby;
         $limit   = '';

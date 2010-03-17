@@ -37,9 +37,21 @@ class tx_tcaobjects_div {
 	public static $extKeyLookupTable = array();
 	
 	
+	/**
+	 * Get language field for table
+	 * 
+	 * @param string $table
+	 * @return string|false
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since 2010-03-17
+	 */
+	public static function getLanguageField($table) {
+		return isset($GLOBALS['TCA'][$table]['ctrl']['languageField']) ? $GLOBALS['TCA'][$table]['ctrl']['languageField'] : false;
+	}
+	
 	
 	/**
-	 * Check if a table can be translated (by checking if the languageField is set
+	 * Check if a table can be translated (by checking if the languageField is set)
 	 * 
 	 * @param string $table table name
 	 * @return bool true if table can be translated
@@ -47,7 +59,7 @@ class tx_tcaobjects_div {
 	 * @since 2010-03-17
 	 */
 	public static function supportsTranslations($table) {
-		return ($GLOBALS['TCA'][$table]['ctrl']['languageField'] == true);
+		return (self::getLanguageField($table) !== false);
 	}
 	
 	

@@ -1273,15 +1273,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             )
         );
         
-        // caching!
-        static $cache_objColl = array();
-
-        if (isset($cache_objColl[$property])) {
-        	return $cache_objColl[$property];
-        }
-
-
         if ($type == 'inline') {
+        	
             /*******************************************************************
              * Case 1: TCA type: "inline"
              ******************************************************************/
@@ -1303,6 +1296,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             $foreign_field = $this->getConfig($property, 'foreign_field');
             
             if (!empty($foreign_field)) {
+            	
 	            // array of records of the foreign table (mm records with uids or final data)
 	            $dataArr = tx_tcaobjects_objectAccessor::selectByParentUid(
 	                $this->uid,
@@ -1343,8 +1337,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             	// If no foreign_field is defined, the field in the original table contains a comma separated list of uids in the foreign_table. 
             	// See TYPO3 Core Apis. This may be implemented here...
 
-            	if ($this->__get($property)) {
-	            	$uids = t3lib_div::trimExplode(',', $this->$property);
+            	if ($tmpPropertyValue = $this->__get($property)) {
+	            	$uids = t3lib_div::trimExplode(',', $tmpPropertyValue);
 	            	
 	            	foreach ($uids as $uid) {
 	            		try {
@@ -1373,15 +1367,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         }
 
         tx_pttools_assert::isInstanceOf($value, 'tx_tcaobjects_objectCollection');
-        
         // replace collection by translated collection if translation is supported
         if ($value->supportsTranslation()) {
         	$value = $value->translate(true, $this->getLanguageUid());
         }
         
-        // store in cache
-        $cache_objColl[$property] = $value;
-
         return $value;
     }
 
