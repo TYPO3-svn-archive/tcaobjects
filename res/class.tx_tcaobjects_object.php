@@ -1262,7 +1262,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $internal_type 	= $this->getConfig($property, 'internal_type');
 
         tx_pttools_assert::isTrue(
-            ($type == 'inline') || (($type = 'group') && ($internal_type == 'db')),
+            ($type == 'inline') || (($type == 'group') && ($internal_type == 'db')),
             array(
                 'message' 			=> 'Invalid modifier "objColl" for called property!',
                 'modifier'			=> 'objColl',
