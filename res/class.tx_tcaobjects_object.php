@@ -114,6 +114,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 * @var array array of tx_tcaobjects_object 
 	 */
 	protected $languageObjects = array();
+	
+	/**
+	 * @var array methods of this object that should be asked for resolving a __call request
+	 */
+	protected $callMethods = array('call_get_', 'call_set_', 'call_get', 'call_set', 'call_find_by_');
 
 	/**
 	 * @var	string	comma separated list of standard field names
@@ -1248,6 +1253,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * Valid for TCA types
      * - "inline"
      * - "group" with internal_type "db"
+     * - "select" with foreign_table
      *
      * @param 	string		property name
      * @param 	string		property name that was originally called
@@ -1260,9 +1266,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         $type 			= $this->getConfig($property, 'type');
         $internal_type 	= $this->getConfig($property, 'internal_type');
+        $foreign_table	= $this->getConfig($property, 'foreign_table');
 
         tx_pttools_assert::isTrue(
-            ($type == 'inline') || (($type == 'group') && ($internal_type == 'db')),
+            ($type == 'inline') || (($type == 'group') && ($internal_type == 'db') || (($type == 'select') && ($foreign_table))),
             array(
                 'message' 			=> 'Invalid modifier "objColl" for called property!',
                 'modifier'			=> 'objColl',
@@ -1273,24 +1280,26 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             )
         );
         
+        $classname = tx_tcaobjects_div::getForeignClassName($this->_table, $property);
+
+		// create object collection
+        $propertyCollectionName = $classname . 'Collection';
+
+        // Fallback if collection class does not exist
+        $propertyCollectionName = class_exists($propertyCollectionName) ? $propertyCollectionName : 'tx_tcaobjects_objectCollection';
+
+        // create object collection
+        $value = new $propertyCollectionName(); /* @var $value tx_tcaobjects_objectCollection */
+        
+        
+        
+        
         if ($type == 'inline') {
         	
             /*******************************************************************
              * Case 1: TCA type: "inline"
              ******************************************************************/
         	
-        	$classname = tx_tcaobjects_div::getForeignClassName($this->_table, $property);
-
-            // create object collection
-            $propertyCollectionName = $classname . 'Collection';
-
-            // Fallback if collection class does not exist
-            $propertyCollectionName = class_exists($propertyCollectionName) ? $propertyCollectionName : 'tx_tcaobjects_objectCollection';
-
-            // create object collection
-            $value = new $propertyCollectionName(); /* @var $value tx_tcaobjects_objectCollection */
-
-            $foreign_table = $this->getConfig($property, 'foreign_table');
             tx_pttools_assert::isNotEmpty($foreign_table, array('message' => 'No "foreign_table" defined for property "'.$property.'" in table "'.$this->_table.'"!'));
 
             $foreign_field = $this->getConfig($property, 'foreign_field');
@@ -1337,9 +1346,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             	// If no foreign_field is defined, the field in the original table contains a comma separated list of uids in the foreign_table. 
             	// See TYPO3 Core Apis. This may be implemented here...
 
-            	if ($tmpPropertyValue = $this->__get($property)) {
+            	if (($tmpPropertyValue = $this->__get($property)) == true) {
 	            	$uids = t3lib_div::trimExplode(',', $tmpPropertyValue);
-	            	
+	            	tx_pttools_assert::isValidUidArray($uids);
 	            	foreach ($uids as $uid) {
 	            		try {
 	                        // create object
@@ -1362,6 +1371,27 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
              * Case 2: TCA type "group"
              ******************************************************************/
             throw new tx_pttools_exception('Not implemented yet :)');
+        } elseif (($type == 'select') && ($foreign_table)) {
+        	/*******************************************************************
+             * Case 3: TCA type "select"
+             ******************************************************************/
+        	
+        	$tmpPropertyValue = $this->__get($property);
+        	$uids = t3lib_div::trimExplode(',', $tmpPropertyValue);
+        	tx_pttools_assert::isValidUidArray($uids);
+            foreach ($uids as $uid) {
+            	try {
+                    // create object
+                    $tmpObj = new $classname($uid); /* @var $tmpObj tx_tcaobjects_object */
+
+                    if ($tmpObj->isDeleted() == false) {
+                        $value->addItem($tmpObj);
+                    }
+                } catch (tx_pttools_exception $exceptionObj) {
+                    $exceptionObj->handleException();
+                    throw new tx_pttools_exception('Was not able to construct object "'.$classname.':'.$uid.'" and add it to the collection!');
+                }
+            }
         } else {
         	throw new tx_pttools_exception('Not supported!');
         }
@@ -1740,6 +1770,17 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function __call($methodName, $parameters) {
+    	$value = null;
+    	foreach ($this->callMethods as $callMethod) {
+			if ($this->$callMethod($methodName, $parameters, $value)) {
+				return $value;    		
+			}
+    	}
+    	return $value;
+    }
+    
+    
+    public function ___call($methodName, $parameters) {
 
         $methodParts = explode('_', $methodName);
 
@@ -1805,6 +1846,66 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             throw new ReflectionException('"'.$methodName.'" is no valid method (Only getters, setters and special methods allowed!)');
         }
         return '';
+    }
+    
+    protected function call_get_($methodName, $parameters, &$value) {
+    	if (t3lib_div::isFirstPartOfStr($methodName, 'get_')) {
+    		$property = substr($methodName, 4);
+    		$property = $this->resolveAlias($property);
+    		$value = $this->__get($property); 
+    		return true;
+    	}
+    	return false;
+    }
+    
+    protected function call_set_($methodName, $parameters, &$value) {
+    	if (t3lib_div::isFirstPartOfStr($methodName, 'set_')) {
+    		$property = substr($methodName, 4);
+    		$property = $this->resolveAlias($property);
+    		$value = $this->__set($property, $parameters[0]); 
+    		return true;
+    	}
+    	return false;
+    }
+    
+    protected function call_get($methodName, $parameters, &$value) {
+    	if (t3lib_div::isFirstPartOfStr($methodName, 'get') && (substr($methodName, 3, 1) != '_')) {
+    		$property = substr($methodName, 3);
+        	$property = lcfirst($property);
+        	$property = $this->resolveAlias($property);
+            $value = $this->__get($property);
+            return true;
+    	}
+    	return false;
+    }
+    
+    protected function call_set($methodName, $parameters, &$value) {
+    	if (t3lib_div::isFirstPartOfStr($methodName, 'set') && (substr($methodName, 3, 1) != '_')) {
+    		$property = substr($methodName, 3);
+    		$property = lcfirst($property);
+    		$property = $this->resolveAlias($property);
+    		$value = $this->__set($property, $parameters[0]); 
+    		return true;
+    	}
+    	return false;
+    }
+    
+    protected function call_find_by_($methodName, $parameters, &$value) {
+    	if (t3lib_div::isFirstPartOfStr($methodName, 'find_by_')) {
+    		$fieldname = substr($methodName, 8);
+            if (!$this->offsetExists($fieldname)) {
+                throw new tx_pttools_exception('Field "'.$fieldname.'" (called method was: "'.$methodName.'") does not exist!');
+            }
+            $where = $fieldname.'='.$GLOBALS['TYPO3_DB']->fullQuoteStr($parameters[0], $this->_table);
+            $dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->_table, $where, 1);
+            // TODO: what if more than 1 result found? This should/could be a method for a collection
+            if (is_array($dataArr[0])) {
+                $this->setDataArray($dataArr[0]);
+            }
+            $value = count($dataArr); // amount of records found
+            return true;
+    	}
+    	return false;
     }
 
 
