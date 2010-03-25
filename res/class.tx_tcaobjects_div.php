@@ -744,6 +744,16 @@ class tx_tcaobjects_div {
 	}
 
 
+	
+	
+	/**
+	 * Get the foreign class name
+	 * 
+	 * @param string $table
+	 * @param string $property
+	 * @return string classname
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
 	public static function getForeignClassName($table, $property) {
 
 		tx_pttools_assert::isNotEmptyString($table, array('message' => 'Parameter "table" empty!'));
