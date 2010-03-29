@@ -64,7 +64,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 			if (method_exists($this, $methodName)) {
 				$this->$methodName($params);
 			} else {
-				throw new tx_pttools_exception('Trying to load "'.$load.'", but method "'.$methodName.'" does not exist!');
+				throw new tx_pttools_exception(sprintf('Trying to load "%s", but method "%s" does not exist!', $load, $methodName));
 			}
 		}
 	}
@@ -97,6 +97,35 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		$where = '(t3ver_oid = ' . $params['uid'] . ' OR uid = ' . $params['uid'] . ')';
 		$limit = '';
 		$order = 't3ver_id DESC';
+		$ignoreEnableFields = false;
+
+		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
+		$this->setDataArray($dataArr);
+	}
+
+
+
+	/**
+	 * Load all translations of a record
+	 *
+	 * @param array	params, key "uid"
+	 * @return void
+	 */
+	public function load_translations(array $params) {
+		tx_pttools_assert::isValidUid($params['uid'], false, array('message' => 'No valid uid given!'));
+		
+		$table = $this->getTable();
+		$languageField = tx_tcaobjects_div::getLanguageField($table);
+		tx_pttools_assert::isNotEmptyString($languageField, array('message' => 'No language field found'));
+		$transOrigPointer = tx_tcaobjects_div::getTransOrigPointerField($table);
+		tx_pttools_assert::isNotEmptyString($transOrigPointer, array('message' => 'No transOrigPointer field found'));
+		
+		$languageField = $GLOBALS['TYPO3_DB']->quoteStr($languageField, $table);
+		$transOrigPointer = $GLOBALS['TYPO3_DB']->quoteStr($transOrigPointer, $table);
+		
+		$where = '('.$transOrigPointer.' = ' . $params['uid'] . ' OR uid = ' . $params['uid'] . ')';
+		$limit = '';
+		$order = $languageField. ' ASC';
 		$ignoreEnableFields = false;
 
 		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);

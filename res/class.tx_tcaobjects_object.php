@@ -99,6 +99,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 * @var tx_tcaobjects_objectCollection	object versions are stored here if versioning is enabled for this table
 	 */
 	protected $versions;
+	
+	/**
+	 * @var tx_tcaobjects_objectCollection	translations  are stored here if translation is enabled for this table
+	 */
+	protected $translations;
 
 	/**
 	 * @var bool	if true, there are changes that aren't stored to database yet
@@ -514,6 +519,31 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     }
     
     /**
+     * Returns a collection of all translations
+     * 
+     * @param void
+     * @return tx_tcaobjects_objectCollection
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-03-26
+     */
+    public function getTranslations() {
+    	if (empty($this->translations)) {
+	    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+
+	        $collectionClassname = $this->getCollectionClassName();
+	        
+	        $this->translations = new $collectionClassname('translations', array('uid' => $this->getDefaultLanguageUid()));
+	        // find current object and select it
+	        foreach ($this->translations as $key => $translation) { /* @var $translation tx_tcaobject_object */
+	        	if ($translation->get_uid() == $this->get_uid()) {
+	        		$this->translations->set_selectedId($key);
+	        	}
+	        }
+    	}
+        return $this->translations;
+    }
+    
+    /**
      * Get language field
      * 
      * @return string language field name
@@ -522,7 +552,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function getLanguageField() {
     	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
-    	return $GLOBALS['TCA'][$this->_table]['ctrl']['languageField'];
+    	return tx_tcaobjects_div::getLanguageField($this->_table);
     }
     
     /**
@@ -546,7 +576,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function getTransOrigPointerField() {
     	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
-    	return $GLOBALS['TCA'][$this->_table]['ctrl']['transOrigPointerField'];
+    	return tx_tcaobjects_div::getTransOrigPointerField($this->_table);
     }
     
     
@@ -738,11 +768,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	if (empty($this->versions)) {
 	        tx_pttools_assert::isTrue($this->isVersionable(), array('message' => 'Versioning is not enabled for this class'));
 
-	        $collectionClassname = $this->getClassName() . 'Collection';
+	        $collectionClassname = $this->getCollectionClassName();
 	        $this->versions = new $collectionClassname('versions', array('uid' => $this->getOid()));
 	        // find current object and select it
-	        foreach ($this->versions as $key => $version) {
-	        	if ($key == $this->get_uid()) {
+	        foreach ($this->versions as $key => $version) { /* @var $translation tx_tcaobject_object */
+	        	if ($version->get_uid() == $this->get_uid()) {
 	        		$this->versions->set_selectedId($key);
 	        	}
 	        }
@@ -901,8 +931,19 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 
 
+    /**
+     * Get collection classname
+     * 
+     * @return string collection classname
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-03-26
+     */
+	public function getCollectionClassName() {
+		return tx_tcaobjects_div::getCollectionClassName($this->getClassName());
+	}
 
-
+	
+	
     /**
      * Deletes itself from the database
      *
@@ -1095,9 +1136,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function getSpecialField($specialField) {
-        tx_pttools_assert::isInArray(
+        tx_pttools_assert::isInList(
             $specialField,
-            t3lib_div::trimExplode(',', self::potentialSpecialFields),
+            self::potentialSpecialFields,
             array('message' => '"'.$specialField.'" is an invalid field name')
         );
         $fieldName = $GLOBALS['TCA'][$this->_table]['ctrl'][$specialField];
@@ -1282,11 +1323,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         
         $classname = tx_tcaobjects_div::getForeignClassName($this->_table, $property);
 
-		// create object collection
-        $propertyCollectionName = $classname . 'Collection';
-
-        // Fallback if collection class does not exist
-        $propertyCollectionName = class_exists($propertyCollectionName) ? $propertyCollectionName : 'tx_tcaobjects_objectCollection';
+        $propertyCollectionName = tx_tcaobjects_div::getCollectionClassName($classname);
 
         // create object collection
         $value = new $propertyCollectionName(); /* @var $value tx_tcaobjects_objectCollection */

@@ -35,6 +35,19 @@ class tx_tcaobjects_div {
 	 * @var array	lookup table: array('condensedExtKey' => 'full_extKey') for method getExtKeyFromCondensendExtKey
 	 */
 	public static $extKeyLookupTable = array();
+
+	
+	/**
+	 * Get TCA ctrl setting
+	 * 
+	 * @param string $table
+	 * @param string $key
+	 * @return mixed value
+	 */
+	public static function getCtrl($table, $key) {
+		return $GLOBALS['TCA'][$table]['ctrl'][$key];
+	}
+	
 	
 	
 	/**
@@ -48,6 +61,19 @@ class tx_tcaobjects_div {
 	public static function getLanguageField($table) {
 		return isset($GLOBALS['TCA'][$table]['ctrl']['languageField']) ? $GLOBALS['TCA'][$table]['ctrl']['languageField'] : false;
 	}
+
+	/**
+	 * Get transOrigPointer field
+	 * 
+	 * @param string $table
+	 * @return string fieldname
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since 2010-03-26
+	 */
+    public function getTransOrigPointerField($table) {
+    	return $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'];
+    }
+	
 	
 	
 	/**
@@ -248,6 +274,28 @@ class tx_tcaobjects_div {
 			throw new tx_pttools_exception('Target class "'.$classname.'" for property "'.$callingproperty.'" in table "'.$callingtable.'" does not exist!');
 		}
 		return $classname;
+	}
+	
+	
+	
+	/**
+	 * Returns the classname of the object collection for a given class
+	 * 
+	 * @param string $className
+	 * @return string collection class name
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since 2010-03-26
+	 */
+	public static function getCollectionClassName($className) {
+		tx_pttools_assert::isNotEmptyString($className);
+		
+		// create object collection
+        $collectionClassName = $className . 'Collection';
+
+        // Fallback if collection class does not exist
+        $collectionClassName = class_exists($collectionClassName) ? $collectionClassName : 'tx_tcaobjects_objectCollection';
+		
+		return $collectionClassName;
 	}
 
 
