@@ -25,14 +25,10 @@
 /**
  * Class "tx_tcaobjects_fe_users"
  * 
- * $Id: class.tx_tcaobjects_fe_users.php,v 1.3 2008/05/12 13:59:36 ry44 Exp $
- * 
  * @author	Fabrizio Branca <mail@fabrizio-branca.de>
  * @since	2008-03-21
  */
 class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
-
-	// TODO: export to tcaobjects
 
     protected $_table = 'fe_users';
     
