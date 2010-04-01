@@ -1526,7 +1526,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         tx_pttools_assert::isInstanceOf($value, 'tx_tcaobjects_objectCollection');
         // replace collection by translated collection if translation is supported
-        if ($value->supportsTranslation()) {
+        if ($value->supportsTranslation() && $this->supportsTranslations()) {
         	$value = $value->translate(true, $this->getLanguageUid());
         }
         
@@ -2024,6 +2024,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     protected function getValidationErrorsForProperty($property, $value) {
     	$validationErrors = array();
+    	/*
     	$eval = $this->getEval($property);
     	foreach ($eval as $ruleString) {
     		list($rule, $param1, $param2) = t3lib_div::trimExplode(':', $ruleString);
@@ -2035,7 +2036,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     			}
     		}
     	}
-    	
+    	*/
     	return $validationErrors;
     }
     
