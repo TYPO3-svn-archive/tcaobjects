@@ -37,6 +37,30 @@ class tx_tcaobjects_div {
 	public static $extKeyLookupTable = array();
 
 	
+	
+	/**
+	 * Get file extension from filename
+	 * 
+	 * @param string $fileName
+	 * @return string file extension
+	 */
+	public static function getFileExtension($fileName) {
+		$info = pathinfo($fileName);
+		return $info['extension'];
+	}
+	
+	
+	/**
+	 * Create save file name (without check if this file already exists
+	 * 
+	 * @param string original filename
+	 * @return string save filename
+	 */
+	public static function createSaveFileName($name) {
+		return $GLOBALS['EXEC_TIME'] . '_' . self::createRandomString(4) . '.' . strtolower(self::getFileExtension($name));
+	}
+	
+	
 	/**
 	 * Get TCA ctrl setting
 	 * 
@@ -184,9 +208,6 @@ class tx_tcaobjects_div {
 	 * @return mixed property value
 	 */
 	public static function extractProperty($object, $propertyName) {
-		
-		// t3lib_div::devLog('Property Name ' . $propertyName, 'tcaobjects');
-		
 		$propertyParts = t3lib_div::trimExplode('|', $propertyName);
 
 		$tmp = $object;
@@ -195,7 +216,6 @@ class tx_tcaobjects_div {
 				throw new tx_pttools_exception('Item must be an array or implement the ArrayAccess interface!');
 			}
 			$tmp = $tmp[$part];
-			
 		}
 		return $tmp;
 	}

@@ -20,7 +20,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	protected $table = '';
 	
 	/**
-	 * @var string unique property (will be checked on add)
+	 * @var string unique property (will be checked on add), use csl for checking multiple properties
 	 */
 	protected $uniqueProperty = null;
 	
@@ -268,15 +268,17 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	
     	if (!is_null($this->uniqueProperty)) {
     		
-    		if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Checking for unique property "%s"', $this->uniqueProperty), 'tcaobjects');
-    		
-			$property = tx_tcaobjects_div::extractProperty($itemObj, $this->uniqueProperty);
-			$existingProperties = $this->extractProperty($this->uniqueProperty);
-    		
-    		if (TYPO3_DLOG) t3lib_div::devLog('Unique check', 'tcaobjects', 1, array('property' => $property, 'existingProperties' => $existingProperties));
-    		
-    		if (in_array($property, $existingProperties)) {
-    			throw new tx_pttools_exception(sprintf('Property "%s" already in exists on collection!', $this->uniqueProperty));
+    		foreach (t3lib_div::trimExplode(',', $this->uniqueProperty) as $uniqueProperty) {
+	    		if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Checking for unique property "%s"', $uniqueProperty), 'tcaobjects');
+	    		
+				$property = tx_tcaobjects_div::extractProperty($itemObj, $uniqueProperty);
+				$existingProperties = $this->extractProperty($uniqueProperty);
+	    		
+	    		if (TYPO3_DLOG) t3lib_div::devLog('Unique check', 'tcaobjects', 1, array('property' => $property, 'existingProperties' => $existingProperties));
+	    		
+	    		if (in_array($property, $existingProperties)) {
+	    			throw new tx_pttools_exception(sprintf('Property value for property "%s" already in exists on collection!', $uniqueProperty));
+	    		}
     		}
     	}
     	
@@ -706,6 +708,35 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	        return $this->getItemById($offset);
     	}
     }
+
+    /**
+     * Magic call method
+     * 
+     * @param string $methodName
+     * @param array $parameters
+     * @return mixed
+     */
+    public function __call($methodName, $parameters) {
+    	if (substr($methodName, 0, 14) == 'findOneItemBy_') {
+    		// returns the first element
+    		$property = substr($methodName, 14);
+    		$propertyValue = $parameters[0];
+    		$propertyValues = $this->extractProperty($property);
+    		$key = array_search($propertyValue, $propertyValues);
+    		if ($key === false) {
+    			$value = false;
+    		} else {
+    			$value = $this->getItemById($key);
+    		}
+    	} elseif (substr($methodName, 0, 11) == 'findAllItemsBy_') {
+    		// returns collection with all matching elements
+    		throw new tx_pttools_exception('Not implemented yet');
+    	} else {
+    		throw new tx_pttools_exception('Method does not exist');
+    	}
+    	
+    	return $value;
+    }
     
     
     
@@ -724,6 +755,29 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     		$res *= -1;
     	}
     	return $res;
+    }
+    
+    
+    
+    /**
+     * Uses a property as the new key.
+     * 
+     * @param $property
+     * @return void
+     */
+    public function setPropertyToKey($property, $prefix='') {
+    	$newItemArr = array();
+    	foreach ($this->itemsArr as $value) { /* @var $value tx_tcaobjects_object */
+    		$newKey = $value->__get($property);
+    		if (!empty($prefix)) {
+    			$newKey = $prefix . $newKey;
+    		}
+    		if (array_key_exists($newKey, $newItemArr)) {
+    			throw new tx_pttools_exception(sprintf('Array key "$s" already exists', $newKey));
+    		}
+    		$newItemArr[$newKey] = $value;
+    	}
+    	$this->itemsArr = $newItemArr;
     }
 
     

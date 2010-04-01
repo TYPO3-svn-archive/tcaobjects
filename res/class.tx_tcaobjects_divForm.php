@@ -109,9 +109,14 @@ class tx_tcaobjects_divForm {
 		$formReloadHandler = new tx_pttools_formReloadHandler();
 		return $formReloadHandler->checkToken($value, true);
 	}	
+
+	public static function rule_notags($value, $field) {
+		return strcmp($value, strip_tags($value)) === 0;
+	}
 	
 	public static function rule_int($value, $field) {
-		return is_int($value);
+		// also testing if int values are stored in strings
+		return is_int($value) || ctype_digit($value);
 	}
 	
 	public static function rule_notint($value, $field) {
@@ -149,6 +154,10 @@ class tx_tcaobjects_divForm {
 	public static function rule_fullAge(array $value, $field) {
 		$tstamp = tx_tcaobjects_div::convertQuickformDateToUnixTimestamp($value);
 		return !empty($tstamp) && strtotime ("+ 18 years", $tstamp) <= time();
+	}
+
+	public static function rule_required($value, $field) {
+		return !empty($value);
 	}
 	
 	

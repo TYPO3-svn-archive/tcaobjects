@@ -29,6 +29,22 @@
  * @since	2010-03-31
  */
 class tx_tcaobjects_sys_languageCollection extends tx_tcaobjects_objectCollection {
+	
+	/**
+	 * Add sys_language object representing the default language
+	 * 
+	 * @param int (optional) pid from where to retrieve pagets for default language settings
+	 * @return void
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function addDefaultLanguage($pid=NULL) {
+		$defaultLanguage = new tx_tcaobjects_sys_language();
+		$defaultLanguage['uid'] = 0;
+		$pageTS = t3lib_BEfunc::getPagesTSconfig($pid ? $pid : $GLOBALS['TSFE']->id);
+		$defaultLanguage['flag'] = $pageTS['mod.']['SHARED.']['defaultLanguageFlag'];
+		$defaultLanguage['title'] = $pageTS['mod.']['SHARED.']['defaultLanguageLabel'] ? $pageTS['mod.']['SHARED.']['defaultLanguageLabel'] : 'Default';
+		$this->addItem($defaultLanguage);
+	}
     
 }
 

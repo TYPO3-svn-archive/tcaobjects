@@ -124,6 +124,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 * @var array methods of this object that should be asked for resolving a __call request
 	 */
 	protected $callMethods = array('call_get_', 'call_set_', 'call_get', 'call_set', 'call_find_by_');
+	
+	/**
+	 * @var bool validate values while setting
+	 */
+	protected $validateWhiteSetting = true;
 
 	/**
 	 * @var	string	comma separated list of standard field names
@@ -229,9 +234,14 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         // Populate with data
         if (!empty($uid)) {
+        	// load from uid
             $this->loadSelf($uid, $ignoreEnableFields);
         } elseif (!empty($dataArr)) {
+        	// set given data
             $this->setDataArray($dataArr);
+        } else {
+        	// new object
+        	$this->setDefaultValues();
         }
         
         $this->resetDirtyFields();
@@ -268,7 +278,31 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         
         tx_pttools_assert::isTrue($this->checkReadAccess(), array('message' => sprintf('No read access on "%s"', $this->getIdentifier())));
     }
+    
+    
+    
+    /**
+     * Set default values
+     * 
+     * @return void
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-04-01
+     */
+    protected function setDefaultValues() {
+    	foreach ($this->getProperties() as $property) {
+    		if (($defaultValue = $this->getConfig($property, 'default')) !== false) {
+    			$this->__set($property, $defaultValue);
+    		}
+    	}
+    }
+    
+    public function setValidateWhileSetting($validateWhileSetting) {
+    	$this->validateWhiteSetting = $validateWhileSetting;
+    }
 
+	public function getValidateWhileSetting() {
+    	return $this->validateWhiteSetting;
+    }
 
 
     /**
@@ -292,10 +326,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $dataArray = $this->getDataArray();
         
         // check if all properties are valid
-        foreach ($dataArr as $poperty => $value) {
-        	if (!$this->validate($property, $value)) {
-        		throw new tx_pttools_exception(sprintf('This is not a valid value for property "%s"', $property));
-        	}
+        if (count($this->validate()) > 0) {
+        	throw new tx_pttools_exception('Validation errors while saving!');
         }
 
         if (($fieldName = $this->getSpecialField('tstamp')) !== false) {
@@ -523,6 +555,15 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function isTranslationOverlay() {
     	return $this->supportsTranslations() && ($this->getLanguageUid() != 0);
+    }
+    
+    /**
+     * Check if this article is in default language
+     * 
+     * @return bool
+     */
+    public function isDefaultLanguage() {
+    	return !$this->isTranslationOverlay(); 
     }
     
     /**
@@ -1053,26 +1094,41 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 
     /**
-     * Get the object's properties in an array
+     * Get the object's properties and values in an array
      *
      * @param 	void
      * @return 	array	dataArray
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function getDataArray() {
-
         $data = array();
+        foreach ($this->getProperties() as $property) {
+			$data[$property] = $this->__get($property);
+        }
+        return $data;
+    }
+    
+    
 
-        foreach (array_keys($this->_properties) as $property) {
+    /**
+     * Get the object's properties and values in an array
+     *
+     * @return 	array array of properties
+     * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-04-01
+     */
+    public function getProperties() {
+    	$properties = array();
+		foreach (array_keys($this->_properties) as $property) {
             if (is_array($this->_properties[$property]) 
             	// && $this->getConfig($property, 'type') != 'inline' 
             	&& !in_array($property, $this->_ignoredFields) || in_array($property, array('uid', 'pid', 'sorting'))) {
-                if (!$this->resolveAlias($property, true)) { // no data from aliases
-                	$data[$property] = $this->__get($property);
+                if (!$this->resolveAlias($property, true)) {
+                	$properties[] = $property;
                 }
             }
         }
-        return $data;
+    	return $properties;
     }
 
 
@@ -1172,7 +1228,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      *
      * @param 	string	property name
      * @param 	string	config element
-     * @return 	string	internal type
+     * @return 	false|string false if value was not set, otherwise the value
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function getConfig($property, $config) {
@@ -1180,7 +1236,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isNotEmpty($property, array('message' => 'Parameter "property" empty!'));
         tx_pttools_assert::isNotEmpty($config, array('message' => 'Parameter "config" empty!'));
 
-        return $this->_properties[$property]['config'][$config];
+        return isset($this->_properties[$property]['config'][$config]) ? $this->_properties[$property]['config'][$config] : false;
     }
     
     
@@ -1248,7 +1304,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function getEval($property) {
         tx_pttools_assert::isNotEmpty($property, array('message' => 'Parameter "property" empty!'));
-        return t3lib_div::trimExplode(',', $this->getConfig($property, 'eval'));
+        return t3lib_div::trimExplode(',', $this->getConfig($property, 'eval'), true);
     }
 
 
@@ -1273,6 +1329,36 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             return $property;
         }
     }
+    
+    
+    
+    /**
+     * Process file upload
+     * 
+     * @param string $property
+     * @param string $tmpName
+     * @param string $name
+     * @return void
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-03-31
+     */
+	public function processFileUpload($property, $tmpName, $name) {
+		$type = $this->getConfig($property, 'type');
+		tx_pttools_assert::isEqual($type, 'group');
+        $internal_type = $this->getConfig($property, 'internal_type');
+        tx_pttools_assert::isEqual($internal_type, 'file');
+        $maxitems = $this->getConfig($property, 'maxitems');
+        tx_pttools_assert::isEqual($maxitems, '1');
+		
+		$uploadFolder = $this->getConfig($property, 'uploadfolder');
+		tx_pttools_assert::isNotEmptyString($uploadFolder);		
+		
+		$targetFileName = tx_tcaobjects_div::createSaveFileName($name);
+		$targetFilePath = $uploadFolder . DIRECTORY_SEPARATOR . $targetFileName;
+		t3lib_div::upload_copy_move($tmpName, $targetFilePath);
+		// t3lib_div::fixPermissions($targetFile);
+		$this->__set($property, $targetFileName);
+	}
     
     
     
@@ -1651,7 +1737,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     /**
      * Processes modifier "rte". (Renders the value as an Rich Text Editor field)
      *
-      * Valid for all fields
+     * Valid for all fields
      *
      * @param 	string		property name
      * @param 	string		property name that was originally called
@@ -1685,6 +1771,16 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         return $GLOBALS['TSFE']->cObj->parseFunc($this->__get($property), $parseFunc);
     }
     
+    
+    
+    /**
+     * Processes modifier "label".
+     * 
+     * @param 	string		property name
+     * @param 	string		property name that was originally called
+     * @return 	string		field label
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     */
     protected function processModifier_label($property, $calledProperty) {
     	return $this->getCaption($property);
     }
@@ -1793,8 +1889,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         if ($value !== $this->_values[$property]) {
         	
         	// validate value
-        	if (!$this->validate($property, $value)) {
-        		throw new tx_pttools_exception(sprintf('This is not a valid value for property "%s"', $property));
+        	if ($this->getValidateWhileSetting()) {
+	        	$validationErrors = $this->getValidationErrorsForProperty($property, $value); 
+	        	if (count($validationErrors) > 0) {
+	        		throw new tx_pttools_exception(sprintf('"%s" is not a valid value for property "%s" (Errors: %s) Object: %s', $value, $property, implode(', ', $validationErrors), $this->getIdentifier()));
+	        	}
         	}
         	
         	// save original value to dirtyFields
@@ -1830,73 +1929,6 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     }
     
     
-    public function ___call($methodName, $parameters) {
-
-        $methodParts = explode('_', $methodName);
-
-        $prefix = array_shift($methodParts);
-
-        if (in_array($prefix, array('get', 'set'))) {
-
-            $calledProperty = implode('_', $methodParts);
-
-            $property = $this->resolveAlias($calledProperty);
-
-            if (!$this->offsetExists($property)) {
-                throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
-            }
-
-            switch ($prefix){
-                case 'get': {
-                    /**
-                     * Dynamic getter
-                     */
-                    return $this->__get($property);
-                } break;
-                case 'set': {
-                    /**
-                     * Dynamic setter
-                     */
-                    $this->__set($property, $parameters[0]);
-                    return null;
-                }
-            }
-        } elseif (t3lib_div::isFirstPartOfStr($methodName, 'find_by_')) {
-            /**
-             * "Dynamic finder"
-             */
-            // TODO: to be tested and improved!
-            $fieldname = str_replace('find_by_', '', $methodName);
-            if (!$this->offsetExists($fieldname)) {
-                throw new tx_pttools_exception('Field "'.$fieldname.'" (called method was: "'.$methodName.'") does not exist!');
-            }
-            $where = $fieldname.'='.$GLOBALS['TYPO3_DB']->fullQuoteStr($parameters[0], $this->_table);
-            $dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->_table, $where, 1);
-            // TODO: what if more than 1 result found? This should/could be a method for a collection
-            if (is_array($dataArr[0])) {
-                $this->setDataArray($dataArr[0]);
-            }
-            return count($dataArr); // amount of records found
-        } elseif (t3lib_div::isFirstPartOfStr($methodName, 'get')) {
-        	$property = substr($methodName, 3);
-        	$property = lcfirst($property);
-			if (!$this->offsetExists($property)) {
-                throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
-            }
-            return $this->__get($property);
-        } elseif (t3lib_div::isFirstPartOfStr($methodName, 'set')) {
-        	$property = substr($methodName, 3);
-        	$property = lcfirst($property);
-			if (!$this->offsetExists($property)) {
-                throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
-            }
-            $this->__set($property,  $parameters[0]);
-            return null;
-        } else {
-            throw new ReflectionException('"'.$methodName.'" is no valid method (Only getters, setters and special methods allowed!)');
-        }
-        return '';
-    }
     
     protected function call_get_($methodName, $parameters, &$value) {
     	if (t3lib_div::isFirstPartOfStr($methodName, 'get_')) {
@@ -1921,7 +1953,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     protected function call_get($methodName, $parameters, &$value) {
     	if (t3lib_div::isFirstPartOfStr($methodName, 'get') && (substr($methodName, 3, 1) != '_')) {
     		$property = substr($methodName, 3);
-        	$property = lcfirst($property);
+    		$property[0] = strtolower($property[0]); // $property = lcfirst($property); in PHP 5.3
         	$property = $this->resolveAlias($property);
             $value = $this->__get($property);
             return true;
@@ -1932,7 +1964,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     protected function call_set($methodName, $parameters, &$value) {
     	if (t3lib_div::isFirstPartOfStr($methodName, 'set') && (substr($methodName, 3, 1) != '_')) {
     		$property = substr($methodName, 3);
-    		$property = lcfirst($property);
+    		$property[0] = strtolower($property[0]); // $property = lcfirst($property); in PHP 5.3
     		$property = $this->resolveAlias($property);
     		$value = $this->__set($property, $parameters[0]); 
     		return true;
@@ -1958,6 +1990,27 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	return false;
     }
     
+    /**
+     * Apply filters on property
+     * 
+     * @param string $property
+     * @param mixed $value
+     * @return mixed $value
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-04-01
+     */
+    protected function applyFiltersOnProperty($property, $value) {
+    	$eval = $this->getEval($property);
+    	foreach ($eval as $filterString) {
+    		list($filter, $param1, $param2) = t3lib_div::trimExplode(':', $filterString);
+    		tx_pttools_assert::isAlphaNum($filter);
+    		$filterFunction = 'filter_' . $filter;
+    		if (method_exists('tx_tcaobjects_divForm', $filterFunction)) {
+    			$value = tx_tcaobjects_divForm::$filterFunction($value, $property, $param1, $param2);
+    		}
+    	}
+    	return $value;
+    }
     
     
     /**
@@ -1965,12 +2018,46 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * 
      * @param string $property
      * @param mixed $value
-     * @return bool
+     * @return array validation errors empty array if everything is ok
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      * @since	2010-03-29
      */
-    protected function validate($property, $value) {
-    	return true;
+    protected function getValidationErrorsForProperty($property, $value) {
+    	$validationErrors = array();
+    	$eval = $this->getEval($property);
+    	foreach ($eval as $ruleString) {
+    		list($rule, $param1, $param2) = t3lib_div::trimExplode(':', $ruleString);
+    		tx_pttools_assert::isAlphaNum($rule);
+    		$ruleFunction = 'rule_' . $rule;
+    		if (method_exists('tx_tcaobjects_divForm', $ruleFunction)) {
+    			if (!tx_tcaobjects_divForm::$ruleFunction($value, $property, $param1, $param2)) {
+    				$validationErrors[] = $ruleString;
+    			}
+    		}
+    	}
+    	
+    	return $validationErrors;
+    }
+    
+    
+    
+    /**
+     * Validate all properties
+     * 
+     * @return array validation errors array('<property>' => array(<rule>, <rule>))
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-04-01
+     */
+    public function validate() {
+    	$errors = array();
+    	$dataArray = $this->getDataArray();
+    	foreach ($dataArray as $property => $value) {
+        	$propertyErrors = $this->getValidationErrorsForProperty($property, $value);
+        	if (!empty($propertyErrors)) {
+             	$errors[$property] = $propertyErrors;
+        	}
+        }
+    	return $errors;
     }
 
 
