@@ -535,7 +535,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function getTranslations() {
     	if (empty($this->translations)) {
-	    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+	    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => sprintf('Translation is not supported for this table "%s"', $this->_table)));
 
 	        $collectionClassname = $this->getCollectionClassName();
 	        
@@ -558,7 +558,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since 2010-03-15
      */
     public function getLanguageField() {
-    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => sprintf('Translation is not supported for this table "%s"', $this->_table)));
     	return tx_tcaobjects_div::getLanguageField($this->_table);
     }
     
@@ -570,7 +570,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since 2010-03-15
      */
     public function getLanguageUid() {
-    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => sprintf('Translation is not supported for this table "%s"', $this->_table)));
     	return intval($this[$this->getLanguageField()]);
     }
         
@@ -582,7 +582,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @since 2010-03-15
      */
     public function getTransOrigPointerField() {
-    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => 'Translation is not supported for this table'));
+    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => sprintf('Translation is not supported for this table "%s"', $this->_table)));
     	return tx_tcaobjects_div::getTransOrigPointerField($this->_table);
     }
     
