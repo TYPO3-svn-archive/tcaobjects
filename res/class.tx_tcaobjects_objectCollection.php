@@ -855,6 +855,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 				// replace item
 				$newCollection->addItem($languageVersion);	
 			} elseif ($addUntranslatedItems) {
+				echo $languageVersion['uid'] . ', '. $languageVersion['title']. '<br />';
 				$newCollection->addItem($item);
 			}
 		}

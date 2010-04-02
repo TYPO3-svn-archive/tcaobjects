@@ -1434,13 +1434,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             	
 	            // array of records of the foreign table (mm records with uids or final data)
 	            $dataArr = tx_tcaobjects_objectAccessor::selectByParentUid(
-	                $this->uid,
+	                $this->__get('dluid'), // default language uid
 	                $foreign_table,
 	                $foreign_field,
 	                $this->getConfig($property, 'foreign_sortby')
 	                // TODO: consider foreign_table_field if available!
 	            );
-
+	            
 	            if (!empty($dataArr)) {
 	
 	                $isMM = tx_tcaobjects_div::ForeignTableIsMmTable($this->_table, $property);
