@@ -212,6 +212,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 }
             }
         }
+        
+        // Default language uid
+        $this->_properties['dluid'] = true;
 
         // New fields from the alias map
         foreach ($this->_aliasMap as $field => $target) {
