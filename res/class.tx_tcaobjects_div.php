@@ -56,8 +56,16 @@ class tx_tcaobjects_div {
 	 * @param string original filename
 	 * @return string save filename
 	 */
-	public static function createSaveFileName($name) {
-		return $GLOBALS['EXEC_TIME'] . '_' . self::createRandomString(4) . '.' . strtolower(self::getFileExtension($name));
+	public static function createSaveFileName($name, $postFix='') {
+		
+		$name = $GLOBALS['TSFE']->csConvObj->specCharsToASCII($GLOBALS['TSFE']->renderCharset, $name);
+		$name = strtolower($name);
+		
+		$info = pathinfo($name);
+		$fileName = $info['filename'];
+		$fileName = ereg_replace('[^a-zA-Z0-9._-]', '_', $fileName);
+		
+		return $fileName . $postFix . '.' . $info['extension'];
 	}
 	
 	

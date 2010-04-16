@@ -743,7 +743,8 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
      * @return mixed
      */
     public function __call($methodName, $parameters) {
-    	if (substr($methodName, 0, 14) == 'findOneItemBy_') {
+    	
+    	if (t3lib_div::isFirstPartOfStr($methodName, 'findOneItemBy_')) {
     		// returns the first element
     		$property = substr($methodName, 14);
     		$propertyValue = $parameters[0];
@@ -754,9 +755,12 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     		} else {
     			$value = $this->getItemById($key);
     		}
-    	} elseif (substr($methodName, 0, 11) == 'findAllItemsBy_') {
+    	} elseif (t3lib_div::isFirstPartOfStr($methodName, 'findAllItemsBy_')) {
     		// returns collection with all matching elements
     		throw new tx_pttools_exception('Not implemented yet');
+    	} elseif (t3lib_div::isFirstPartOfStr($methodName, 'callOnItems_')) {
+    		$methodName = substr($methodName, 12);
+    		return $this->callOnItems($methodName, $parameters);
     	} else {
     		throw new tx_pttools_exception('Method does not exist');
     	}
@@ -764,7 +768,26 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	return $value;
     }
     
-    
+    /**
+     * Call method on all items and return results in an array
+     * 
+     * @param string $methodName
+     * @param array $parameters
+     * @return array results
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-04-16
+     */
+    public function callOnItems($methodName, array $parameters=array()) {
+    	$results = array();
+    	foreach ($this as $key => $object) { /* @var $object tx_tcaobjects_object */
+    		$callback = array($object, $methodName);
+    		if (is_callable($callback)) {
+    			$results[$key] = call_user_func_array($callback, $parameters); 
+    		} else {
+    			throw new tx_pttools_exception(sprintf('Method "%s" is not callable on collection items', $methodName));
+    		}
+    	}
+    }
     
     /**
      * Generic field sorter used as callback function for usort in the sort_ "magic method"

@@ -75,6 +75,11 @@ class tx_tcaobjects_objectAccessor {
      * @since	2008-03-16
      */
     public static function selectByParentUid($parentUid, $foreign_table, $foreign_field, $foreign_sortby, $additionalWhere = ''){
+    	
+    	tx_pttools_assert::isValidUid($parentUid);
+    	tx_pttools_assert::isNotEmptyString($foreign_table);
+    	tx_pttools_assert::isNotEmptyString($foreign_field);
+    	
         // query preparation
         $select  = '*';
         $from    = $foreign_table;
