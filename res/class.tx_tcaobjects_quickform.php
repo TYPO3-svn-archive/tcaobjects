@@ -308,6 +308,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		$this->registerRule('rule_alphanum', 'callback', 'rule_alphanum', 'tx_tcaobjects_divForm');
 		$this->registerRule('rule_alphanum_x', 'callback', 'rule_alphanum_x', 'tx_tcaobjects_divForm');
 		$this->registerRule('rule_fullAge', 'callback', 'rule_fullAge', 'tx_tcaobjects_divForm');
+		$this->registerRule('rule_url', 'callback', 'rule_url', 'tx_tcaobjects_divForm');
+		$this->registerRule('rule_multiurls', 'callback', 'rule_multiurls', 'tx_tcaobjects_divForm');
 		return $this;
 	}
 
@@ -547,7 +549,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				case 'alphanum':
 				case 'alphanum_x':
 				case 'trim':
-				case 'striptags': {
+				case 'striptags': 
+					
+				case 'trimMultiLineWhiteSpaces': {
 					$this->applyFilter($this->getElementName($property), array('tx_tcaobjects_divForm', 'filter_' . $eval));
 				} break;
 
@@ -560,7 +564,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 				case 'rule_alpha':
 				case 'rule_num':
 				case 'rule_alphanum':
-				case 'rule_alphanum_x': {
+				case 'rule_alphanum_x':
+				case 'rule_url':
+				case 'rule_multiurls': {
 					$this->addRule($this->getElementName($property), $GLOBALS['LANG']->sL(!empty($message) ? $message : 'LLL:EXT:tcaobjects/res/locallang.xml:quickform.rule.' . $eval), $eval, $this->_table . '->' . $property . '->' . $this->uid);
 				} break;
 

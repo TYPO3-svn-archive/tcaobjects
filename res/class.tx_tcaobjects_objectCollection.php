@@ -172,7 +172,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	public function loadItems($where = '', $limit = '', $order = '', $ignoreEnableFields = false) {
 		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
+		$count = count($dataArr);
 		$this->setDataArray($dataArr);
+		tx_pttools_assert::isEqual($this->count(), $count);
 	}
 
 
@@ -220,6 +222,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	protected function setDataArray(array $dataArr) {
 		$tcaObjectName = $this->getClassName();
 		foreach ($dataArr as $row) {
+			tx_pttools_assert::isNotEmptyArray($row);
 			$object = new $tcaObjectName('', $row);
 			$this->addItem($object);
 		}
@@ -727,12 +730,24 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     	} elseif (substr($offset, 0, 4) == 'idx_') {
     		return $this->getItemByIndex(substr($offset, 4));
     	} elseif ($offset == 'first') {
-    		return $this->getItemByIndex(0);
+    		return $this->first();
     	} elseif ($offset == 'last') {
-    		return $this->getItemByIndex(count($this)-1);
+    		return $this->last();
     	} else {
 	        return $this->getItemById($offset);
     	}
+    }
+    
+    public function first() {
+    	return $this->getItemByIndex(0);
+    }
+    
+    public function last() {
+    	return $this->getItemByIndex(count($this)-1);
+    }
+    
+    public function nth($index) {
+    	return $this->getItemByIndex($index);
     }
 
     /**

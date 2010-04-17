@@ -74,6 +74,11 @@ class tx_tcaobjects_divForm {
 		return strip_tags($value);
 	}
 	
+	public static function filter_trimMultiLineWhiteSpaces($value) {
+		$lines = t3lib_div::trimExplode("\n", $value, true);
+		return implode("\n", $lines);
+	}
+	
 	
 
 
@@ -160,6 +165,21 @@ class tx_tcaobjects_divForm {
 		return !empty($value);
 	}
 	
+	public static function rule_url($value, $field) {
+		// $pattern = '/^(([\w]+:)?\/\/)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,4}(:[\d]+)?(\/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&amp;?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?$/';
+		$pattern = '/^((https?:)?\/\/)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,4}(:[\d]+)?(\/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&amp;?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?$/';
+		return preg_match($pattern, $value);
+	}
+	
+	public static function rule_multiurls($value, $field) {
+		$urls = t3lib_div::trimExplode("\n", $value, true);
+		foreach ($urls as $url) {
+			if (self::rule_url($url, $field) == false) {
+				return false;
+			}
+		}
+		return true;
+	}
 	
 
 
@@ -213,7 +233,7 @@ class tx_tcaobjects_divForm {
 
 	
 	public static function formRule_checktoken($fields) {
-		// TODO das hier wieder rausnhemen. Ist zwar nett,aber eine exception erfüllt den zwekc auch. Hier wundersn sich die user wieos das formular erneut angezeigt wird
+		// TODO das hier wieder rausnhemen. Ist zwar nett,aber eine exception erfï¿½llt den zwekc auch. Hier wundersn sich die user wieos das formular erneut angezeigt wird
 		
 		$errors = array();
 		
