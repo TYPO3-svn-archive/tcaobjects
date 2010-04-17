@@ -40,12 +40,18 @@ class tx_tcaobjects_objectAccessor {
      * @throws  tx_pttools_exception	if query fails
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public static function selectByUid($uid, $table, $ignoreEnableFields = false){
+    public static function selectByUid($uid, $table, $ignoreEnableFields = false) {
+    	
+    	tx_pttools_assert::isValidUid($uid);
+    	tx_pttools_assert::isNotEmptyString($table, array('message' => 'No table name given'));
+    	
         // query preparation
         $select  = '*';
-        $from    = $table;
+        $from    = $GLOBALS['TYPO3_DB']->quoteStr($table, $table);
         $where   = 'uid = '.intval($uid);
-        if (!$ignoreEnableFields) $where .= ' '.tx_pttools_div::enableFields($from);
+        if (!$ignoreEnableFields) {
+        	$where .= ' '.tx_pttools_div::enableFields($from);
+        }
         $groupBy = '';
         $orderBy = '';
         $limit   = '';
@@ -53,6 +59,8 @@ class tx_tcaobjects_objectAccessor {
         // exec query using TYPO3 DB API
         $res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupBy, $orderBy, $limit);
         tx_pttools_assert::isMySQLRessource($res);
+        
+        // var_dump($GLOBALS['TYPO3_DB']->debug_lastBuiltQuery); 
         
         $a_row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
         $GLOBALS['TYPO3_DB']->sql_free_result($res);

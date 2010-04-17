@@ -297,7 +297,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     protected function setDefaultValues() {
     	foreach ($this->getProperties() as $property) {
     		if (($defaultValue = $this->getConfig($property, 'default')) !== false) {
-   				$this->__set($property, $defaultValue);
+    			if (!isset($this->_values[$property])) {
+    				$this->__set($property, $defaultValue);
+    			}
     		}
     	}
     }

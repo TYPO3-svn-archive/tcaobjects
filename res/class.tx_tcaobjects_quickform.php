@@ -13,6 +13,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	 */
 	protected $formname;
 
+	/**
+	 * @var string
+	 */
 	protected $prefix;
 
 	/**
@@ -405,11 +408,8 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		if (is_array($formDefinition)) {
 			$formDefinition = tx_tcaobjects_div::tsToQuickformString($formDefinition);
 		}
-		if (is_string($formDefinition)) {
-			$this->formDefinition = $formDefinition;
-		} else {
-			throw new tx_pttools_exception('No valid formdefinition type');
-		}
+		tx_pttools_assert::isNotEmptyString($formDefinition, array('message' => 'No valid formdefinition type'));
+		$this->formDefinition = $formDefinition;
 		$this->convertFormDefinitionToQuickformElements();
 	}
 
@@ -997,6 +997,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 	/**
 	 * Convert form definition to quickform elements
 	 *
+	 * @return void
 	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since	2008-04-02
 	 */
@@ -1008,7 +1009,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 
 		$pattern = '/\[(.+)\]/U';
 		$groups = array();
-		if (preg_match_all($pattern, $this->formDefinition, $groups)) {
+		if (preg_match_all($pattern, $formDefinition, $groups)) {
 			$formDefinition = preg_replace($pattern, '--GROUP--', $formDefinition);
 		}
 
@@ -1039,6 +1040,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			}
 		}
 
+		// TODO: check if $this->uid is still used. I can't find it anywhere
 		if (isset($this->uid)) {
 			$this->addElement('hidden', $this->getElementName('uid'), $this->object['uid']);
 		}
