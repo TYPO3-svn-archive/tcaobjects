@@ -636,7 +636,7 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 		tx_pttools_assert::isNotEmptyString($this->formname, array('message' => 'No formname set!'));
 		tx_pttools_assert::isNotEmptyString($this->prefix, array('message' => 'No prefix set!'));
 
-		list ($property, $altLabel, $specialtype, $content, /* $rules */, $attributes, $comment) = t3lib_div::trimExplode(';', $parameter);
+		list ($property, $altLabel, $specialtype, $content, /* $rules */, $attributes, $comment, $altType) = t3lib_div::trimExplode(';', $parameter);
 
 		// urldecode text values
 		$comment = urldecode($comment);
@@ -672,9 +672,9 @@ class tx_tcaobjects_quickform extends HTML_QuickForm {
 			// Use the altLabel if set. If not use the label field defined in the TCA
 			$label = $GLOBALS['LANG']->sL((!empty($altLabel)) ? $altLabel : $this->object->getCaption($property));
 
+			$type = !empty($altType) ? $altType : $this->object->getConfig($property, 'type');
 
-
-			switch (strtolower($this->object->getConfig($property, 'type'))){
+			switch (strtolower($type)) {
 
 
 				/***************************************************************

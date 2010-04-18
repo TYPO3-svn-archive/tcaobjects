@@ -709,6 +709,7 @@ class tx_tcaobjects_div {
 	 * 			key = value <stdWrap>
 	 * 			keyWithoutValue
 	 * 		}
+	 * 		altType = <type> <- this overrides the type configured in TCA
 	 * 		comment = <stdWrap>
 	 * 		wrap = <stdWrap> // TODO
 	 * }
@@ -733,7 +734,7 @@ class tx_tcaobjects_div {
 		$quickform = array();
 		uksort($conf, 'strnatcmp'); // this is the missing knatsort
 
-		foreach ($conf as $fieldconf) {
+		foreach ($conf as $fieldconf) { /* @var $fieldconf array */
 			
 			tx_pttools_assert::isNotEmptyArray($fieldconf, array('message' => 'Field configuration has to be an array that is not empty!'));
 
@@ -783,7 +784,17 @@ class tx_tcaobjects_div {
 				$fieldconf['comment'] = urlencode($fieldconf['comment']);
 				$fieldconf['content'] = urlencode($fieldconf['content']);
 
-				$quickform[] = rtrim(implode(';', array($fieldconf['property'], $fieldconf['altLabel'], $fieldconf['specialtype'], $fieldconf['content'], $fieldRules, $fieldAttributes, $fieldconf['comment'])),';');
+				$parameterArray = array(
+					$fieldconf['property'], 
+					$fieldconf['altLabel'], 
+					$fieldconf['specialtype'], 
+					$fieldconf['content'], 
+					$fieldRules, 
+					$fieldAttributes, 
+					$fieldconf['comment'],
+					$fieldconf['altType']
+				);
+				$quickform[] = rtrim(implode(';', $parameterArray),';');
 			}
 		}
 		return implode(',', $quickform);
