@@ -307,6 +307,29 @@ class tx_tcaobjects_div {
 	
 	
 	/**
+	 * Get table name for classname 
+	 *  
+	 * @param string class name
+	 * @return string table name
+	 */
+	public static function getTableName($className) {
+		static $cache=array();
+		if (isset($cache[$className])) {
+			return $cache[$className];
+		}
+		
+		$tmpObj = new $className; /* @var $tmpObj tx_tcaobjects_object */
+		tx_pttools_assert::isInstanceOf($tmpObj, 'tx_tcaobjects_object');
+		$tableName = $tmpObj->getTable();
+		
+		$cache[$className] = $tableName;
+		
+		return $tableName;
+	}
+	
+	
+	
+	/**
 	 * Returns the classname of the object collection for a given class
 	 * 
 	 * @param string $className

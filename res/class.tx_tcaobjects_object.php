@@ -43,7 +43,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     /**
      * @var string class name
      */
-    protected $_className = '';
+    protected $_className = null;
 
     /**
      * @var array	properties
@@ -173,8 +173,6 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         tx_tcaobjects_div::includeTCA();
         
-        $this->_className = get_class($this);
-
         // Set table
         if (empty($this->_table)) {
             $this->_table = $this->getClassName();
@@ -794,7 +792,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	    	if ($sysLanguageUid == $this->getLanguageUid()) {
 	    		$this->languageObjects[$sysLanguageUid] = $this;
 	    	} elseif ($sysLanguageUid == 0) {
-	    		$this->languageObjects[$sysLanguageUid] = new $className($this->getDefaultLanguageUid());
+	    		$this->languageObjects[$sysLanguageUid] = tx_tcaobjects_genericRepository::getObjectByUid($className, $this->getDefaultLanguageUid());
 	    		
 	    		// set reference to current object for performance reasons
 	    		$this->languageObjects[$sysLanguageUid]->setLanguageVersion($this->getLanguageUid(), $this);
@@ -1014,8 +1012,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         if (!$this->isOnlineVersion()) {
         	tx_pttools_assert::isNotEmpty($this->__get('t3ver_oid'), array('message' => 'No t3ver_oid defined'));
-			$classname = $this->getClassName();
-			$onlineVersion = new $classname($this->__get('t3ver_oid'));
+			$onlineVersion = tx_tcaobjects_genericRepository::getObjectByUid($this->getClassName(), $this->__get('t3ver_oid'));
         } else {
         	if ($throwExceptionIfAlreadyOnline) {
         		throw new tx_pttools_exception('This is already the online version');
@@ -1043,8 +1040,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 		$newUid = $tce->versionizeRecord($this->getTable(), $this->getOid(), $label);
 
-		$className = $this->getClassName();
-		return new $className($newUid);
+		return tx_tcaobjects_genericRepository::getObjectByUid($this->getClassName(), $newUid);
     }
 
 
@@ -1368,6 +1364,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function getClassName() {
+    	if (is_null($this->_className)) {
+    		$this->_className = get_class($this);
+    	}
         return $this->_className;
     }
 
@@ -1567,8 +1566,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	                // add items to the collection
 	                foreach ($dataArr as $data) {
 	                    try {
+	                    	
 	                        // create object directly or by its uid (in case of an mm table)
-	                        $tmpObj = $isMM ? new $classname($data[$foreign_mm_field]) : new $classname('', $data); /* @var $tmpObj tx_tcaobjects_object */
+	                    	if ($isMM) {
+	                    		$tmpObj = tx_tcaobjects_genericRepository::getObjectByUid($classname, $data[$foreign_mm_field]); 
+	                    	} else {
+	                    		$tmpObj = new $classname('', $data);
+	                    	}
 	                        
 	                    } catch (tx_pttools_exception $exceptionObj) {
 	                        $exceptionObj->handleException();
@@ -1592,7 +1596,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	            	foreach ($uids as $uid) {
 	            		try {
 	                        // create object
-	                        $tmpObj = new $classname($uid); /* @var $tmpObj tx_tcaobjects_object */
+	                        $tmpObj = tx_tcaobjects_genericRepository::getObjectByUid($classname, $uid);
 	
 	                        if ($tmpObj->isDeleted() == false) {
 	                            $value->addItem($tmpObj);
@@ -1623,7 +1627,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	            foreach ($uids as $uid) {
 	            	try {
 	                    // create object
-	                    $tmpObj = new $classname($uid); /* @var $tmpObj tx_tcaobjects_object */
+	                    $tmpObj = tx_tcaobjects_genericRepository::getObjectByUid($classname, $uid);
 	
 	                    if ($tmpObj->isDeleted() == false) {
 	                        $value->addItem($tmpObj);
@@ -1695,7 +1699,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         }
 
         // TODO: can this be something like "tt_content_18"?
-        $object = new $classname($uid);
+        $object = tx_tcaobjects_genericRepository::getObjectByUid($classname, $uid);
         tx_pttools_assert::isInstanceOf($object, 'tx_tcaobjects_object');
         return $object;
     }
