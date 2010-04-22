@@ -804,6 +804,9 @@ class tx_tcaobjects_div {
 				$fieldAttributes = implode(':', $fieldAttributes);
 
 				// urlencode text values
+				
+				$fieldconf['comment'] = $GLOBALS['TSFE']->cObj->stdWrap($fieldconf['comment'], $fieldconf['comment.']);
+				
 				$fieldconf['comment'] = urlencode($fieldconf['comment']);
 				$fieldconf['content'] = urlencode($fieldconf['content']);
 
