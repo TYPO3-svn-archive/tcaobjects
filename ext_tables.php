@@ -17,4 +17,12 @@ t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_display_uncachedobject', 'FILE:EXT:'
 t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_display_cachedobject', 'FILE:EXT:'.$_EXTKEY.'/plugins/flexform_display_object.xml');
 */
 
+
+if (TYPO3_MODE == 'BE') {
+
+	require_once t3lib_extMgm::extPath('tcaobjects') . 'misc/class.tx_tcaobjects_reports_DatabaseStatus.php';
+	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports']['tx_reports']['status']['providers']['database'][] = 'tx_tcaobjects_reports_DatabaseStatus';
+
+}
+
 ?>
