@@ -161,7 +161,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @return	void
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function __construct($uid = '', array $dataArr = array(), $ignoreEnableFields = false) {
+    public function __construct($uid='', array $dataArr=array(), $ignoreEnableFields=false) {
 
         // write to ts log
         if ($GLOBALS['TT'] instanceof t3lib_timeTrack) {
@@ -272,12 +272,12 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     		throw new tx_pttools_exception('There are unstored changed in this object. You cannot reload this object! Those changes would get lost.');
     	}
 
-		tx_pttools_assert::isValidUid($uid, false, array('message' => '"'.$uid.'" is not a valid uid!'));
+		tx_pttools_assert::isValidUid($uid, false, array('message' => sprintf('"%s" is not a valid uid!'), $uid));
         $dataArr = tx_tcaobjects_objectAccessor::selectByUid($uid, $this->_table, $ignoreEnableFields);
         if (is_array($dataArr)) {
             $this->setDataArray($dataArr);
         } else {
-            throw new tx_pttools_exception('Record "' . $this->_table . ':' . $uid . '" could not be loaded', 0);
+            throw new tx_pttools_exception(sprintf('Record "%s:%s" could not be loaded', $this->_table, $uid), 0);
         }
         
         tx_pttools_assert::isTrue($this->checkReadAccess(), array('message' => sprintf('No read access on "%s"', $this->getIdentifier())));
@@ -597,18 +597,21 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     /**
      * Returns a collection of all translations
      * 
-     * @param void
+     * @param bool ignore enable fields
      * @return tx_tcaobjects_objectCollection
      * @author Fabrizio Branca <mail@fabrizio-branca.de>
      * @since 2010-03-26
      */
-    public function getTranslations() {
+    public function getTranslations($ignoreEnableFields=false) {
     	if (empty($this->translations)) {
 	    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => sprintf('Translation is not supported for this table "%s"', $this->_table)));
 
 	        $collectionClassname = $this->getCollectionClassName();
 	        
-	        $this->translations = new $collectionClassname('translations', array('uid' => $this->getDefaultLanguageUid()));
+	        $this->translations = new $collectionClassname('translations', array(
+	        	'uid' => $this->getDefaultLanguageUid(),
+	        	'ignoreEnableFields' => $ignoreEnableFields,
+	        ));
 	        // find current object and select it
 	        foreach ($this->translations as $key => $translation) { /* @var $translation tx_tcaobject_object */
 	        	if ($translation->get_uid() == $this->get_uid()) {
@@ -1930,9 +1933,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     		$methodName = 'get_'.$calledProperty;
     		if (method_exists($this, $methodName)) {
     			return $this->$methodName();
-    		} else {
+    		} /* else {
     			throw new tx_pttools_exception(sprintf('Method "%s" for dynamic property "%s" not found!', $methodName, $calledProperty));
-    		}
+    		} */
     	}
     	
     	// get default language uid
@@ -1990,9 +1993,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     		$methodName = 'set_'.$calledProperty;
     		if (method_exists($this, $methodName)) {
     			return $this->$methodName($value);
-    		} else {
+    		} /* else {
     			throw new tx_pttools_exception(sprintf('Method "%s" for dynamic property "%s" not found!', $methodName, $calledProperty));
-    		}
+    		} */
     	}
 
     	$this->notStoredChanges = false;
@@ -2192,7 +2195,21 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
              	$errors[$property] = $propertyErrors;
         	}
         }
+        $errors = t3lib_div::array_merge_recursive_overrule($errors, $this->objectValidation());
     	return $errors;
+    }
+    
+    
+    
+    /**
+     * This methods can be overriden to detect global errors while validating.
+     * This should be used for non field specific rules.
+     * E.g.: An object is not valid when endtime is smaller than starttime.
+     * 
+     * @return array errors
+     */
+    protected function objectValidation() {
+    	return array();
     }
 
 
