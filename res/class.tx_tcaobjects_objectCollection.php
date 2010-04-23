@@ -152,7 +152,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		$where = '('.$transOrigPointer.' = ' . $params['uid'] . ' OR uid = ' . $params['uid'] . ')';
 		$limit = '';
 		$order = $languageField. ' ASC';
-		$ignoreEnableFields = false;
+		$ignoreEnableFields = $params['ignoreEnableFields'];
 
 		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
 		$this->setDataArray($dataArr);
