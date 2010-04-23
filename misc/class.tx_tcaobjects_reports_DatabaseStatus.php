@@ -55,7 +55,15 @@ class tx_tcaobjects_reports_DatabaseStatus implements tx_reports_StatusProvider 
 			$matches = array();
 			preg_match('/DEFAULT CHARSET=(\w+)/', $createStatement, $matches);
 			$data['charset'] = $matches[1];
+			
+			$fieldMatches = array();
+			preg_match_all('/`(\w+)`.*character set (\w+)/', $createStatement, $fieldMatches);
+			$data['field_charset'] = array();
+			foreach ($fieldMatches[0] as $key => $fieldMatch) {
+				$data['field_charset'][$fieldMatches[1][$key]] = $fieldMatches[2][$key]; 
+			}
 		}
+		
 		return $tables;
 	}
 	
@@ -83,27 +91,37 @@ class tx_tcaobjects_reports_DatabaseStatus implements tx_reports_StatusProvider 
 	protected function renderMessage(array $tables) {
 		$nonUtf8Tables = array();
 		$output = '<table>';
-		$output .= '<tr><th>Table</th><th>Collation</th><th>Charset</th><th>Engine</th></tr>';
+		$output .= '<tr><th>Table</th><th>Charset</th></tr>';
 		foreach ($tables as $table => $data) {
-			$output .= sprintf('<tr><td>%s</td><td>%s</td><td style="background-color: %s;">%s</td><td>%s</td></tr>', 
+			$output .= sprintf('<tr><td style="border-top: 1px solid black; font-weight: bold;">%s</td><td style="border-top: 1px solid black; background-color: %s; font-weight: bold;">%s</td></tr>', 
 				$data['Name'],
-				$data['Collation'],
 				$data['charset'] == 'utf8' ? '#CDEACA' : '#FBB19B',
-				$data['charset'],
-				$data['Engine']
-			);
+				$data['charset']
+			);		
 			if ($data['charset'] != 'utf8') {
 				$nonUtf8Tables[] = $table;
 			}
+			
+			foreach ($data['field_charset'] as $field => $charset) {
+				$output .= sprintf('<tr><td style="padding-left: 30px;">%s</td><td style="background-color: %s;">%s</td></tr>', 
+					$field,
+					$charset == 'utf8' ? '#CDEACA' : '#FBB19B',
+					$charset
+				);
+				if ($charset != 'utf8') {
+					if (!in_array($table, $nonUtf8Tables)) {
+						$nonUtf8Tables[] = $table;
+					}
+				}
+			}	
 		}
 		$output .= '</table>';
 		
 		if (count($nonUtf8Tables)) {
-			$output .= '<h4>Convert statements for non utf8 tables:</h4>';
+			$output .= '<h4>Convert statements for non utf8 tables (and tables containing non utf8 fields):</h4>';
 			$output .= '<pre>';
 			foreach ($nonUtf8Tables as $table) {
-				$output .= sprintf('ALTER TABLE %s CONVERT TO CHARACTER SET utf8;'.chr(10), $table);
-				
+				$output .= sprintf("ALTER TABLE `%s` CONVERT TO CHARACTER SET `utf8` COLLATE `utf8_general_ci`;".chr(10), $table);
 			}
 			$output .= '</pre>';
 		}
