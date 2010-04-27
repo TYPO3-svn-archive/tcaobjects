@@ -196,6 +196,24 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 
 
 	/**
+	 * Set table name
+	 *
+	 * @param	string	table name
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2008-06-01
+	 */
+	public function setTable($table) {
+		tx_pttools_assert::isNotEmptyString($table);
+		if ($this->table == '') {
+			$this->table = $table;
+		} else {
+			throw new tx_pttools_exception('Table can only be set when it was empty before');
+		}
+	}
+
+
+
+	/**
 	 * Get the class name of the items in this array
 	 *
 	 * @return 	string	class name
