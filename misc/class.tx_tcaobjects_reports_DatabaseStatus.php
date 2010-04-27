@@ -78,6 +78,11 @@ class tx_tcaobjects_reports_DatabaseStatus implements tx_reports_StatusProvider 
 			if ($data['charset'] != 'utf8') {
 				return false;
 			}		
+			foreach ($data['field_charset'] as $field => $charset) {
+				if ($charset != 'utf8') {
+					return false;
+				}	
+			}
 		}
 		return true;
 	}
