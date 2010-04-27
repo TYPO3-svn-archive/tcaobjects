@@ -90,7 +90,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         'explode',
         'rte',
         'sL',
-    	'label' // returns the label of the field as defined in TCA
+    	'label', // returns the label of the field as defined in TCA
+    	'values' // returns all possible values for this field (in case of selects)
 	);
 
 	/**
@@ -340,6 +341,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	
     	// special translation overlay actions
     	if ($this->isTranslationOverlay()) {
+    		// get the pid from the temporary translation parent
     		if (!$this->__get('pid') && !is_null($this->translationParent)) {
     			$this->__set('pid', $this->translationParent->__get('pid'));
     		}
@@ -605,11 +607,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     public function getTranslations($ignoreEnableFields=false) {
     	if (empty($this->translations)) {
 	    	tx_pttools_assert::isTrue($this->supportsTranslations(), array('message' => sprintf('Translation is not supported for this table "%s"', $this->_table)));
+    		$defaultLanguageUid = $this->getDefaultLanguageUid();
+    		tx_pttools_assert::isValidUid($defaultLanguageUid, false, array('message' => 'This object was not saved before'));
 
 	        $collectionClassname = $this->getCollectionClassName();
 	        
 	        $this->translations = new $collectionClassname('translations', array(
-	        	'uid' => $this->getDefaultLanguageUid(),
+	        	'uid' => $defaultLanguageUid,
 	        	'ignoreEnableFields' => $ignoreEnableFields,
 	        ));
 	        // find current object and select it
@@ -1396,7 +1400,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function getIdentifier() {
-        return $this->getClassName() . ':' . (!empty($this['uid']) ? $this['uid'] : 'NEW'.time());
+    	$uid = $this->_values['uid'];
+    	// TODO: store this temporary identifier
+        return $this->getClassName() . ':' . (!empty($uid) ? $uid : 'NEW'. $GLOBALS['EXEC_TIME']);
     }
 
 
@@ -1517,7 +1523,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isTrue(
             ($type == 'inline') || (($type == 'group') && ($internal_type == 'db') || (($type == 'select') && ($foreign_table))),
             array(
-                'message' 			=> 'Invalid modifier "objColl" for called property!',
+                'message' 			=> 'Invalid modifier "objColl" for called property! ' . $property,
                 'modifier'			=> 'objColl',
                 'type' 				=> $type,
                 'internal_type' 	=> $internal_type,
@@ -1905,6 +1911,61 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     protected function processModifier_label($property, $calledProperty) {
     	return $this->getCaption($property);
     }
+    
+    
+    
+    /**
+     * Processes modifier "label".
+     * 
+     * @param 	string		property name
+     * @param 	string		property name that was originally called
+     * @return 	array		tx_tcaobjects_objectCollection
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     */
+    protected function processModifier_values($property, $calledProperty) {
+    	
+        $type = $this->getConfig($property, 'type');
+        $internal_type = $this->getConfig($property, 'internal_type');
+        $foreign_table = $this->getConfig($property, 'foreign_table');
+        $foreign_table_where = $this->getConfig($property, 'foreign_table_where'); 
+
+        tx_pttools_assert::isTrue(
+            /* ($type == 'inline') || (($type == 'group') && ($internal_type == 'db') || */ (($type == 'select') && ($foreign_table)) /* ) */,
+            array(
+                'message' 			=> 'Invalid modifier "objColl" for called property!',
+                'modifier'			=> 'objColl',
+                'type' 				=> $type,
+                'internal_type' 	=> $internal_type,
+                'property'			=> $property,
+                'calledProperty' 	=> $calledProperty
+            )
+        );
+        
+		$classname = tx_tcaobjects_div::getForeignClassName($this->_table, $property);
+        $propertyCollectionName = tx_tcaobjects_div::getCollectionClassName($classname);
+ 
+        // replace markers
+        $replaceArray = array();
+        foreach ($this->getDataArray() as $key => $value) {
+        	$replaceArray['###REC_FIELD_'.$key.'###'] = $value;
+        }
+        $foreign_table_where = str_replace(array_keys($replaceArray), array_values($replaceArray), $foreign_table_where);
+        $foreign_table_where = trim($foreign_table_where);
+        if (t3lib_div::isFirstPartOfStr(strtolower($foreign_table_where), 'and')) {
+        	$foreign_table_where = trim(substr($foreign_table_where, 3));
+        }
+        
+        list($where, $order) = preg_split('/order.+by/i', $foreign_table_where);
+        
+        // create object collection
+        $values = new $propertyCollectionName('items', array(
+        	'where' => $where,
+        	'order' => $order
+        )); /* @var $values tx_tcaobjects_objectCollection */
+        
+    	return $values;
+    }
+    
 
 
 
@@ -1997,17 +2058,24 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     			throw new tx_pttools_exception(sprintf('Method "%s" for dynamic property "%s" not found!', $methodName, $calledProperty));
     		} */
     	}
+    	
 
     	$this->notStoredChanges = false;
 
         $property = $this->resolveAlias($calledProperty);
-
+        
         if (!$this->offsetExists($property)) {
             throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid and cannot be set!'.' ['.__CLASS__."::".__FUNCTION__.'(...)]');
         }
 
         // check if value is different from current value
         if ($value !== $this->_values[$property]) {
+        	
+            if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
+            	if ($value && $this->_values[$property]) { // only if new and old value are "real" values. No "0" or "null"
+					throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in a translation overlay. Object: "%s"', $property, $this->getIdentifier()));
+            	}	            	
+    		}
         	
         	// validate value
         	if ($this->getValidateWhileSetting()) {
