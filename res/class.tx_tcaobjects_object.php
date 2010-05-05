@@ -91,7 +91,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         'rte',
         'sL',
     	'label', // returns the label of the field as defined in TCA
-    	'values' // returns all possible values for this field (in case of selects)
+    	'values', // returns all possible values for this field (in case of selects)
+    	'multilang' // returns all property in all languages <span class="lang-0">Default language</span><span class="lang-1">Translation</span>
 	);
 
 	/**
@@ -1966,6 +1967,31 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	return $values;
     }
     
+    
+    
+    /**
+     * Process modifier "multilang".
+     * This modifier returns the content of the field in all available languages 
+     *
+     * @param $property
+     * @param $calledProperty
+     * @return string
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-05-05
+     */
+    protected function processModifier_multilang($property, $calledProperty) {
+    	tx_pttools_assert::isFalse($this->excludedFromTranslation($property), array('message' => 'This property is excluded from translation'));
+    	$translations = $this->getTranslations();
+    	$values = $translations->extractProperty($property);
+    	$output = '';
+    	// TODO: what about language uid "-1" for "all"?
+    	foreach ($values as $uid => $value) {
+    		// TODO: this could be made configurable by a class property and setter/getter 
+    		$output .= sprintf('<span class="lang-%s">%s</span>', $uid, $value);
+    	}
+    	return $output;
+    }
+    
 
 
 
@@ -2327,12 +2353,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	        }
 
 	        $property = implode('_', $propertyParts);
-
+	        // TODO: call offsetExists recursively?
 	        if (key_exists($property, $this->_properties)) {
 	        	$offsetExists = true;
 	        }
     	}
-
         return $offsetExists;
     }
 

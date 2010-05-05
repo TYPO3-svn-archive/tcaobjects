@@ -167,8 +167,8 @@ class tx_tcaobjects_objectAccessor {
      */
     public function selectCollection($table, $where = '', $limit = '', $orderBy = '', $ignoreEnableFields = false, $select='*') {
         // query preparation
-        $from    = $table;
-        $where   = ($where != '') ? $where : '1';
+        $from = $table;
+        $where = ($where != '') ? $where : '1';
         if (!$ignoreEnableFields) {
             $where .= ' '.tx_pttools_div::enableFields($from);
         }

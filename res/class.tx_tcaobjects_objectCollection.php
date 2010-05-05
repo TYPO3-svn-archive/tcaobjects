@@ -154,7 +154,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		$order = $languageField. ' ASC';
 		$ignoreEnableFields = $params['ignoreEnableFields'];
 
-		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
+		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($table, $where, $limit, $order, $ignoreEnableFields);
 		$this->setDataArray($dataArr);
 	}
 
