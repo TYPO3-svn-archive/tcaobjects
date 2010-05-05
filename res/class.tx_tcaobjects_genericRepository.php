@@ -59,6 +59,10 @@ class tx_tcaobjects_genericRepository {
 		return $object;
 	}
 	
+	public static function findOneBy($property, $value, $className) {
+		
+	}
+	
 }
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tcaobjects/res/class.tx_tcaobjects_object.php'])	{

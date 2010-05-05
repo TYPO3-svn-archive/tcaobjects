@@ -94,6 +94,21 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	'values', // returns all possible values for this field (in case of selects)
     	'multilang' // returns all property in all languages <span class="lang-0">Default language</span><span class="lang-1">Translation</span>
 	);
+	
+	/**
+	 * @var array specialFieldKey => fieldName
+	 */
+	protected $_specialFields = array();
+	
+	/**
+	 * @var array enableColumnKey => fieldName
+	 */
+	protected $_enableColumns = array();
+	
+	/**
+	 * @var bool enable cheks (tranalateable fields, field available in type) while setting value
+	 */
+	protected $_enableSetChecks = true;
 
 	/**
 	 * @var tx_tcaobjects_objectCollection	object versions are stored here if versioning is enabled for this table
@@ -134,6 +149,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 * @var tx_tcaobject_object translation parent
 	 */
 	protected $translationParent;
+	
+	/**
+	 * @var array cache storing the fields available in a type
+	 */
+	protected $fieldsForTypeValueCache = array();
 
 	/**
 	 * @var	string	comma separated list of standard field names
@@ -143,7 +163,12 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     /**
      * @var string	comma separated list of potential special fields
      */
-    const potentialSpecialFields = 'tstamp,crdate,cruser_id,delete,sortby,origUid';
+    const potentialSpecialFields = 'tstamp,crdate,cruser_id,delete,sortby,origUid,transOrigPointerField,transOrigDiffSourceField';
+    
+    /**
+     * @var string comma separated list of potential enable columns
+     */
+    const potentialEnableColumns = 'disabled,starttime,endtime,fe_group';
 
     /**
      * @var string	comma separated list of field names used for versioning
@@ -212,6 +237,19 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         // Special fields (tstamp, crdate,...)
         foreach (t3lib_div::trimExplode(',', self::potentialSpecialFields) as $specialField) {
             if (($fieldName = $this->getSpecialField($specialField)) !== false) {
+            	// track these fields in an array
+            	$this->_specialFields[$specialField] = $fieldName;
+                if (!is_array($this->_properties[$fieldName])) {
+                    $this->_properties[$fieldName] = true;
+                }
+            }
+        }
+
+        // Enable fields (tstamp, crdate,...)
+        foreach (t3lib_div::trimExplode(',', self::potentialEnableColumns) as $enableField) {
+            if (($fieldName = $this->getEnableColumn($enableField)) !== false) {
+            	// track these fields in an array
+            	$this->_enableColumns[$enableField] = $fieldName;
                 if (!is_array($this->_properties[$fieldName])) {
                     $this->_properties[$fieldName] = true;
                 }
@@ -241,10 +279,14 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         // Populate with data
         if (!empty($uid)) {
         	// load from uid
+        	$this->_enableSetChecks = false;
             $this->loadSelf($uid, $ignoreEnableFields);
+            $this->_enableSetChecks = true;
         } elseif (!empty($dataArr)) {
         	// set given data
+        	$this->_enableSetChecks = false;
             $this->setDataArray($dataArr);
+            $this->_enableSetChecks = true;
         } else {
         	// new object
         	$this->setDefaultValues();
@@ -557,6 +599,99 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $disabledField = $GLOBALS['TCA'][$this->_table]['ctrl']['enablecolumns']['disabled'];
         tx_pttools_assert::isNotEmpty($disabledField, array('message' => 'No "disabled" field set in TCA!'));
         $this->__set($disabledField, $disabled);
+    }
+    
+    
+    
+    /**
+     * Get type field
+     * 
+     * @return string
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-05-05
+     */
+    public function getTypeField() {
+    	return tx_tcaobjects_div::getCtrl($this->_table, 'type');
+    }
+    
+    
+    
+    /**
+     * Get type value
+     * 
+     * @param bool (optional) throw exception
+     * @return mixed type field value
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-05-05
+     */
+    public function getTypeValue($throwExceptionIfNoTypeField=true) {
+    	$typeField = $this->getTypeField();
+    	if ($throwExceptionIfNoTypeField) {
+    		tx_pttools_assert::isNotEmptyString($typeField, array('message' => 'No type field defined in TCA'));
+    	}
+    	return empty($typeField) ? '' : $this->__get($typeField);	
+    }
+    
+    
+    
+    /**
+     * Returns an array of fieldnames that are available in the given type
+     * 
+     * @param string $typeValue
+     * @return array
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-05-05
+     */
+    protected function getFieldsForTypeValue($typeValue) {
+    	if (!isset($this->fieldsForTypeValueCache[$typeValue])) {
+	    	t3lib_div::loadTCA($this->_table);
+	    	$typeDefinition = $GLOBALS['TCA'][$this->_table]['types'][$typeValue]['showitem'];
+	    	if (empty($typeDefinition)) {
+	    		throw new tx_pttools_exception(sprintf('No type definition found in TCE for type "%s"', $typeDefinition));
+	    	}
+	    	$fieldConfigurations = t3lib_div::trimExplode(',', $typeDefinition, true);
+	    	$rawFields = array();
+	    	foreach ($fieldConfigurations as $fieldConfiguration) {
+	    		$rawField = t3lib_div::trimExplode(';', $fieldConfiguration);
+	    		$rawFields[] = $rawField[0];
+	    	}
+	    	$this->fieldsForTypeValueCache[$typeValue] = $rawFields;
+	    	
+    	}
+    	return $this->fieldsForTypeValueCache[$typeValue];
+    }
+    
+    
+    
+    /**
+     * Check if the given property is available in the current type
+     * 
+     * @param string $property
+     * @return bool true if this property is available
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-05-05
+     */
+    public function isAvailableInCurrentType($property) {
+    	
+    	if (t3lib_div::inList(self::versioningFields . ',' . self::standardFields, $property)) {
+ 			return true;   		
+    	}
+    	if (in_array($property, $this->_specialFields)) {
+    		return true;
+    	}
+    	if (in_array($property, $this->_enableColumns)) {
+    		return true;
+    	}
+    	
+    	$typeValue = $this->getTypeValue(false);
+
+    	if (empty($typeValue)) { // no types are used, field is always available
+    		return true;
+    	}
+    	
+    	$fields = $this->getFieldsForTypeValue($typeValue);
+    	
+    	return in_array($property, $fields);
     }
     
     /***************************************************************************
@@ -1173,6 +1308,18 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      * @author	Fabrizio Branca <mail@fabrizio-branca.de>
      */
     public function setDataArray(array $data) {
+    	
+    	// if there's a type field set this first
+    	$typeField = $this->getTypeField();
+    	if (!empty($typeField)) {
+    		if (isset($data[$typeField])) {
+    			$value = $data[$typeField];
+    			unset($data[$typeField]);
+    			$data = array_merge(array($typeField => $value), $data);
+    		}
+    	}
+    	
+    	// set all values
         foreach ($data as $calledProperty => $value) {
             if (substr($calledProperty, 0, 4) != 'zzz_') { // ignore old fields
                 $property = $this->resolveAlias($calledProperty);
@@ -1314,6 +1461,26 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             array('message' => '"'.$specialField.'" is an invalid field name')
         );
         $fieldName = $GLOBALS['TCA'][$this->_table]['ctrl'][$specialField];
+        return (!empty($fieldName) ? $fieldName : false );
+    }
+
+
+
+    /**
+     * Returns the field name of an "enable column"
+     *
+     * @param 	string			special field
+     * @return 	string|bool		name of the special field in this table or false if this special field doesn't exist for this table
+     * @throws	tx_pttools_exception if specialField is no valid special field (see self::potentialSpecialFields)
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     */
+    public function getEnableColumn($enableColumn) {
+        tx_pttools_assert::isInList(
+            $enableColumn,
+            self::potentialEnableColumns,
+            array('message' => '"'.$enableColumn.'" is an invalid field name')
+        );
+        $fieldName = $GLOBALS['TCA'][$this->_table]['ctrl']['enablecolumns'][$enableColumn];
         return (!empty($fieldName) ? $fieldName : false );
     }
 
@@ -2040,7 +2207,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $property = $this->resolveAlias($orig_property);
 
         if (!$this->offsetExists($calledProperty)) {
-            throw new tx_pttools_exception('Property "' . $property . '" (called property was: "' . $calledProperty . '") not valid!');
+            throw new tx_pttools_exception(sprintf('Property "%s" (called property was: "%s") not valid!', $property, $calledProperty));
         }
 
         $calledProperty = $property.((!empty($modifier)) ? '_'.$modifier : '');
@@ -2055,9 +2222,24 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             if (method_exists($this, $modifierMethodName)) {
                 $this->_values[$calledProperty] = $this->$modifierMethodName($property, $calledProperty);
             } else {
-                throw new tx_pttools_exception('No handler method found for modifier "'.$modifier.'"!');
+                throw new tx_pttools_exception(sprintf('No handler method found for modifier "%s"!', $modifier));
             }
         }
+        
+		/*
+        // check if this property is excluded from translation
+        if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
+        	// TODO: or should we return the default language value here?
+        	// How to distinguish then where the value comes from?
+        	throw new tx_pttools_exception(sprintf('Property "%s" is excluded from translation and cannot be read', $property));
+        }
+        
+        
+        // check if this property is available in the current type
+        if (!$this->isAvailableInCurrentType($property)) {
+        	throw new tx_pttools_exception(sprintf('Property "%s" is not available in type "%s"', $property, $this->getTypeValue(false)));
+        }
+        */
 
         return $this->_values[$calledProperty];
     }
@@ -2097,18 +2279,29 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         // check if value is different from current value
         if ($value !== $this->_values[$property]) {
         	
-            if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
-            	if ($value && $this->_values[$property]) { // only if new and old value are "real" values. No "0" or "null"
-					throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in a translation overlay. Object: "%s"', $property, $this->getIdentifier()));
-            	}	            	
-    		}
         	
-        	// validate value
-        	if ($this->getValidateWhileSetting()) {
-	        	$validationErrors = $this->getValidationErrorsForProperty($property, $value); 
-	        	if (count($validationErrors) > 0) {
-	        		throw new tx_pttools_exception(sprintf('"%s" is not a valid value for property "%s" (Errors: %s) Object: %s', $value, $property, implode(', ', $validationErrors), $this->getIdentifier()));
+        	if ($this->_enableSetChecks) {
+        	
+	        	// check if this property is excluded from translation
+	            if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
+	            	if ($value && $this->_values[$property]) { // only if new and old value are "real" values. No "0" or "null"
+						throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in a translation overlay. Object: "%s"', $property, $this->getIdentifier()));
+	            	}	            	
+	    		}       
+	
+	    		// check if this property is available in the current type
+		        if (!$this->isAvailableInCurrentType($property)) {
+		        	throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in type "%s"', $property, $this->getTypeValue(false)));
+		        }
+	        	
+	        	// validate value
+	        	if ($this->getValidateWhileSetting()) {
+		        	$validationErrors = $this->getValidationErrorsForProperty($property, $value); 
+		        	if (count($validationErrors) > 0) {
+		        		throw new tx_pttools_exception(sprintf('"%s" is not a valid value for property "%s" (Errors: %s) Object: %s', $value, $property, implode(', ', $validationErrors), $this->getIdentifier()));
+		        	}
 	        	}
+        	
         	}
         	
         	// save original value to dirtyFields
@@ -2187,7 +2380,17 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	return false;
     }
     
-    protected function call_find_by_($methodName, $parameters, &$value) {
+    /**
+     * Find an object by a property value and set this objects data to the found values
+     * TODO: This should go into a repository object!
+     * 
+     * @param string $methodName
+     * @param array $parameters
+     * @param int $value (reference)
+     * @return bool true if an object was found
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     */
+    protected function call_find_by_($methodName, array $parameters, &$value) {
     	if (t3lib_div::isFirstPartOfStr($methodName, 'find_by_')) {
     		$fieldname = substr($methodName, 8);
             if (!$this->offsetExists($fieldname)) {
@@ -2197,7 +2400,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             $dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->_table, $where, 1);
             // TODO: what if more than 1 result found? This should/could be a method for a collection
             if (is_array($dataArr[0])) {
+            	$this->_enableSetChecks = false;
                 $this->setDataArray($dataArr[0]);
+                $this->_enableSetChecks = true;
             }
             $value = count($dataArr); // amount of records found
             return true;

@@ -77,6 +77,8 @@ class tx_tcaobjects_div {
 	 * @return mixed value
 	 */
 	public static function getCtrl($table, $key) {
+		tx_pttools_assert::isNotEmptyString($table, array('message' => 'No table given'));
+		tx_pttools_assert::isNotEmptyString($key, array('message' => 'No key given'));
 		return $GLOBALS['TCA'][$table]['ctrl'][$key];
 	}
 	
@@ -91,6 +93,7 @@ class tx_tcaobjects_div {
 	 * @since 2010-03-17
 	 */
 	public static function getLanguageField($table) {
+		tx_pttools_assert::isNotEmptyString($table, array('message' => 'No table given'));
 		return isset($GLOBALS['TCA'][$table]['ctrl']['languageField']) ? $GLOBALS['TCA'][$table]['ctrl']['languageField'] : false;
 	}
 
@@ -103,6 +106,7 @@ class tx_tcaobjects_div {
 	 * @since 2010-03-26
 	 */
     public function getTransOrigPointerField($table) {
+    	tx_pttools_assert::isNotEmptyString($table, array('message' => 'No table given'));
     	return $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'];
     }
 	
