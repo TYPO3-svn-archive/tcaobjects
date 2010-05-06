@@ -35,7 +35,53 @@ class tx_tcaobjects_div {
 	 * @var array	lookup table: array('condensedExtKey' => 'full_extKey') for method getExtKeyFromCondensendExtKey
 	 */
 	public static $extKeyLookupTable = array();
+	
+	/**
+	 * @var array
+	 */
+	public static $fieldsForTypeValueCache = array();
 
+	
+	
+	/**
+	 * Get all available fields for a given type value
+	 * 
+	 * @param string $typeValue
+	 * @param string $table
+	 * @return array available fields
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since 2010-05-06 (<- Dirk's birthday)
+	 */
+    public static function getFieldsForTypeValue($typeValue, $table) {
+    	if (!isset(self::$fieldsForTypeValueCache[$table.','.$typeValue])) {
+	    	t3lib_div::loadTCA($table);
+	    	$typeDefinition = $GLOBALS['TCA'][$table]['types'][$typeValue]['showitem'];
+	    	if (empty($typeDefinition)) {
+	    		throw new tx_pttools_exception(sprintf('No type definition found in TCE for type "%s"', $typeDefinition));
+	    	}
+	    	$fieldConfigurations = t3lib_div::trimExplode(',', $typeDefinition, true);
+	    	$rawFields = array();
+	    	foreach ($fieldConfigurations as $fieldConfiguration) {
+	    		$rawField = t3lib_div::trimExplode(';', $fieldConfiguration);
+	    		if ($rawField[0] == '--palette--') {
+	    			$paletteDefinition = $GLOBALS['TCA'][$table]['palettes'][$rawField[2]]['showitem'];
+	    			$paletteFieldsConfigurations = t3lib_div::trimExplode(',', $paletteDefinition);
+	    			foreach ($paletteFieldsConfigurations as $paletteFieldsConfiguration) {
+	    				$rawPaletteField = t3lib_div::trimExplode(';', $paletteFieldsConfiguration);
+			    		if (substr($rawPaletteField[0], 0, 1) != '-') {
+			    			$rawFields[] = $rawPaletteField[0];
+			    		}		
+	    			}
+	    		}
+	    		if (substr($rawField[0], 0, 1) != '-') {
+	    			$rawFields[] = $rawField[0];
+	    		}
+	    	}
+	    	self::$fieldsForTypeValueCache[$table.','.$typeValue] = $rawFields;
+	    	
+    	}
+    	return self::$fieldsForTypeValueCache[$table.','.$typeValue];
+    }
 	
 	
 	/**

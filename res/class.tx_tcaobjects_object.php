@@ -635,35 +635,6 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     
     
     /**
-     * Returns an array of fieldnames that are available in the given type
-     * 
-     * @param string $typeValue
-     * @return array
-     * @author Fabrizio Branca <mail@fabrizio-branca.de>
-     * @since 2010-05-05
-     */
-    protected function getFieldsForTypeValue($typeValue) {
-    	if (!isset($this->fieldsForTypeValueCache[$typeValue])) {
-	    	t3lib_div::loadTCA($this->_table);
-	    	$typeDefinition = $GLOBALS['TCA'][$this->_table]['types'][$typeValue]['showitem'];
-	    	if (empty($typeDefinition)) {
-	    		throw new tx_pttools_exception(sprintf('No type definition found in TCE for type "%s"', $typeDefinition));
-	    	}
-	    	$fieldConfigurations = t3lib_div::trimExplode(',', $typeDefinition, true);
-	    	$rawFields = array();
-	    	foreach ($fieldConfigurations as $fieldConfiguration) {
-	    		$rawField = t3lib_div::trimExplode(';', $fieldConfiguration);
-	    		$rawFields[] = $rawField[0];
-	    	}
-	    	$this->fieldsForTypeValueCache[$typeValue] = $rawFields;
-	    	
-    	}
-    	return $this->fieldsForTypeValueCache[$typeValue];
-    }
-    
-    
-    
-    /**
      * Check if the given property is available in the current type
      * 
      * @param string $property
@@ -673,23 +644,20 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
     public function isAvailableInCurrentType($property) {
     	
-    	if (t3lib_div::inList(self::versioningFields . ',' . self::standardFields, $property)) {
- 			return true;   		
-    	}
-    	if (in_array($property, $this->_specialFields)) {
-    		return true;
-    	}
-    	if (in_array($property, $this->_enableColumns)) {
-    		return true;
-    	}
-    	
     	$typeValue = $this->getTypeValue(false);
-
     	if (empty($typeValue)) { // no types are used, field is always available
     		return true;
     	}
     	
-    	$fields = $this->getFieldsForTypeValue($typeValue);
+    	// following fields are available in all types (even if not configured excplicitely)
+    	if (t3lib_div::inList(self::versioningFields . ',' . self::standardFields, $property)) {
+ 			return true;   		
+    	}
+    	if (in_array($property, $this->_specialFields) || in_array($property, $this->_enableColumns)) {
+    		return true;
+    	}
+    	
+    	$fields = tx_tcaobjects_div::getFieldsForTypeValue($typeValue, $this->_table);
     	
     	return in_array($property, $fields);
     }
@@ -2291,7 +2259,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	
 	    		// check if this property is available in the current type
 		        if (!$this->isAvailableInCurrentType($property)) {
-		        	throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in type "%s"', $property, $this->getTypeValue(false)));
+		        	$typeValue = $this->getTypeValue(false);
+		        	$availableFields = implode(', ', tx_tcaobjects_div::getFieldsForTypeValue($typeValue, $this->_table));
+		        	throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in type "%s" (available fields: "%s")', $property, $typeValue, $availableFields));
 		        }
 	        	
 	        	// validate value
