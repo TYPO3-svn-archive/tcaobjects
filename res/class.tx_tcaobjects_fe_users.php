@@ -64,7 +64,7 @@ class tx_tcaobjects_fe_users extends tx_tcaobjects_object {
     	
         if ($fromSession) {
             if ($GLOBALS['TSFE']->loginUser) {
-                if ($fromSessionUid){
+                if ($fromSessionUid) {
                     parent::__construct($GLOBALS['TSFE']->fe_user->user['uid']);    
                 } else {
                     parent::__construct('', $GLOBALS['TSFE']->fe_user->user);

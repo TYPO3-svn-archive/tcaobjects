@@ -181,6 +181,10 @@ class tx_tcaobjects_divForm {
 		return true;
 	}
 	
+	public static function rule_regex($value, $field, $pattern) {
+		return preg_match($pattern, $value);
+	}
+	
 
 
 

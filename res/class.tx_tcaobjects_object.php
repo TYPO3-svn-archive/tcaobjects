@@ -399,8 +399,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $dataArray = $this->getDataArray();
         
         // check if all properties are valid
-        if (count($this->validate()) > 0) {
-        	throw new tx_pttools_exception('Validation errors while saving!');
+        $validationErrors = $this->validate(); 
+        if (count($validationErrors) > 0) {
+        	$tmp = '';
+        	foreach ($validationErrors as $fied => $errors) {
+        		$tmp .= $fied . ': ' . implode(', ', $errors) . '; ';
+        	}
+        	throw new tx_pttools_exception(sprintf('Validation errors "%s" while saving "%s"', $tmp, $this->getIdentifier()));
         }
 
         if (($fieldName = $this->getSpecialField('tstamp')) !== false) {
@@ -2252,16 +2257,19 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         	
 	        	// check if this property is excluded from translation
 	            if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
-	            	if ($value && $this->_values[$property]) { // only if new and old value are "real" values. No "0" or "null"
+	            	if ($value) { // only if value is a "real" values. No "0" or "null"
 						throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in a translation overlay. Object: "%s"', $property, $this->getIdentifier()));
 	            	}	            	
 	    		}       
 	
 	    		// check if this property is available in the current type
 		        if (!$this->isAvailableInCurrentType($property)) {
-		        	$typeValue = $this->getTypeValue(false);
-		        	$availableFields = implode(', ', tx_tcaobjects_div::getFieldsForTypeValue($typeValue, $this->_table));
-		        	throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in type "%s" (available fields: "%s")', $property, $typeValue, $availableFields));
+		        	if ($value) { 
+			        	$typeValue = $this->getTypeValue(false);
+			        	$availableFields = implode(', ', tx_tcaobjects_div::getFieldsForTypeValue($typeValue, $this->_table));
+			        	$objId = $this->getIdentifier();
+			        	throw new tx_pttools_exception(sprintf('Property "%s" cannot be written in type "%s" (object: "%s", available fields: "%s")', $property, $typeValue, $objId, $availableFields));
+		        	}
 		        }
 	        	
 	        	// validate value
@@ -2415,7 +2423,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     protected function getValidationErrorsForProperty($property, $value) {
     	$validationErrors = array();
     	
+    	$available = true;
+    	
     	if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
+    		$available = false;
     		if (!empty($value)) {
     			$error = true;
     			if (($defaultValue = $this->getConfig($property, 'default')) !== false) {
@@ -2430,23 +2441,47 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     		}
     	} 
     	
-    	/*
-    	$eval = $this->getEval($property);
-    	foreach ($eval as $ruleString) {
-    		list($rule, $param1, $param2) = t3lib_div::trimExplode(':', $ruleString);
-    		tx_pttools_assert::isAlphaNum($rule);
-    		$ruleFunction = 'rule_' . $rule;
-    		if (method_exists('tx_tcaobjects_divForm', $ruleFunction)) {
-    			if (!tx_tcaobjects_divForm::$ruleFunction($value, $property, $param1, $param2)) {
-    				$validationErrors[] = $ruleString;
-    			}
-    		}
-    	}
-    	*/
+        if (!$this->isAvailableInCurrentType($property)) {
+        	$available = false;
+        	if (!empty($value)) {
+        		$validationErrors[] = 'notAllowedInType'.$this->getTypeValue();
+        	}
+        }
+    	
+        
+        if ($available) {
+	    	$eval = $this->getEval($property);
+	    	foreach ($eval as $ruleString) {
+	    		$ruleString = str_replace('<comma>', ',', $ruleString);
+	    		$ruleString = str_replace('<colon>', ':', $ruleString);
+	    		list($rule, $param1, $param2) = t3lib_div::trimExplode(':', $ruleString);
+	    		tx_pttools_assert::isAlphaNum($rule);
+	    		$ruleFunction = 'rule_' . $rule;
+	    		if (method_exists('tx_tcaobjects_divForm', $ruleFunction)) {
+	    			if (!tx_tcaobjects_divForm::$ruleFunction($value, $property, $param1, $param2)) {
+	    				$validationErrors[] = $ruleString;
+	    			}
+	    		}
+	    	}
+        }
+    	
     	return $validationErrors;
     }
     
-    
+    /**
+     * Clean validation errors where possible
+     */
+    public function clean() {
+    	$allErrors = $this->validate();
+    	foreach ($allErrors as $field => $errors) {
+    		foreach ($errors as $error) {
+    			switch ($error) {
+    				case 'notAllowedInTypeproject': $this->__set($field, ''); break;
+    				case 'notAllowedInTranslation': $this->__set($field, ''); break;
+    			}
+    		}
+    	}
+    }
     
     /**
      * Validate all properties
