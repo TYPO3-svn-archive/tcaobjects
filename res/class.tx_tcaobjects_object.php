@@ -409,7 +409,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         }
 
         if (($fieldName = $this->getSpecialField('tstamp')) !== false) {
-            $dataArray[$fieldName] = time();
+            $dataArray[$fieldName] = $GLOBALS['EXEC_TIME'];
         }
 
         // fill cruser_id and crdate if this is a new record
@@ -419,7 +419,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 $dataArray[$fieldName] = $GLOBALS['TSFE']->fe_user->user['uid'];
             }
             if (($fieldName = $this->getSpecialField('crdate')) !== false) {
-                $dataArray[$fieldName] = time();
+                $dataArray[$fieldName] = $GLOBALS['EXEC_TIME'];
             }
         } else {
         	// not possible to change these values when updating (reason: policy, not technical!)
@@ -1598,7 +1598,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
      */
 	public function processFileUpload($property, $tmpName, $name) {
 		$type = $this->getConfig($property, 'type');
-		tx_pttools_assert::isEqual($type, 'group');
+		tx_pttools_assert::isEqual($type, 'group', array('message' => sprintf('Type "%s" (property "%s") is not supported. (only "group")', $type, $property)));
         $internal_type = $this->getConfig($property, 'internal_type');
         tx_pttools_assert::isEqual($internal_type, 'file');
         $maxitems = $this->getConfig($property, 'maxitems');
@@ -1608,6 +1608,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		tx_pttools_assert::isNotEmptyString($uploadFolder);		
 		
 		// check for collisions with existing files (and append counting postfix in this case)
+		// There is room for optimazation: On file name collision compare both files (md5-wise). 
+		// On the other hand: Reusing files could cause some more errors and would not be consistent to
+		// how TYPO3 handles files (when not using dam)
 		$counter = 0;
 		do {
 			$postFix = ($counter==0) ? '' : '_' . $counter;
@@ -1617,8 +1620,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		} while (is_file($targetFilePath));
 		
 		t3lib_div::upload_copy_move($tmpName, $targetFilePath);
-		// t3lib_div::fixPermissions($targetFile);
 		$this->__set($property, $targetFileName);
+		
+		tx_pttools_assert::isNotEmptyString($this->__get($property));
+		tx_pttools_assert::isFilePath($this[$property.'_path']);
 	}
     
     
@@ -1773,7 +1778,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         	$tmpPropertyValue = $this->__get($property);
         	if (!empty($tmpPropertyValue)) {
 	        	$uids = t3lib_div::trimExplode(',', $tmpPropertyValue);
-	        	tx_pttools_assert::isValidUidArray($uids);
+	        	tx_pttools_assert::isValidUidArray($uids, false, array('message' => sprintf('Value was "%s"', $tmpPropertyValue)));
 	            foreach ($uids as $uid) {
 	            	try {
 	                    // create object
@@ -2444,7 +2449,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         if (!$this->isAvailableInCurrentType($property)) {
         	$available = false;
         	if (!empty($value)) {
-        		$validationErrors[] = 'notAllowedInType'.$this->getTypeValue();
+        		$validationErrors[] = 'notAllowedInType_'.$this->getTypeValue();
         	}
         }
     	
@@ -2470,13 +2475,18 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     
     /**
      * Clean validation errors where possible
+     * 
+     * @return void
+     * @author Fabrizio Branca <mail@fabrizio-banca.de>
      */
     public function clean() {
     	$allErrors = $this->validate();
     	foreach ($allErrors as $field => $errors) {
     		foreach ($errors as $error) {
+    			if (t3lib_div::isFirstPartOfStr($error, 'notAllowedInType_')) {
+    				$this->__set($field, '');
+    			}
     			switch ($error) {
-    				case 'notAllowedInTypeproject': $this->__set($field, ''); break;
     				case 'notAllowedInTranslation': $this->__set($field, ''); break;
     			}
     		}

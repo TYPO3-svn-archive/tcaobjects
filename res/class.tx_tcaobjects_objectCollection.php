@@ -795,7 +795,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
     		$methodName = substr($methodName, 12);
     		return $this->callOnItems($methodName, $parameters);
     	} else {
-    		throw new tx_pttools_exception('Method does not exist');
+    		throw new tx_pttools_exception(sprintf('Method "%s" does not exist', $methodName));
     	}
     	
     	return $value;
