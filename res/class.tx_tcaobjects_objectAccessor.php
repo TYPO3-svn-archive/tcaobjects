@@ -132,7 +132,7 @@ class tx_tcaobjects_objectAccessor {
      * @author Fabrizio Branca <mail@fabrizio-branca.de>
      * @since 2010-03-16
      */
-    public function selectTranslation($table, $transOrigPointerField, $origUid, $languageField, $sysLanguageUid, $select='*') {
+    public static function selectTranslation($table, $transOrigPointerField, $origUid, $languageField, $sysLanguageUid, $select='*') {
     	// query preparation
         $from   = $table;
         $where  = $transOrigPointerField . ' = '.intval($origUid);
@@ -151,6 +151,22 @@ class tx_tcaobjects_objectAccessor {
 
         return $a_row;
     }
+    
+    
+    
+    /**
+     * Select records by pid
+     * 
+     * @param string table
+     * @param int pid
+     * @return array array of data arrays
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-05-23
+     */
+    public static function selectByPid($table, $pid) {
+    	tx_pttools_assert::isValidUid($pid);
+    	return self::selectCollection($table, 'pid = ' . $pid);
+    }
 
 
     /**
@@ -165,7 +181,7 @@ class tx_tcaobjects_objectAccessor {
      * @return	array 	array of data arrays
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function selectCollection($table, $where = '', $limit = '', $orderBy = '', $ignoreEnableFields = false, $select='*') {
+    public static function selectCollection($table, $where = '', $limit = '', $orderBy = '', $ignoreEnableFields = false, $select='*') {
         // query preparation
         $from = $table;
         $where = ($where != '') ? $where : '1';
@@ -202,7 +218,7 @@ class tx_tcaobjects_objectAccessor {
      * @return	array 	array of data arrays
      * @author 	Fabrizio Branca <mail@fabrizio-branca.de>
      */
-    public function selectCollectionCount($table, $where = '', $ignoreEnableFields = false) {
+    public static function selectCollectionCount($table, $where = '', $ignoreEnableFields = false) {
 
         // query preparation
         $select  = 'count(*) as quantity';

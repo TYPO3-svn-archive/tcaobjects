@@ -112,6 +112,21 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 
 
 	/**
+	 * Load items by pid
+	 *
+	 * @param 	array 	params, must contain key "pid"
+	 * @return 	void
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2010-05-23
+	 */
+	public function load_itemsByPid(array $params) {
+		tx_pttools_assert::isValidUid($params['pid']);
+		$this->loadItems('pid = ' . $params['pid']);
+	}
+
+
+
+	/**
 	 * Load all versions of a record
 	 *
 	 * @param array	params, key "uid"
