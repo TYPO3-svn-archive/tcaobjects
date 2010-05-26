@@ -349,7 +349,7 @@ class tx_tcaobjects_div {
 			$classname = $callingproperty;
 		}
 		if (!class_exists($classname)) {
-			throw new tx_pttools_exception('Target class "'.$classname.'" for property "'.$callingproperty.'" in table "'.$callingtable.'" does not exist!');
+			throw new tx_pttools_exception(sprintf('Target class "%s" for property "%s" in table "%s" does not exist!', $classname, $callingproperty, $callingtable));
 		}
 		return $classname;
 	}
