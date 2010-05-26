@@ -2494,6 +2494,38 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     }
     
     /**
+     * Adds a tag to the pages cache
+     * Requires the caching framework to be enabled
+     * 
+     * @return void
+     */
+    public function addToPagesCache() {
+    	$uid = $this['uid'];
+    	tx_pttools_assert::isValidUid($uid, array('message' => 'Adding to cache is only possible for saved objects.'));
+    	$cacheIdentifier = $this->getClassName() . '_' . $uid;
+    	tx_tcaobjects_cacheControl::addTag($cacheIdentifier);
+    	if (($endtimeField = $this->getEnableColumn('endtime')) == true) {
+    		$endtime = $this[$endtimeField];
+    		if (!empty($endtime)) {
+    			tx_tcaobjects_cacheControl::addTimeout($endtime);		
+    		}
+    	}
+    }
+    
+    /**
+     * Deletes a pages from cache with the corresponding tag
+     * Requires the caching framework to be enabled
+     * 
+     * @return void
+     */
+    public function deletePageCache() {
+    	$uid = $this['uid'];
+    	tx_pttools_assert::isValidUid($uid, array('message' => 'Adding to cache is only possible for saved objects.'));
+    	$cacheIdentifier = $this->getClassName() . '_' . $uid;
+    	tx_tcaobjects_cacheControl::flushByTag($cacheIdentifier);
+    }
+    
+    /**
      * Validate all properties
      * 
      * @return array validation errors array('<property>' => array(<rule>, <rule>))
