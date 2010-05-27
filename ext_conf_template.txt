@@ -28,7 +28,7 @@ customSysLogHandlerMinSeverity = 3
 # cat=basic; type=string; label=Mail address  
 customSysLogHandlerMailAddress = 
 
-# cat=basic; type=string; label=Mail address  
+# cat=basic; type=string; label=Log file  
 customSysLogHandlerLogFile = 
 
 # cat=basic; type=string; label=Exclude messages (regex)

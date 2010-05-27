@@ -42,28 +42,39 @@ class tx_tcaobjects_syslog {
 					  	) {
 				
 					  	// $params['time'] = date(DATE_COOKIE);
-						$params['HTTP_HOST'] = t3lib_div::getIndpEnv('HTTP_HOST');
-						$params['REQUEST_URI'] = t3lib_div::getIndpEnv('REQUEST_URI');
-						$params['HTTP_REFERER'] = t3lib_div::getIndpEnv('HTTP_REFERER');
-						$params['HTTP_USER_AGENT'] = t3lib_div::getIndpEnv('HTTP_USER_AGENT');
+						$params['Server']['HTTP_HOST'] = t3lib_div::getIndpEnv('HTTP_HOST');
+						$params['Server']['REQUEST_URI'] = t3lib_div::getIndpEnv('REQUEST_URI');
+						$params['Server']['HTTP_REFERER'] = t3lib_div::getIndpEnv('HTTP_REFERER');
+						$params['Client']['HTTP_USER_AGENT'] = t3lib_div::getIndpEnv('HTTP_USER_AGENT');
+						$params['Client']['REMOTE_HOST'] = t3lib_div::getIndpEnv('REMOTE_HOST');
+						$params['Client']['REMOTE_ADDR'] = t3lib_div::getIndpEnv('REMOTE_ADDR');
+						
 						if ($GLOBALS['TSFE'] instanceof tslib_fe) {
 							if ($GLOBALS['TSFE']->loginUser) {
+								// Username is enough in most cases. For full details use the commented part
+								$params['User']['FE_User'] = $GLOBALS['TSFE']->fe_user->user['username'];
+								/*
 								$params['FE_User'] = $GLOBALS['TSFE']->fe_user->user;
 								$params['FE_User']['password'] = '********';
 								foreach ($params['FE_User'] as &$value) {
 									$value = t3lib_div::fixed_lgd_cs($value, 50);
 								}
+								*/
 							} else {
-								$params['FE_User'] = 'No user logged in!';							
+								$params['User']['FE_User'] = 'No user logged in!';							
 							}
 							if ($GLOBALS['TSFE']->beUserLogin > 0) {
+								// Username is enough in most cases. For full details use the commented part
+								$params['User']['BE_User'] = $GLOBALS['BE_USER']->user['username'];
+								/*
 								$params['BE_User'] = $GLOBALS['BE_USER']->user;
 								$params['BE_User']['password'] = '********';
 								foreach ($params['BE_User'] as &$value) {
 									$value = t3lib_div::fixed_lgd_cs($value, 50);
 								}
+								*/
 							} else {
-								$params['BE_User'] = 'No user logged in!';
+								$params['User']['BE_User'] = 'No user logged in!';
 							}
 						}
 						
