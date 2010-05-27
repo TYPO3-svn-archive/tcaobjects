@@ -42,8 +42,7 @@ class tx_tcaobjects_syslog {
 					  	) {
 				
 					  	// $params['time'] = date(DATE_COOKIE);
-						$params['Server']['HTTP_HOST'] = t3lib_div::getIndpEnv('HTTP_HOST');
-						$params['Server']['REQUEST_URI'] = t3lib_div::getIndpEnv('REQUEST_URI');
+						$params['Server']['TYPO3_REQUEST_URL'] = t3lib_div::getIndpEnv('TYPO3_REQUEST_URL');
 						$params['Server']['HTTP_REFERER'] = t3lib_div::getIndpEnv('HTTP_REFERER');
 						$params['Server']['POST'] = $_POST;
 						$params['Client']['HTTP_USER_AGENT'] = t3lib_div::getIndpEnv('HTTP_USER_AGENT');
@@ -118,16 +117,20 @@ class tx_tcaobjects_syslog {
         	
 	        	$lines[] = '-- #'.$key.' -------------------------------------------------------';
 	
+	        	$cleanedArguments = array();
+	        	
 	        	// Clean up argument List
-	        	foreach ($row['args'] as &$arg) {
+	        	foreach ($row['args'] as $arg) {
 	        		if (is_object($arg)) {
-	        			$arg = '['.get_class($arg).']';
+	        			$cleanedArguments[] = '['.get_class($arg).']';
 	        		} elseif (is_array($arg)) {
-	        			$arg = '[Array]';
+	        			$cleanedArguments[] = '[Array]';
+	        		} else {
+	        			$cleanedArguments[] = $arg;
 	        		}
 	        	}
 	        	
-	            $lines[] = sprintf('%s%s%s (%s)', $row['class'], $row['type'], $row['function'], implode(', ', $row['args']));
+	            $lines[] = sprintf('%s%s%s (%s)', $row['class'], $row['type'], $row['function'], implode(', ', $cleanedArguments));
 	            if (!empty($row['file']) || !empty($row['line'])) {
 	            	$lines[] = sprintf('    %s (%s)', $row['file'], $row['line']);
 	            }
