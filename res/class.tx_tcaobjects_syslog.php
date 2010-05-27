@@ -45,6 +45,7 @@ class tx_tcaobjects_syslog {
 						$params['Server']['HTTP_HOST'] = t3lib_div::getIndpEnv('HTTP_HOST');
 						$params['Server']['REQUEST_URI'] = t3lib_div::getIndpEnv('REQUEST_URI');
 						$params['Server']['HTTP_REFERER'] = t3lib_div::getIndpEnv('HTTP_REFERER');
+						$params['Server']['POST'] = $_POST;
 						$params['Client']['HTTP_USER_AGENT'] = t3lib_div::getIndpEnv('HTTP_USER_AGENT');
 						$params['Client']['REMOTE_HOST'] = t3lib_div::getIndpEnv('REMOTE_HOST');
 						$params['Client']['REMOTE_ADDR'] = t3lib_div::getIndpEnv('REMOTE_ADDR');
