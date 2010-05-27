@@ -61,7 +61,7 @@ class tx_tcaobjects_syslog {
 								}
 								*/
 							} else {
-								$params['User']['FE_User'] = 'No user logged in!';							
+								$params['User']['FE_User'] = '-- no user --';							
 							}
 							if ($GLOBALS['TSFE']->beUserLogin > 0) {
 								// Username is enough in most cases. For full details use the commented part
@@ -74,22 +74,21 @@ class tx_tcaobjects_syslog {
 								}
 								*/
 							} else {
-								$params['User']['BE_User'] = 'No user logged in!';
+								$params['User']['BE_User'] = '-- no user --';
 							}
 						}
 						
-						$params['trace'] = "\n\n\n" . implode("\n", self::trace2Array($params['backTrace']));
+						$params['Trace'] = "\n\n\n" . implode("\n", self::trace2Array($params['backTrace']));
 						unset($params['backTrace']);
 						
-						$message = var_export($params, true);
-						
-						$message = "\n\n" . $message . "\n\n" . str_repeat('=', 80); 
+						$message = self::plainTextArray($params);
 						
 						if (!empty($mailAddress)) {
 							$subject = sprintf('Error in TYPO3 installation on "%s"', $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogHost']);
 							mail($mailAddress, $subject, $message);
 						}
 						if (!empty($logFile)) {
+							$message = "\n\n" . $message . "\n\n" . str_repeat('=', 80); 
 							file_put_contents($logFile, $message, FILE_APPEND);
 						}
 					}
@@ -97,6 +96,36 @@ class tx_tcaobjects_syslog {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Plain text output of an array
+	 * 
+	 * @param array $array
+	 * @param int (optional) $padding
+	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since 2010-05-27
+	 */
+	public static function plainTextArray(array $array, $padding=0) {
+		
+		$plainText = '';
+		
+		foreach ($array as $key => $value) {
+			$plainText .= str_repeat(' ', $padding) . $key.':   ';
+			if (is_scalar($value)) {
+				$plainText .= $value . "\n";	
+			} elseif (is_array($value)) {
+				$plainText .= "\n" . self::plainTextArray($value, $padding+4);
+			} elseif (is_object($value)) {
+				$plainText .=  get_class($value). "\n";
+			} elseif (is_null($value)) {
+				$plainText .=  '[null]' . "\n";
+			} else {
+				$plainText .=  '[undefined]' . "\n";
+			}
+		}
+		
+		return $plainText;
 	}
 	
 	/**
