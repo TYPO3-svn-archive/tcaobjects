@@ -53,6 +53,9 @@ class tx_tcaobjects_syslog {
 							if ($GLOBALS['TSFE']->loginUser) {
 								// Username is enough in most cases. For full details use the commented part
 								$params['User']['FE_User'] = $GLOBALS['TSFE']->fe_user->user['username'];
+								if ($GLOBALS['CNMode']) {
+									$params['User']['FE_User'] .= ' (ADMIN-MODE)';	
+								}
 								/*
 								$params['FE_User'] = $GLOBALS['TSFE']->fe_user->user;
 								$params['FE_User']['password'] = '********';
@@ -84,7 +87,7 @@ class tx_tcaobjects_syslog {
 						$message = self::plainTextArray($params);
 						
 						if (!empty($mailAddress)) {
-							$subject = sprintf('Error in TYPO3 installation on "%s"', $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogHost']);
+							$subject = sprintf('[ERROR][%s] %s', $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogHost'], $params['msg']);
 							mail($mailAddress, $subject, $message);
 						}
 						if (!empty($logFile)) {
@@ -111,11 +114,11 @@ class tx_tcaobjects_syslog {
 		$plainText = '';
 		
 		foreach ($array as $key => $value) {
-			$plainText .= str_repeat(' ', $padding) . $key.':   ';
+			$plainText .= str_repeat(' ', $padding) . $key.': ';
 			if (is_scalar($value)) {
 				$plainText .= $value . "\n";	
 			} elseif (is_array($value)) {
-				$plainText .= "\n" . self::plainTextArray($value, $padding+4);
+				$plainText .= "\n" . self::plainTextArray($value, $padding + 2);
 			} elseif (is_object($value)) {
 				$plainText .=  get_class($value). "\n";
 			} elseif (is_null($value)) {
