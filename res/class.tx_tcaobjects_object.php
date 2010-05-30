@@ -321,7 +321,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         if (is_array($dataArr)) {
             $this->setDataArray($dataArr);
         } else {
-            throw new tx_pttools_exception(sprintf('Record "%s:%s" could not be loaded', $this->_table, $uid), 0);
+            throw new tx_pttools_exception(sprintf('Record "%s:%s" could not be loaded (ignoring enable fields: "%s")', $this->_table, $uid, $ignoreEnableFields ? 'true' : 'false'), 0);
         }
         
         tx_pttools_assert::isTrue($this->checkReadAccess(), array('message' => sprintf('No read access on "%s"', $this->getIdentifier())));
