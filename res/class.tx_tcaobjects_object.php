@@ -1608,7 +1608,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         tx_pttools_assert::isEqual($internal_type, 'file');
         $maxitems = $this->getConfig($property, 'maxitems');
         tx_pttools_assert::isEqual($maxitems, '1');
-		
+        
+        
 		$uploadFolder = $this->getConfig($property, 'uploadfolder');
 		tx_pttools_assert::isNotEmptyString($uploadFolder);		
 		
@@ -1624,11 +1625,20 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 			$counter++;
 		} while (is_file($targetFilePath));
 		
-		t3lib_div::upload_copy_move($tmpName, $targetFilePath);
-		$this->__set($property, $targetFileName);
+        // only white lists are supported! "disallowed" will not be read
+        $allowedFileTypes = $this->getConfig($property, 'allowed');
+		$pathInfo = pathinfo($targetFileName);
+		$extension = strtolower($pathInfo['extension']);
 		
-		tx_pttools_assert::isNotEmptyString($this->__get($property));
-		tx_pttools_assert::isFilePath($this[$property.'_path']);
+		if (t3lib_div::inList($allowedFileTypes, $extension)) {
+			t3lib_div::upload_copy_move($tmpName, $targetFilePath);
+			$this->__set($property, $targetFileName);
+			
+			tx_pttools_assert::isNotEmptyString($this->__get($property));
+			tx_pttools_assert::isFilePath($this[$property.'_path']);
+		} else {
+			$this->setValidationError($property, array('unallowedFileExtension' => 'unallowedFileExtension'));
+		}
 	}
     
     
