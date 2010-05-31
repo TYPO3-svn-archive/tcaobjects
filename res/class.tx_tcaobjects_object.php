@@ -154,6 +154,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 * @var array cache storing the fields available in a type
 	 */
 	protected $fieldsForTypeValueCache = array();
+	
+	/**
+	 * @var array storage for validation errors
+	 */
+	protected $validationErrors = array();
 
 	/**
 	 * @var	string	comma separated list of standard field names
@@ -2525,6 +2530,29 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	tx_tcaobjects_cacheControl::flushByTag($cacheIdentifier);
     }
     
+    
+    
+    /**
+     * Set validation error
+     * 
+     * @param string $property
+     * @param array $propertyErrors
+     * @return void
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-05-31 (<- the day after Lena Meyer-Landrut won the ESC 2010)
+     */
+    public function setValidationError($property, array $propertyErrors) {
+    	if (!empty($propertyErrors)) {
+        	if (is_array($this->validationErrors[$property])) {
+        		$this->validationErrors[$property] = t3lib_div::array_merge_recursive_overrule($this->validationErrors[$property], $propertyErrors);
+        	} else {
+             	$this->validationErrors[$property] = $propertyErrors;
+        	}
+        }
+    }
+    
+    
+    
     /**
      * Validate all properties
      * 
@@ -2537,12 +2565,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	$dataArray = $this->getDataArray();
     	foreach ($dataArray as $property => $value) {
         	$propertyErrors = $this->getValidationErrorsForProperty($property, $value);
-        	if (!empty($propertyErrors)) {
-             	$errors[$property] = $propertyErrors;
-        	}
+        	$this->setValidationError($property, $propertyErrors);
         }
-        $errors = t3lib_div::array_merge_recursive_overrule($errors, $this->objectValidation());
-    	return $errors;
+        $this->validationErrors = t3lib_div::array_merge_recursive_overrule($this->validationErrors, $this->objectValidation());
+    	return $this->validationErrors;
     }
     
     
