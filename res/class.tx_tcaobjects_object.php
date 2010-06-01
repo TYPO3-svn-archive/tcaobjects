@@ -2488,6 +2488,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	return $validationErrors;
     }
     
+    public function removeValidationError($property, $key) {
+    	unset($this->validationErrors[$property][$key]);
+    	if (empty($this->validationErrors[$property])) {
+    		unset($this->validationErrors[$property]);
+    	}
+    }
+    
     /**
      * Clean validation errors where possible
      * 
@@ -2497,12 +2504,16 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     public function clean() {
     	$allErrors = $this->validate();
     	foreach ($allErrors as $field => $errors) {
-    		foreach ($errors as $error) {
+    		foreach ($errors as $key => $error) {
     			if (t3lib_div::isFirstPartOfStr($error, 'notAllowedInType_')) {
     				$this->__set($field, '');
+    				$this->removeValidationError($field, $key);
     			}
     			switch ($error) {
-    				case 'notAllowedInTranslation': $this->__set($field, ''); break;
+    				case 'notAllowedInTranslation': {
+    					$this->__set($field, '');
+    					$this->removeValidationError($field, $key);
+    				} break;
     			}
     		}
     	}
@@ -2554,10 +2565,13 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     public function setValidationError($property, array $propertyErrors) {
     	if (!empty($propertyErrors)) {
         	if (is_array($this->validationErrors[$property])) {
-        		$this->validationErrors[$property] = t3lib_div::array_merge_recursive_overrule($this->validationErrors[$property], $propertyErrors);
-        	} else {
-             	$this->validationErrors[$property] = $propertyErrors;
-        	}
+        		$this->validationErrors[$property] = array();
+        		foreach ($propertyErrors as $error) {
+        			if (!in_array($error, $this->validationErrors[$property])) {
+        				$this->validationErrors[$property][] = $property;
+         			}
+        		}
+        	}	
         }
     }
     
