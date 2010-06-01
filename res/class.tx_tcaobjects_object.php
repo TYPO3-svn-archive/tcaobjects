@@ -321,7 +321,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     		throw new tx_pttools_exception('There are unstored changed in this object. You cannot reload this object! Those changes would get lost.');
     	}
 
-		tx_pttools_assert::isValidUid($uid, false, array('message' => sprintf('"%s" is not a valid uid!'), $uid));
+		tx_pttools_assert::isValidUid($uid, false, array('message' => sprintf('"%s" is not a valid uid!', $uid)));
         $dataArr = tx_tcaobjects_objectAccessor::selectByUid($uid, $this->_table, $ignoreEnableFields);
         if (is_array($dataArr)) {
             $this->setDataArray($dataArr);
