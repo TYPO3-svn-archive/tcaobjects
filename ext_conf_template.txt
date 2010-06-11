@@ -33,3 +33,6 @@ customSysLogHandlerLogFile =
 
 # cat=basic; type=string; label=Exclude messages (regex)
 customSysLogHandleExcludeMessages = /^Unable to autoload class "\w+"$/
+
+# cat=basic; type=boolean; label=Anonymize data: IP addresses will be anonymized and fe/be usernames won't be inserted
+customSysLogAnonymize = 

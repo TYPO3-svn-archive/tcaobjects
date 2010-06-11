@@ -18,6 +18,7 @@ class tx_tcaobjects_syslog {
 			$minSeverity = $conf['customSysLogHandlerMinSeverity'];
 			$mailAddress = $conf['customSysLogHandlerMailAddress'];
 			$logFile = $conf['customSysLogHandlerLogFile'];
+			$customSysLogAnonymize = $conf['customSysLogAnonymize'];
 			
 			if (!empty($mailAddress) || !empty($logFile)) {
 			
@@ -44,15 +45,25 @@ class tx_tcaobjects_syslog {
 					  	// $params['time'] = date(DATE_COOKIE);
 						$params['Server']['TYPO3_REQUEST_URL'] = t3lib_div::getIndpEnv('TYPO3_REQUEST_URL');
 						$params['Server']['HTTP_REFERER'] = t3lib_div::getIndpEnv('HTTP_REFERER');
-						$params['Server']['POST'] = $_POST;
+						if (!empty($_POST)) {
+							$params['Server']['POST'] = $customSysLogAnonymize ? '(anonymized)' : $_POST;	
+						} else {
+							$params['Server']['POST'] = '-- none --';
+						}
+						if (!empty($_COOKIE)) {
+							$params['Server']['COOKIE'] = $customSysLogAnonymize ? '(anonymized)' : $_COOKIE;	
+						} else {
+							$params['Server']['COOKIE'] = '-- none --';
+						}
+						
 						$params['Client']['HTTP_USER_AGENT'] = t3lib_div::getIndpEnv('HTTP_USER_AGENT');
-						$params['Client']['REMOTE_HOST'] = t3lib_div::getIndpEnv('REMOTE_HOST');
-						$params['Client']['REMOTE_ADDR'] = t3lib_div::getIndpEnv('REMOTE_ADDR');
+						$params['Client']['REMOTE_HOST'] = $customSysLogAnonymize ? '(anonymized)' : t3lib_div::getIndpEnv('REMOTE_HOST');
+						$params['Client']['REMOTE_ADDR'] = $customSysLogAnonymize ? '(anonymized)' : t3lib_div::getIndpEnv('REMOTE_ADDR');
 						
 						if ($GLOBALS['TSFE'] instanceof tslib_fe) {
 							if ($GLOBALS['TSFE']->loginUser) {
 								// Username is enough in most cases. For full details use the commented part
-								$params['User']['FE_User'] = $GLOBALS['TSFE']->fe_user->user['username'];
+								$params['User']['FE_User'] = $customSysLogAnonymize ? '(anonymized)' : $GLOBALS['TSFE']->fe_user->user['username'];
 								if ($GLOBALS['CNMode']) {
 									$params['User']['FE_User'] .= ' (ADMIN-MODE)';	
 								}
@@ -68,7 +79,7 @@ class tx_tcaobjects_syslog {
 							}
 							if ($GLOBALS['TSFE']->beUserLogin > 0) {
 								// Username is enough in most cases. For full details use the commented part
-								$params['User']['BE_User'] = $GLOBALS['BE_USER']->user['username'];
+								$params['User']['BE_User'] = $customSysLogAnonymize ? '(anonymized)' : $GLOBALS['BE_USER']->user['username'];
 								/*
 								$params['BE_User'] = $GLOBALS['BE_USER']->user;
 								$params['BE_User']['password'] = '********';
