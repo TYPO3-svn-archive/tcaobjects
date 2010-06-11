@@ -79,6 +79,7 @@ class tx_tcaobjects_syslog {
 						}
 						
 						$params['Client']['HTTP_USER_AGENT'] = t3lib_div::getIndpEnv('HTTP_USER_AGENT');
+						$params['Client']['Spider'] = self::checkIfSpider($params['Client']['HTTP_USER_AGENT']) ? ' Yes' : 'No';
 						$params['Client']['REMOTE_HOST'] = $customSysLogAnonymize ? '(anonymized)' : t3lib_div::getIndpEnv('REMOTE_HOST');
 						$params['Client']['REMOTE_ADDR'] = $customSysLogAnonymize ? '(anonymized)' : t3lib_div::getIndpEnv('REMOTE_ADDR');
 						
@@ -133,6 +134,29 @@ class tx_tcaobjects_syslog {
 			}
 		}
 	}
+	
+	
+	/**
+	 * Check if the user agent string matches a spider
+	 * 
+	 * @param string $userAgent
+	 * @return bool true if spider was detected
+	 */
+	public static function checkIfSpider($userAgent) {  
+         $spiders = array(  
+			'Googlebot', 'Yammybot', 'Openbot', 'Yahoo', 'Slurp', 'msnbot',  
+            'ia_archiver', 'Lycos', 'Scooter', 'AltaVista', 'Teoma', 'Gigabot',  
+            'Googlebot-Mobile'  
+		);  
+   
+		foreach ($spiders as $spider) {
+             if (stripos($userAgent, $spider) !== false) {  
+                 return true;  
+             }  
+         }  
+         return false;  
+     }  
+	
 	
 	/**
 	 * Plain text output of an array
