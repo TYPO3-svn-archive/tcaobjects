@@ -41,7 +41,29 @@ class tx_tcaobjects_syslog {
 					  	(strpos($params['msg'], 'The requested page does not exist!') === false) &&
 					  	(strpos($params['msg'], 'Login-attempt from') === false)
 					  	) {
-				
+					  		
+					  	// clean message
+					  	$matches = array();
+					  	preg_match('/(.*)\[(.*)\]/', $params['msg'], $matches);
+					  	
+					  	if (count($matches) == 3) {
+					  		$params['msg'] = trim($matches[1]);
+					  		list($class, $debugMsg) = explode(':', $matches[2], 2);
+					  		$params['exceptionClass'] = trim($class);
+					  		$debugMsg = trim($debugMsg);
+					  		if (!empty($debugMsg)) {
+					  			$params['debugMsg'] = $debugMsg;	
+								$pattern = '/<span class="label">(.*)<\/span><span class="value (.*)">(.*)<\/span>/U';
+								$allMatches = array();
+								if (preg_match_all($pattern, $params['debugMsg'], $allMatches)) {
+									$params['debugMsg'] = array();
+									foreach ($allMatches[0] as $key => $match) {
+										$params['debugMsg'][$allMatches[1][$key]] = $allMatches[3][$key]; 	
+									} 	
+								}
+					  		}
+					  	}
+					  	
 					  	// $params['time'] = date(DATE_COOKIE);
 						$params['Server']['TYPO3_REQUEST_URL'] = t3lib_div::getIndpEnv('TYPO3_REQUEST_URL');
 						$params['Server']['HTTP_REFERER'] = t3lib_div::getIndpEnv('HTTP_REFERER');
