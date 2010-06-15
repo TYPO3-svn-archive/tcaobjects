@@ -78,12 +78,12 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		
 		// set restricted class name
 		if (is_null($this->restrictedClassName)) {
-			$this->restrictedClassName = $this->getClassName ();
+			$this->restrictedClassName = $this->getClassName();
 		}
 		
 		// load items
-		if (! empty($load)) {
-			tx_pttools_assert::isNotEmptyString($load, array ('message' => 'No valid load parameter'));
+		if (!empty($load)) {
+			tx_pttools_assert::isNotEmptyString($load, array('message' => 'No valid load parameter'));
 			$methodName = 'load_' . $load;
 			if (method_exists($this, $methodName)) {
 				$this->$methodName($params);
@@ -125,14 +125,14 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return void
 	 */
 	public function load_versions(array $params) {
-		tx_pttools_assert::isValidUid($params['uid'], false, array ('message' => 'No valid uid given!'));
+		tx_pttools_assert::isValidUid($params['uid'], false, array('message' => 'No valid uid given!'));
 		
 		$where = '(t3ver_oid = ' . $params['uid'] . ' OR uid = ' . $params['uid'] . ')';
 		$limit = '';
 		$order = 't3ver_id DESC';
 		$ignoreEnableFields = false;
 		
-		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable (), $where, $limit, $order, $ignoreEnableFields);
+		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
 		$this->setDataArray($dataArr);
 	}
 	
@@ -143,13 +143,13 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return void
 	 */
 	public function load_translations(array $params) {
-		tx_pttools_assert::isValidUid($params['uid'], false, array ('message' => 'No valid uid given!'));
+		tx_pttools_assert::isValidUid($params['uid'], false, array('message' => 'No valid uid given!'));
 		
-		$table = $this->getTable ();
+		$table = $this->getTable();
 		$languageField = tx_tcaobjects_div::getLanguageField($table);
-		tx_pttools_assert::isNotEmptyString($languageField, array ('message' => 'No language field found'));
+		tx_pttools_assert::isNotEmptyString($languageField, array('message' => 'No language field found'));
 		$transOrigPointer = tx_tcaobjects_div::getTransOrigPointerField($table);
-		tx_pttools_assert::isNotEmptyString($transOrigPointer, array ('message' => 'No transOrigPointer field found'));
+		tx_pttools_assert::isNotEmptyString($transOrigPointer, array('message' => 'No transOrigPointer field found'));
 		
 		$languageField = $GLOBALS['TYPO3_DB']->quoteStr($languageField, $table);
 		$transOrigPointer = $GLOBALS['TYPO3_DB']->quoteStr($transOrigPointer, $table);
@@ -174,7 +174,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @since	2008-06-01
 	 */
 	public function loadItems($where = '', $limit = '', $order = '', $ignoreEnableFields = false) {
-		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable (), $where, $limit, $order, $ignoreEnableFields);
+		$dataArr = tx_tcaobjects_objectAccessor::selectCollection($this->getTable(), $where, $limit, $order, $ignoreEnableFields);
 		$count = count($dataArr);
 		$this->setDataArray($dataArr);
 		tx_pttools_assert::isEqual($this->count (), $count);
@@ -253,7 +253,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		
 		$propertyParts = t3lib_div::trimExplode('|', $propertyName);
 		
-		$returnArray = array ();
+		$returnArray = array();
 		foreach ($this->itemsArr as $key => $item) {
 			$returnArray[$key] = tx_tcaobjects_div::extractProperty($item, $propertyName);
 		}
@@ -300,17 +300,15 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	public function addItem(tx_tcaobjects_object $itemObj, $id = 0) {
 		
-		if (! is_null($this->uniqueProperty)) {
+		if (!is_null($this->uniqueProperty)) {
 			
 			foreach (t3lib_div::trimExplode(',', $this->uniqueProperty) as $uniqueProperty) {
-				if (TYPO3_DLOG)
-					t3lib_div::devLog(sprintf('Checking for unique property "%s"', $uniqueProperty), 'tcaobjects');
+				if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Checking for unique property "%s"', $uniqueProperty), 'tcaobjects');
 				
 				$property = tx_tcaobjects_div::extractProperty($itemObj, $uniqueProperty);
 				$existingProperties = $this->extractProperty($uniqueProperty);
 				
-				if (TYPO3_DLOG)
-					t3lib_div::devLog('Unique check', 'tcaobjects', 1, array ('property' => $property, 'existingProperties' => $existingProperties));
+				if (TYPO3_DLOG) t3lib_div::devLog('Unique check', 'tcaobjects', 1, array('property' => $property, 'existingProperties' => $existingProperties));
 				
 				if (in_array($property, $existingProperties)) {
 					throw new tx_pttools_exception(sprintf('Property value for property "%s" already in exists on collection!', $uniqueProperty));
@@ -331,7 +329,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return void
 	 */
 	protected function writeUidsToKeys() {
-		$tmpArray = array ();
+		$tmpArray = array();
 		foreach ($this->itemsArr as $item) {
 			$tmpArray[$item->get_uid ()] = $item;
 		}
@@ -349,11 +347,11 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		if (! $this->checkItemType($itemObj)) {
 			throw new tx_pttools_exceptionInternal('Item to add to collection is of wrong type');
 		}
-		array_splice($this->itemsArr, $index + 1, 0, array ($itemObj));
+		array_splice($this->itemsArr, $index + 1, 0, array($itemObj));
 		
 		// array_splice does not preserve numeric keys in the input array 
 		if ($this->useUidAsCollectionId) {
-			$this->writeUidsToKeys ();
+			$this->writeUidsToKeys();
 		}
 	}
 	
@@ -368,7 +366,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		if (! $this->checkItemType($itemObj)) {
 			throw new tx_pttools_exceptionInternal('Item to add to collection is of wrong type');
 		}
-		array_splice($this->itemsArr, $index, 0, array ($itemObj));
+		array_splice($this->itemsArr, $index, 0, array($itemObj));
 		
 		// array_splice does not preserve numeric keys in the input array 
 		if ($this->useUidAsCollectionId) {
@@ -410,7 +408,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	public function unshift($element, $doNotModifyKeys = false, $useKey = NULL) {
 		if ((is_null($useKey)) && $this->useUidAsCollectionId) {
-			$useKey = $element->get_uid ();
+			$useKey = $element->get_uid();
 		}
 		return parent::unshift($element, $doNotModifyKeys, $useKey);
 	}
@@ -464,7 +462,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return int index
 	 */
 	public function getIndexByItemId($id) {
-		if (! $this->hasItem($id)) {
+		if (!$this->hasItem($id)) {
 			throw new tx_pttools_exception(sprintf('Item with id "%s" does not exist.', $id));
 		}
 		return array_search($id, array_keys($this->itemsArr));
@@ -496,7 +494,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		
 		// check parameters
 		$idx = intval($idx);
-		if (! $this->hasIndex($idx)) {
+		if (!$this->hasIndex($idx)) {
 			return false;
 		}
 		$itemArr = array_keys($this->itemsArr);
@@ -524,7 +522,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	public function getPreviousItemId($id) {
 		$currentIndex = $this->getIndexForId($id);
-		return (! $this->hasIndex($currentIndex)) ? false : $this->getItemIdByIndex($currentIndex - 1);
+		return (!$this->hasIndex($currentIndex)) ? false : $this->getItemIdByIndex($currentIndex - 1);
 	}
 	
 	/**
@@ -535,7 +533,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	public function getNextItem($id) {
 		$currentIndex = $this->getIndexForId($id);
-		return (! $this->hasIndex($currentIndex)) ? false : $this->getItemByIndex($currentIndex + 1);
+		return (!$this->hasIndex($currentIndex)) ? false : $this->getItemByIndex($currentIndex + 1);
 	}
 	
 	/**
@@ -546,7 +544,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	public function getPreviousItem($id) {
 		$currentIndex = $this->getIndexForId($id);
-		return (! $this->hasIndex($currentIndex)) ? false : $this->getItemByIndex($currentIndex - 1);
+		return (!$this->hasIndex($currentIndex)) ? false : $this->getItemByIndex($currentIndex - 1);
 	}
 	
 	/**
@@ -557,7 +555,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return tx_tcaobjects_objectCollection
 	 */
 	public function where_propertyEquals($propertyName, $propertyValue) {
-		$collection = new tx_tcaobjects_objectCollection ();
+		$collection = new tx_tcaobjects_objectCollection();
 		foreach ($this as $key => $item) {
 			if ($item[$propertyName] == $propertyValue) {
 				$collection->addItem($item, $key);
@@ -577,7 +575,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return int total item count
 	 */
 	public function getTotalItemCount($where = '') {
-		return tx_tcaobjects_objectAccessor::selectCollectionCount($this->getTable (), $where);
+		return tx_tcaobjects_objectAccessor::selectCollectionCount($this->getTable(), $where);
 	}
 	
 	/**
@@ -659,7 +657,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 			$methodName = 'check_' . substr($offset, 6);
 			if (method_exists($this, $methodName)) {
 				$className = get_class($this);
-				$newCollection = new $className (); /* @var tx_tcaobjects_objectCollection */
+				$newCollection = new $className(); /* @var tx_tcaobjects_objectCollection */
 				foreach ($this as $object) { /* @var $object tx_tcaobjects_object */
 					if ($this->$methodName($object) === true) {
 						$newCollection->addItem($object);
@@ -673,7 +671,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 			$methodName = 'check_' . substr($offset, 7);
 			if (method_exists($this, $methodName)) {
 				$className = get_class($this);
-				$newCollection = new $className (); /* @var tx_tcaobjects_objectCollection */
+				$newCollection = new $className(); /* @var tx_tcaobjects_objectCollection */
 				foreach ($this as $object) { /* @var $object tx_tcaobjects_object */
 					if ($this->$methodName($object) === true) {
 						$newCollection->addItem($object);
@@ -686,7 +684,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		} elseif (substr($offset, 0, 5) == 'sort_') {
 			$methodName = 'compare_' . substr($offset, 5);
 			if (method_exists($this, $methodName)) {
-				uasort($this->itemsArr, array (get_class($this), $methodName));
+				uasort($this->itemsArr, array(get_class($this), $methodName));
 			} elseif (substr($offset, 5, 6) == 'field_') {
 				$field = substr($offset, 11);
 				if (substr($field, - 4) == '_asc') {
@@ -701,7 +699,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 				// not nice, but the only way to pass parameters to a callback function
 				self::$_sortingField = $field;
 				self::$_sortingDirection = $direction;
-				uasort($this->itemsArr, array (get_class($this), 'genericFieldSorter'));
+				uasort($this->itemsArr, array(get_class($this), 'genericFieldSorter'));
 			} else {
 				throw new tx_pttools_exception(sprintf('No method "%s" found (for sort use)', $methodName));
 			}
@@ -711,7 +709,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		} elseif (substr($offset, 0, 4) == 'idx_') {
 			return $this->getItemByIndex(substr($offset, 4));
 		} elseif ($offset == 'first') {
-			return $this->first ();
+			return $this->first();
 		} elseif ($offset == 'last') {
 			return $this->last();
 		} else {
@@ -789,9 +787,9 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @since 2010-04-16
 	 */
 	public function callOnItems($methodName, array $parameters = array()) {
-		$results = array ();
+		$results = array();
 		foreach ($this as $key => $object) { /* @var $object tx_tcaobjects_object */
-			$callback = array ($object, $methodName);
+			$callback = array($object, $methodName);
 			if (is_callable($callback)) {
 				$results[$key] = call_user_func_array($callback, $parameters);
 			} else {
@@ -824,10 +822,10 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return void
 	 */
 	public function setPropertyToKey($property, $prefix = '') {
-		$newItemArr = array ();
+		$newItemArr = array();
 		foreach ($this->itemsArr as $value) { /* @var $value tx_tcaobjects_object */
 			$newKey = $value->__get($property);
-			if (! empty($prefix)) {
+			if (!empty($prefix)) {
 				$newKey = $prefix . $newKey;
 			}
 			if (array_key_exists($newKey, $newItemArr)) {
@@ -869,10 +867,10 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return tx_tcaobjects_objectCollection
 	 */
 	public function translate($addUntranslatedItems = true, $sysLanguageUid = null) {
-		tx_pttools_assert::isTrue($this->supportsTranslation (), array ('message' => 'Translation is not supported for items of this collection'));
+		tx_pttools_assert::isTrue($this->supportsTranslation(), array('message' => 'Translation is not supported for items of this collection'));
 		
 		$className = get_class($this);
-		$newCollection = new $className (); /* @var tx_tcaobjects_objectCollection */
+		$newCollection = new $className(); /* @var tx_tcaobjects_objectCollection */
 		
 		foreach ($this as $key => $item) { /* @var $item tx_tcaobjects_object */
 			$languageVersion = $item->getLanguageVersion($sysLanguageUid, true);
