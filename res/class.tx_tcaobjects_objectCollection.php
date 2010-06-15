@@ -732,7 +732,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return tx_tcaobjects_object
 	 */
 	public function first() {
-		tx_pttools_assert::isFalse($this->isEmpty(), array('message' => 'Unable to get the first element because to collection is empty.'));
+		tx_pttools_assert::isFalse($this->isEmpty(), array('message' => 'Unable to get the first element because the collection is empty.'));
 		return $this->getItemByIndex(0);
 	}
 	
@@ -742,7 +742,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * @return tx_tcaobjects_object
 	 */
 	public function last() {
-		tx_pttools_assert::isFalse($this->isEmpty(), array('message' => 'Unable to get the last element because to collection is empty.'));
+		tx_pttools_assert::isFalse($this->isEmpty(), array('message' => 'Unable to get the last element because the collection is empty.'));
 		return $this->getItemByIndex(count($this) - 1);
 	}
 	
