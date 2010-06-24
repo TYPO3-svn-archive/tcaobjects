@@ -19,12 +19,14 @@ t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_display_cachedobject', 'FILE:EXT:'.$
 
 
 if (TYPO3_MODE == 'BE') {
-
-	require_once t3lib_extMgm::extPath('tcaobjects') . 'misc/class.tx_tcaobjects_reports_DatabaseStatus.php';
-	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports']['tx_reports']['status']['providers']['database'][] = 'tx_tcaobjects_reports_DatabaseStatus';
 	
-	require_once t3lib_extMgm::extPath('tcaobjects') . 'misc/class.tx_tcaobjects_reports_tca.php';
-	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports']['tx_reports']['status']['providers']['tca'][] = 'tx_tcaobjects_reports_tca';
+	if (t3lib_extMgm::isLoaded('reports')) {
+		require_once t3lib_extMgm::extPath('tcaobjects') . 'misc/class.tx_tcaobjects_reports_DatabaseStatus.php';
+		$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports']['tx_reports']['status']['providers']['database'][] = 'tx_tcaobjects_reports_DatabaseStatus';
+		
+		require_once t3lib_extMgm::extPath('tcaobjects') . 'misc/class.tx_tcaobjects_reports_tca.php';
+		$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports']['tx_reports']['status']['providers']['tca'][] = 'tx_tcaobjects_reports_tca';
+	}
 
 }
 
