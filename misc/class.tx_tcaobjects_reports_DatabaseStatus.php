@@ -8,8 +8,6 @@
  */
 class tx_tcaobjects_reports_DatabaseStatus implements tx_reports_StatusProvider {
 
-	
-	
 	/**
 	 * Returns the status for this report
 	 *
@@ -19,13 +17,14 @@ class tx_tcaobjects_reports_DatabaseStatus implements tx_reports_StatusProvider 
 	public function getStatus() {
 		
 		$tables = $this->getTableData();
-		$message = $this->renderMessage($tables);
+		
 		if ($this->allUtf8($tables)) {
 			$severity = tx_reports_reports_status_Status::OK;
-			$value = 'OK';
+			$value = 'All tables and fields are utf8';
 		} else {
 			$severity = tx_reports_reports_status_Status::WARNING;
-			$value = 'WARNING';
+			$value = 'Some tables and/or fields are not utf8';
+			$message = $this->renderMessage($tables);
 		}
 		
 		$statuses = array(
