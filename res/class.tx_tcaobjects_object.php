@@ -1857,7 +1857,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
             )
         );
         
-        $uid = $this[$property];
+        $uid = $this->__get($property);
         
         tx_pttools_assert::isValidUid($uid, false, array('message' => 'No valid uid found for _obj modifier (Current object: '.$this->getIdentifier().', Property '.$property.')'));
 
@@ -2190,12 +2190,17 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     		return $this->getDefaultLanguageUid();
     	}
     	
+    	// get default language obj
+    	if ($calledProperty == 'dlobj') {
+    		return $this->getDefaultLanguageObject();
+    	}
+    	
     	// get translation
     	if ($calledProperty == '_translate') {
     		return $this->getLanguageVersion();
     	}
 
-        list ($orig_property, $modifier) = $this->getSpecial($calledProperty);
+        list($orig_property, $modifier) = $this->getSpecial($calledProperty);
 
         $property = $this->resolveAlias($orig_property);
 
@@ -2205,6 +2210,17 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
         $calledProperty = $property.((!empty($modifier)) ? '_'.$modifier : '');
 
+        // return default language object's value if this field is excluded from translation
+        if ($this->supportsTranslations() && ($property != $this->getLanguageField())) {
+	        // check if this property is excluded from translation
+	        if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
+	        	return $this->getDefaultLanguageObject()->__get($calledProperty);
+	        	// TODO: or should we return the default language value here?
+	        	// How to distinguish then where the value comes from?
+	        	// throw new tx_pttools_exception(sprintf('Property "%s" is excluded from translation and cannot be read', $property));
+	        }
+        }
+        
         // process modifier if any
         if (!empty($modifier) && empty($this->_values[$calledProperty])) {
 
@@ -2218,16 +2234,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                 throw new tx_pttools_exception(sprintf('No handler method found for modifier "%s"!', $modifier));
             }
         }
-        
-		/*
-        // check if this property is excluded from translation
-        if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
-        	// TODO: or should we return the default language value here?
-        	// How to distinguish then where the value comes from?
-        	throw new tx_pttools_exception(sprintf('Property "%s" is excluded from translation and cannot be read', $property));
-        }
-        
-        
+               
+        /*
         // check if this property is available in the current type
         if (!$this->isAvailableInCurrentType($property)) {
         	throw new tx_pttools_exception(sprintf('Property "%s" is not available in type "%s"', $property, $this->getTypeValue(false)));
@@ -2725,8 +2733,10 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 
 }
 
+/*
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tcaobjects/res/class.tx_tcaobjects_object.php'])	{
     include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tcaobjects/res/class.tx_tcaobjects_object.php']);
 }
+*/
 
 ?>
