@@ -92,7 +92,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         'sL',
     	'label', // returns the label of the field as defined in TCA
     	'values', // returns all possible values for this field (in case of selects)
-    	'multilang' // returns all property in all languages <span class="lang-0">Default language</span><span class="lang-1">Translation</span>
+    	'multilang', // returns all property in all languages <span class="lang-0">Default language</span><span class="lang-1">Translation</span>
+    	'multilanghsc' // same as multilang, but applies hsc on all values before wrapping them into spans
 	);
 	
 	/**
@@ -730,6 +731,8 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	        	'uid' => $defaultLanguageUid,
 	        	'ignoreEnableFields' => $ignoreEnableFields,
 	        ));
+	        $this->translations->writeLanguageUidsToKeys();
+	        
 	        // find current object and select it
 	        foreach ($this->translations as $key => $translation) { /* @var $translation tx_tcaobject_object */
 	        	if ($translation->get_uid() == $this->get_uid()) {
@@ -909,15 +912,24 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	
     	$sysLanguageUid = intval($sysLanguageUid);
     	$className = $this->getClassName(); 
+    	
+    	// retrieve language object if it wasn't retrieved before
     	if (is_null($this->languageObjects[$sysLanguageUid])) {
-	    	if ($sysLanguageUid == $this->getLanguageUid()) {
+    		
+	    	if ($sysLanguageUid == $this->getLanguageUid()) { // this is already the requested translation
+	    		
 	    		$this->languageObjects[$sysLanguageUid] = $this;
-	    	} elseif ($sysLanguageUid == 0) {
-	    		$this->languageObjects[$sysLanguageUid] = tx_tcaobjects_genericRepository::getObjectByUid($className, $this->getDefaultLanguageUid());
+	    		
+	    	} elseif ($sysLanguageUid == 0) { // default language was requested
+	    		
+	    		$dlUid = $this->getDefaultLanguageUid();
+	    		tx_pttools_assert::isValidUid($dlUid, false, array('message' => 'No default language uid found'));
+	    		$this->languageObjects[$sysLanguageUid] = tx_tcaobjects_genericRepository::getObjectByUid($className, $dlUid);
 	    		
 	    		// set reference to current object for performance reasons
 	    		$this->languageObjects[$sysLanguageUid]->setLanguageVersion($this->getLanguageUid(), $this);
-	    	} else {
+	    		
+	    	} else { // translation other than default was requested
 		    	
 		    	// load data
 		    	$dataArr = tx_tcaobjects_objectAccessor::selectTranslation(
@@ -2142,12 +2154,45 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     protected function processModifier_multilang($property, $calledProperty) {
     	tx_pttools_assert::isFalse($this->excludedFromTranslation($property), array('message' => 'This property is excluded from translation'));
     	$translations = $this->getTranslations();
+    	
     	$values = $translations->extractProperty($property);
     	$output = '';
+    	
     	// TODO: what about language uid "-1" for "all"?
     	foreach ($values as $uid => $value) {
-    		// TODO: this could be made configurable by a class property and setter/getter 
-    		$output .= sprintf('<span class="lang-%s">%s</span>', $uid, $value);
+    		if (!empty($value)) {
+	    		// TODO: this could be made configurable by a class property and setter/getter 
+	    		$output .= sprintf('<span class="lang-%s">%s</span>', htmlspecialchars($uid), $value);
+    		}
+    	}
+    	return $output;
+    }
+    
+    
+    
+    /**
+     * Process modifier "multilang".
+     * This modifier returns the content of the field in all available languages 
+     *
+     * @param $property
+     * @param $calledProperty
+     * @return string
+     * @author Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since 2010-05-05
+     */
+    protected function processModifier_multilanghsc($property, $calledProperty) {
+    	tx_pttools_assert::isFalse($this->excludedFromTranslation($property), array('message' => 'This property is excluded from translation'));
+    	$translations = $this->getTranslations();
+    	
+    	$values = $translations->extractProperty($property);
+    	$output = '';
+    	
+    	// TODO: what about language uid "-1" for "all"?
+    	foreach ($values as $uid => $value) {
+    		if (!empty($value)) {
+	    		// TODO: this could be made configurable by a class property and setter/getter 
+	    		$output .= sprintf('<span class="lang-%s">%s</span>', htmlspecialchars($uid), htmlspecialchars($value));
+    		}
     	}
     	return $output;
     }
@@ -2211,7 +2256,11 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $calledProperty = $property.((!empty($modifier)) ? '_'.$modifier : '');
 
         // return default language object's value if this field is excluded from translation
-        if ($this->supportsTranslations() && ($property != $this->getLanguageField())) {
+        if ($this->supportsTranslations() && ($property != $this->getLanguageField()) && ($property != $this->getTypeField())) {
+        	
+        	// Hint: typeField is excluded from this check because it will be queries everytime a value is set to retrieve if
+        	// this value can be set in this type. 
+        	
 	        // check if this property is excluded from translation
 	        if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {
 	        	return $this->getDefaultLanguageObject()->__get($calledProperty);
@@ -2225,7 +2274,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         if (!empty($modifier) && empty($this->_values[$calledProperty])) {
 
         	// check if modifier is allowed (i.e. is value in $this->_modifierList)
-        	tx_pttools_assert::isInArray($modifier, $this->_modifierList, array('message' => 'Modifier "'.$modifier.'" is not allowed in this object!'));
+        	tx_pttools_assert::isInArray($modifier, $this->_modifierList, array('message' => sprintf('Modifier "%s" is not allowed in this object!', $modifier)));
 
             $modifierMethodName = 'processModifier_'.$modifier;
             if (method_exists($this, $modifierMethodName)) {
@@ -2237,7 +2286,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
                
         /*
         // check if this property is available in the current type
-        if (!$this->isAvailableInCurrentType($property)) {
+        if ($property != $this->getTypeField() && !$this->isAvailableInCurrentType($property)) {
         	throw new tx_pttools_exception(sprintf('Property "%s" is not available in type "%s"', $property, $this->getTypeValue(false)));
         }
         */
