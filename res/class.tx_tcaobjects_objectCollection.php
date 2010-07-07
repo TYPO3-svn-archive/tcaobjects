@@ -324,16 +324,45 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	}
 	
 	/**
+	 * Rewrite property value to keys
+	 * 
+	 * @param string $property
+	 * @return void
+	 * @since 2010-06-29 
+	 */
+	protected function writePropertyToKey($property) {
+		tx_pttools_assert::isNotEmptyString($property, array('message' => 'No property given'));
+		$tmpArray = array();
+		foreach ($this->itemsArr as $item) {
+			$propertyValue = $item->__get($property);
+			if (isset($tmpArray[$propertyValue])) {
+				throw new tx_pttools_exception(sprintf('Duplicate key "%s" while writing property "%s" to keys', $propertyValue, $property));
+			}
+			$tmpArray[$propertyValue] = $item;
+		}
+		$this->itemsArr = $tmpArray;
+	}
+	
+	/**
 	 * Rewrite uids to keys (needed when useUidAsCollectionId)
 	 * 
 	 * @return void
 	 */
 	protected function writeUidsToKeys() {
-		$tmpArray = array();
-		foreach ($this->itemsArr as $item) {
-			$tmpArray[$item->get_uid ()] = $item;
+		$this->writePropertyToKey('uid');
+	}
+	
+	/**
+	 * Rewrite language uid to keys
+	 * 
+	 * @return void
+	 */
+	public function writeLanguageUidsToKeys() {
+		tx_pttools_assert::isTrue($this->supportsTranslation(), array('message' => 'This collection does not support translation'));
+		if (count($this)) {
+			$languageField = $this->first()->getLanguageField();
+			$this->writePropertyToKey($languageField);
 		}
-		$this->itemsArr = $tmpArray;
 	}
 	
 	/**
