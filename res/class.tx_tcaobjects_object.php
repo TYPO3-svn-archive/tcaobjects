@@ -1060,6 +1060,9 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	        		$this->versions->set_selectedId($key);
 	        	}
 	        }
+	        if ($this->versions->get_selectedId() == 0) {
+	        	throw new tx_pttools_exception('No selected id found. (There should be one!)');
+	        }
     	}
         return $this->versions;
     }
@@ -1115,14 +1118,17 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         $tce = t3lib_div::makeInstance('t3lib_TCEmain'); /* @var $tce t3lib_TCEmain */
 		$tce->stripslashes_values = 0;
 		$tce->start(array(), array(), tx_tcaobjects_div::createFakeBeUser());
+        $tce->bypassAccessCheckForRecords = 1;
 
 		$oid = $this->getOid();
-		$tce->version_swap($this->getTable(), $oid, $this->__get('uid'));
+		$currentUid = $this->__get('uid');
+		
+		$tce->version_swap($this->getTable(), $oid, $currentUid);
 
 		// reset versions and values
 		$this->versions = NULL;
 		$this->_values = array();
-
+		
 		// reload self
 		$this->loadSelf($oid);
     }
@@ -1172,8 +1178,14 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 		$tce->start(Array(),Array(), tx_tcaobjects_div::createFakeBeUser());
 
 		$newUid = $tce->versionizeRecord($this->getTable(), $this->getOid(), $label);
+		
+		tx_pttools_assert::isValidUid($newUid, false, array('message' => 'No valid new uid!'));
+		tx_pttools_assert::isNotEqual($newUid, $this->get_uid(), array('message' => 'Old and new uid are the same!'));
 
-		return tx_tcaobjects_genericRepository::getObjectByUid($this->getClassName(), $newUid);
+		$object = tx_tcaobjects_genericRepository::getObjectByUid($this->getClassName(), $newUid);
+		
+		tx_pttools_assert::isEqual($newUid, $object->get_uid(), array('message' => 'Object does not have the correct uid'));
+		return $object;
     }
 
 
@@ -1198,16 +1210,16 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     	$dontCopyFields = t3lib_div::trimExplode(',', self::versioningFields . ',' . self::standardFields . ',' . self::potentialSpecialFields);
 
     	$dataArray = array_diff_key($dataArray, array_flip($dontCopyFields));
-
+    	
     	// set remaining fields (the fields that actually contain the domain data) to the new object
     	$newVersion->setDataArray($dataArray);
-
+    	
     	$newVersion->storeSelf();
-
+    	
     	if ($makeNewVersionTheOnlineVersion == true) {
     		$newVersion->makeThisTheOnlineVersion();
     	}
-
+    	
     	return $newVersion;
     }
 

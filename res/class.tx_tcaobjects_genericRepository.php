@@ -56,11 +56,12 @@ class tx_tcaobjects_genericRepository {
 			$object = new $className($uid);
 		}
 		tx_pttools_assert::isInstanceOf($object, $className);
+		tx_pttools_assert::isEqual($uid, $object->get_uid(), array('message' => 'Uids do not match'));
 		return $object;
 	}
 	
 	public static function findOneBy($property, $value, $className) {
-		
+		throw new tx_pttools_exception('Not implemented yet');
 	}
 	
 }
