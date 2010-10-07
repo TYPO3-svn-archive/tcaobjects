@@ -81,7 +81,7 @@ class tx_tcaobjects_cacheControl {
 	* 
 	* @param	string		Tag to clear cache by
 	*/
-	public function flushByTag($tag) {
+	public static function flushByTag($tag) {
 		
 		tx_pttools_assert::isNotEmptyString($tag);
 		tx_pttools_assert::isEqual($GLOBALS['TYPO3_CONF_VARS']['SYS']['useCachingFramework'], true, array('message' => 'Caching framework is not activated'), false);
@@ -96,7 +96,7 @@ class tx_tcaobjects_cacheControl {
 	 *
 	 * @return	void
 	 */	
-	public function getCache() {
+	public static function getCache() {
 		if (!isset(self::$cache)) {
 			try {
 				self::$cache = $GLOBALS['typo3CacheManager']->getCache('cache_pages');
@@ -106,6 +106,34 @@ class tx_tcaobjects_cacheControl {
 			}
 		}
 		return self::$cache;
+	}
+	
+	
+	
+	/**
+	 * Clear cache cmd
+	 * 
+	 * @param string $clearCacheCmd
+	 * @return void
+	 * @since 2010-10-07
+	 */
+	public static function clearCacheCmd($clearCacheCmd) {
+		$tce = t3lib_div::makeInstance('t3lib_tcemain'); /* @var $tce t3lib_TCEmain */
+		$tce->clear_cacheCmd($clearCacheCmd);
+	}
+	
+	
+	
+	/**
+	 * Flush cache by pid
+	 * 
+	 * @param int pid
+	 * @return void
+	 * @since 2010-10-07
+	 */
+	public static function flushByPid($pid) {
+		tx_pttools_assert::isValidUid($pid, false, array('message' => 'Invalid pid'));
+		return self::clearCacheCmd($pid);
 	}
 	
 	

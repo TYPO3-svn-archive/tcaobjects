@@ -34,6 +34,10 @@ class tx_tcaobjects_tt_content extends tx_tcaobjects_object {
 
     protected $_table = 'tt_content';
     
+    protected $ignoreSetCheckFields = array(
+		'imagecols', 'sectionIndex'
+	);
+    
 }
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tcaobjects/res/class.tx_tcaobjects_tt_content.php'])	{

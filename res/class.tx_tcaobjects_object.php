@@ -160,14 +160,19 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	 * @var array storage for validation errors
 	 */
 	protected $validationErrors = array();
+	
+	/**
+	 * @var array array of field names that should not be considered in set checks
+	 */
+	protected $ignoreSetCheckFields = array();
 
 	/**
-	 * @var	string	comma separated list of standard field names
+	 * @var	string comma separated list of standard field names
 	 */
 	const standardFields = 'uid,pid';
 
     /**
-     * @var string	comma separated list of potential special fields
+     * @var string comma separated list of potential special fields
      */
     const potentialSpecialFields = 'tstamp,crdate,cruser_id,delete,sortby,origUid,transOrigPointerField,transOrigDiffSourceField';
     
@@ -177,7 +182,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     const potentialEnableColumns = 'disabled,starttime,endtime,fe_group';
 
     /**
-     * @var string	comma separated list of field names used for versioning
+     * @var string comma separated list of field names used for versioning
      */
     const versioningFields = 't3ver_oid,t3ver_id,t3ver_wsid,t3ver_label,t3ver_state,t3ver_stage,t3ver_count,t3ver_tstamp,t3ver_move_id,t3ver_swapmode';
 
@@ -2342,7 +2347,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
         if ($value !== $this->_values[$property]) {
         	
         	
-        	if ($this->_enableSetChecks) {
+        	if ($this->_enableSetChecks && !in_array($property, $this->ignoreSetCheckFields)) {
         	
 	        	// check if this property is excluded from translation
 	            if ($this->isTranslationOverlay() && $this->excludedFromTranslation($property)) {

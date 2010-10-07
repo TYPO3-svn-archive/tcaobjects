@@ -264,14 +264,12 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 * Call "storeSelf" on all items
 	 * 
 	 * @return void
-	 * @return void
 	 * @author Fabrizio Branca <mail@fabrizio-branca.de>
 	 * @since 2009-08-09
 	 */
 	public function storeAll() {
-		/* @var $element tx_tcaobjects_object */
-		foreach ($this as $element) {
-			$element->storeSelf ();
+		foreach ($this as $element) { /* @var $element tx_tcaobjects_object */
+			$element->storeSelf();
 		}
 	}
 	
@@ -285,7 +283,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 	 */
 	public function __toString() {
 		$registryIdentifier = uniqid('tcaobjectCollection_' . get_class($this) . '_', true);
-		tx_pttools_registry::getInstance ()->register($registryIdentifier, $this);
+		tx_pttools_registry::getInstance()->register($registryIdentifier, $this);
 		return $registryIdentifier;
 	}
 	
@@ -317,7 +315,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		}
 		
 		if (($id === 0) && $this->useUidAsCollectionId) {
-			$id = $itemObj->get_uid ();
+			$id = $itemObj->get_uid();
 		}
 		
 		return parent::addItem($itemObj, $id);
@@ -399,7 +397,7 @@ class tx_tcaobjects_objectCollection extends tx_pttools_objectCollection impleme
 		
 		// array_splice does not preserve numeric keys in the input array 
 		if ($this->useUidAsCollectionId) {
-			$this->writeUidsToKeys ();
+			$this->writeUidsToKeys();
 		}
 	}
 	

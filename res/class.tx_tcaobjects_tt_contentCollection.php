@@ -32,6 +32,70 @@
  */
 class tx_tcaobjects_tt_contentCollection extends tx_tcaobjects_objectCollection {
     
+	/**
+	 * @var string unique property name
+	 */
+	protected $uniqueProperty = 'uid';
+	
+	
+	
+	/**
+	 * Load content elements by pid
+	 * 
+	 * @param int pid
+	 * @return void
+	 */
+	public function loadByPid($pid) {
+		tx_pttools_assert::isValidUid($pid, false, array('message' => 'Invalid pid'));	
+		$this->loadItems('pid = ' . $pid);
+	}
+	
+	
+	
+	/**
+	 * Load items
+	 *
+	 * @param 	string	(optional) where
+	 * @param 	string	(optional) limit
+	 * @param 	string	(optional) order, if empty "sorting" field is used
+	 * @param	bool	(optional) ignore enable fields, default is false
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since	2010-10-07
+	 */
+	public function loadItems($where = '', $limit = '', $order = '') {
+		if ($order == '') {
+			$order = 'sorting';
+		}
+		parent::loadItems($where, $limit, $order);
+	}
+	
+	
+	
+	/**
+	 * Sort collection items by an external array
+	 * 
+	 * @param array array containing the uids in the order to be sorted
+	 * @return void
+	 * @author Fabrizio Branca <fabrizio@scrbl.net>
+	 * @since 2009-08-13
+	 */
+	public function sortByArray(array $sorting) {
+		tx_pttools_assert::isValidUidArray($sorting, false, array('message' => 'Given sorting array is invalid'));
+		$uids = $this->extractProperty('uid');
+		tx_pttools_assert::isValidUidArray($uids, false, array('message' => 'Retrieved uids are invalid'));
+		
+		$sortingUids = $sorting;
+		
+		sort($sortingUids);
+		sort($uids);
+		
+		tx_pttools_assert::isEqual($sortingUids, $uids, array('message' => 'Sorting array did not contain the same elements as the collection.'));
+		
+		foreach ($sorting as $key => $uid) {
+			$this->getItemByProperty('uid', $uid)->set_sorting(pow(2, $key));
+		}
+	}
+	
 }
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tcaobjects/res/class.tx_tcaobjects_tt_contentCollection.php'])	{
