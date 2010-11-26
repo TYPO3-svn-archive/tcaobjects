@@ -121,8 +121,11 @@ class tx_tcaobjects_syslog {
 						$message = self::plainTextArray($params);
 						
 						if (!empty($mailAddress)) {
-							$subject = sprintf('[ERROR][%s] %s', $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogHost'], $params['msg']);
-							mail($mailAddress, $subject, $message);
+							
+							if ($params['Client']['Spider'] == 'No') {
+								$subject = sprintf('[ERROR][%s] %s', $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogHost'], $params['msg']);
+								mail($mailAddress, $subject, $message);
+							}
 						}
 						if (!empty($logFile)) {
 							$message = "\n\n" . $message . "\n\n" . str_repeat('=', 80); 
@@ -146,7 +149,7 @@ class tx_tcaobjects_syslog {
          $spiders = array(  
 			'Googlebot', 'Yammybot', 'Openbot', 'Yahoo', 'Slurp', 'msnbot',  
             'ia_archiver', 'Lycos', 'Scooter', 'AltaVista', 'Teoma', 'Gigabot',  
-            'Googlebot-Mobile', 'Yandex', 'DotBot' 
+            'Googlebot-Mobile', 'Yandex', 'DotBot', 'FAST Enterprise Crawler' 
 		);  
    
 		foreach ($spiders as $spider) {
