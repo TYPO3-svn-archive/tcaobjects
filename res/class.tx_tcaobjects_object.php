@@ -620,6 +620,31 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
     
     
     /**
+     * Check if this record is active (regarding starttime/endtime)
+     * 
+     * @return bool
+     */
+    public function isActive() {
+    	$startTimeField = $GLOBALS['TCA'][$this->_table]['ctrl']['enablecolumns']['starttime'];
+    	if ($startTimeField) {
+    		$startTime = $this->__get($startTimeField);
+    		if ($startTime && $startTime > $GLOBALS['EXEC_TIME']) {
+    			return false;
+    		}
+    	}
+    	$endTimeField = $GLOBALS['TCA'][$this->_table]['ctrl']['enablecolumns']['endtime'];
+        if ($endTimeField) {
+    		$endTime = $this->__get($endTimeField);
+    		if ($endTime && $endTime < $GLOBALS['EXEC_TIME']) {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+    
+    
+    
+    /**
      * Get type field
      * 
      * @return string
@@ -1795,7 +1820,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	            	foreach ($uids as $uid) {
 	            		try {
 	                        // create object
-	                        $tmpObj = tx_tcaobjects_genericRepository::getObjectByUid($classname, $uid);
+	                        $tmpObj = tx_tcaobjects_genericRepository::getObjectByUid($classname, $uid, true); // ignoring enable fields
 	
 	                        if ($tmpObj->isDeleted() == false) {
 	                            $value->addItem($tmpObj);
@@ -1826,7 +1851,7 @@ abstract class tx_tcaobjects_object implements ArrayAccess, IteratorAggregate {
 	            foreach ($uids as $uid) {
 	            	try {
 	                    // create object
-	                    $tmpObj = tx_tcaobjects_genericRepository::getObjectByUid($classname, $uid);
+	                    $tmpObj = tx_tcaobjects_genericRepository::getObjectByUid($classname, $uid, true); // ignoring enable fields
 	
 	                    if ($tmpObj->isDeleted() == false) {
 	                        $value->addItem($tmpObj);
