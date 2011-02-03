@@ -38,22 +38,23 @@ class tx_tcaobjects_genericRepository {
 	 * 
 	 * @param string $className
 	 * @param int $uid
+	 * @param bool $ignoreEnableFields
 	 */
-	public static function getObjectByUid($className, $uid) {
+	public static function getObjectByUid($className, $uid, $ignoreEnableFields=false) {
 		tx_pttools_assert::isNotEmptyString($className);
 		tx_pttools_assert::isValidUid($uid);
 		
 		$tableName = tx_tcaobjects_div::getTableName($className);
 		if (tx_tcaobjects_div::getCtrl($tableName, 'valueObject')) {
-			$hash = $className.'_'.$uid;
+			$hash = $className.'_'.$uid . ($ignoreEnableFields ? '_ignoredEnableFields' : '');
 			if (isset(self::$valueObjects[$hash])) {
 				$object = self::$valueObjects[$hash];
 			} else {
-				$object = new $className($uid);
+				$object = new $className($uid, array(), $ignoreEnableFields);
 				self::$valueObjects[$hash] = $object;
 			}
 		} else {
-			$object = new $className($uid);
+			$object = new $className($uid, array(), $ignoreEnableFields);
 		}
 		tx_pttools_assert::isInstanceOf($object, $className);
 		tx_pttools_assert::isEqual($uid, $object->get_uid(), array('message' => 'Uids do not match'));
