@@ -335,6 +335,16 @@ class tx_tcaobjects_objectAccessor {
         $where = 'uid = '.intval($updateFieldsArr['uid']);
 
         self::updateTable($table, $where, $updateFieldsArr);
+        
+        // quickfix patch provided Tolleiv Nietsch
+        // @see http://forge.typo3.org/issues/25482
+		if (t3lib_extMgm::isLoaded('realurl')) {
+			$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+				'tx_realurl_uniqalias', 
+				'tablename = `' . $table . '` AND value_id = '.intval($updateFieldsArr['uid']), 
+				array('expire' => $GLOBALS['EXEC_TIME'])
+			);
+		}
 
         return $updateFieldsArr['uid'];
     }
