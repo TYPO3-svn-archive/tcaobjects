@@ -35,4 +35,10 @@ customSysLogHandlerLogFile =
 customSysLogHandleExcludeMessages = /^Unable to autoload class "\w+"$/
 
 # cat=basic; type=boolean; label=Anonymize data: IP addresses will be anonymized and fe/be usernames won't be inserted
-customSysLogAnonymize = 
+customSysLogAnonymize =
+
+# cat=basic; type=boolean; label=Spider to mail: If sending mail is activated this flag decides whether to send a mail if the error was triggered by a spider bot.
+customSysLogSpiderLogsToMail =
+
+# cat=basic; type=boolean; label=Spider to file: If writing log file is activated this flag decides whether to write a log entry if the error was triggered by a spider bot.
+customSysLogSpiderLogsToFile =

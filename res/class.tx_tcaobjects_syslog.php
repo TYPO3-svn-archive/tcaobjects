@@ -119,18 +119,23 @@ class tx_tcaobjects_syslog {
 						unset($params['backTrace']);
 						
 						$message = self::plainTextArray($params);
-						
+
+						// send mail
 						if (!empty($mailAddress)) {
-							
-							if ($params['Client']['Spider'] == 'No') {
+							if (($conf['customSysLogSpiderLogsToMail'] && $params['Client']['Spider'] == 'Yes') || $params['Client']['Spider'] == 'No') {
 								$subject = sprintf('[ERROR][%s] %s', $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogHost'], $params['msg']);
 								mail($mailAddress, $subject, $message);
 							}
 						}
+
+						// write to log file
 						if (!empty($logFile)) {
-							$message = "\n\n" . $message . "\n\n" . str_repeat('=', 80); 
-							file_put_contents($logFile, $message, FILE_APPEND);
+							if (($conf['customSysLogSpiderLogsToFile'] && $params['Client']['Spider'] == 'Yes') || $params['Client']['Spider'] == 'No') {
+								$message = "\n\n" . $message . "\n\n" . str_repeat('=', 80);
+								file_put_contents($logFile, $message, FILE_APPEND);
+							}
 						}
+
 					}
 					
 				}
