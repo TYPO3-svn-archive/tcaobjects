@@ -149,7 +149,7 @@ class tx_tcaobjects_syslog {
          $spiders = array(  
 			'Googlebot', 'Yammybot', 'Openbot', 'Yahoo', 'Slurp', 'msnbot',  
             'ia_archiver', 'Lycos', 'Scooter', 'AltaVista', 'Teoma', 'Gigabot',  
-            'Googlebot-Mobile', 'Yandex', 'DotBot', 'FAST Enterprise Crawler', 'yacybot' 
+            'Googlebot-Mobile', 'Yandex', 'DotBot', 'FAST Enterprise Crawler', 'yacybot', 'Bingbot'
 		);  
    
 		foreach ($spiders as $spider) {
