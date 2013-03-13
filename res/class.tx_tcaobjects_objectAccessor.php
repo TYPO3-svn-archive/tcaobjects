@@ -341,7 +341,7 @@ class tx_tcaobjects_objectAccessor {
 		if (t3lib_extMgm::isLoaded('realurl')) {
 			$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
 				'tx_realurl_uniqalias', 
-				'tablename = `' . $table . '` AND value_id = '.intval($updateFieldsArr['uid']), 
+				'tablename = \'' . $table . '\' AND value_id = '.intval($updateFieldsArr['uid']),
 				array('expire' => $GLOBALS['EXEC_TIME'])
 			);
 		}
