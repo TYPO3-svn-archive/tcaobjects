@@ -51,19 +51,19 @@ class tx_tcaobjects_divForm {
 	}
 	
 	public static function filter_alpha($value) {
-		return ereg_replace('[^a-zA-Z]','',$value);
+		return preg_replace('/[^a-zA-Z]/','',$value);
 	}
 	
 	public static function filter_num($value) {
-		return ereg_replace('[^0-9]','',$value);
+		return preg_replace('/[^0-9]/','',$value);
 	}
 	
 	public static function filter_alphanum($value) {
-		return ereg_replace('[^a-zA-Z0-9]','',$value);
+		return preg_replace('/[^a-zA-Z0-9]/','',$value);
 	}
 	
 	public static function filter_alphanum_x($value) {
-		return ereg_replace('[^a-zA-Z0-9_-]','',$value);
+		return preg_replace('/[^a-zA-Z0-9_-]/','',$value);
 	}
 	
 	public static function filter_trim($value) {

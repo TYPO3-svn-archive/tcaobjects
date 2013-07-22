@@ -109,7 +109,7 @@ class tx_tcaobjects_div {
 		
 		$info = pathinfo($name);
 		$fileName = $info['filename'];
-		$fileName = ereg_replace('[^a-zA-Z0-9._-]', '_', $fileName);
+		$fileName = preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileName);
 		
 		return $fileName . $postFix . '.' . $info['extension'];
 	}
